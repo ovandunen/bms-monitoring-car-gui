@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- FR: technical default bucket (WO missing keys fall back here) -->
+<resources>
+    <string name="nav_music">Musique</string>
+    <string name="nav_map">Carte</string>
+    <string name="nav_battery">Batterie</string>
+    <string name="nav_charts">Graphiques</string>
+    <string name="nav_browser">Navigateur</string>
+    <string name="nav_settings">Réglages</string>
+
+    <string name="sidebar_collapse">Réduire la barre latérale</string>
+    <string name="sidebar_expand">Développer la barre latérale</string>
+
+    <string name="bottom_soc">Charge</string>
+    <string name="bottom_trip">Distance (trajet)</string>
+    <string name="bottom_range">Autonomie</string>
+    <string name="bottom_co2">Économie CO₂</string>
+    <string name="bottom_settings">Réglages</string>
+    <string name="bottom_info">Info</string>
+    <string name="bottom_collapse">Réduire la barre inférieure</string>
+    <string name="bottom_expand">Développer la barre inférieure</string>
+    <string name="bottom_km">%1$d km</string>
+    <string name="bottom_km_dash">—</string>
+    <string name="bottom_tons">%1$.1f t</string>
+    <string name="bottom_tons_dash">—</string>
+    <string name="eco_bottom_bar_dashboard">Tableau de bord</string>
+
+    <string name="battery_tab_overview">Aperçu</string>
+    <string name="battery_tab_cells">Cellules</string>
+    <string name="battery_tab_alerts">Alarmes</string>
+    <string name="battery_title">Batterie haute tension</string>
+    <string name="battery_live_hint">Données en direct (IPC BMS) : SOC/courant/cellules — dérive démo possible.</string>
+    <string name="battery_demo_hint">Télémétrie démo pour la mise en page — pas en direct sans liaison BMS.</string>
+    <string name="metric_soc">SOC</string>
+    <string name="metric_pack_voltage">Tension pack</string>
+    <string name="metric_pack_current">Courant pack</string>
+    <string name="metric_power">Puissance</string>
+    <string name="battery_sniffer_btn">Ouvrir le sniffer CAN (démo)</string>
+    <string name="cells_bms_title">Tensions cellules (BMS, %1$d valeurs)</string>
+    <string name="cells_demo_title">Tensions cellules (démo, %1$d cellules)</string>
+    <string name="cells_live_hint">En direct via EcoCar↔BMS AIDL (ESP32 via APK BMS).</string>
+    <string name="cells_demo_hint">Démo — cellules en direct après liaison au service BMS.</string>
+    <string name="alerts_title">Alarmes et avis</string>
+    <string name="alerts_empty">Aucune alarme active.</string>
+    <string name="severity_info">Info</string>
+    <string name="severity_warning">Avertissement</string>
+    <string name="severity_critical">Critique</string>
+    <string name="alert_balance">Équilibrage cellules actif — aucune action requise.</string>
+    <string name="alert_cooling">Circuit de refroidissement : gradient de température légèrement élevé (démo).</string>
+    <string name="alert_insulation">Résistance d&apos;isolement : contrôle recommandé (avis démo).</string>
+
+    <string name="chart_tab_temp">Température</string>
+    <string name="chart_tab_dust">Poussière</string>
+    <string name="chart_tab_humidity">Humidité</string>
+    <string name="chart_temp_title">Température (°C)</string>
+    <string name="chart_temp_subtitle_bms">DS18B20 (pack) — mélangé avec ticker démo.</string>
+    <string name="chart_temp_subtitle_demo">Habitacle / air (démo) — liaison BMS pour valeurs ESP32.</string>
+    <string name="chart_dust_title">Poussière (µg/m³, proche PM2.5)</string>
+    <string name="chart_dust_subtitle_bms">PMS5003 PM2.5 (série) — dérive démo supplémentaire.</string>
+    <string name="chart_dust_subtitle_demo">Tendance particules (démo) — en direct avec BMS (PMS5003).</string>
+    <string name="chart_humidity_title">Humidité relative (%)</string>
+    <string name="chart_humidity_subtitle_bms">SHT31-D humidité relative — mélangé avec démo.</string>
+    <string name="chart_humidity_subtitle_demo">Humidité relative (démo) — BMS fournit SHT31 après liaison.</string>
+
+    <string name="dialog_low_battery_title">Charge batterie faible</string>
+    <string name="dialog_low_battery_body">Batterie faible — peut concerner la batterie HT et le réseau 12 V.</string>
+    <string name="dialog_low_battery_action">Veuillez choisir une action.</string>
+    <string name="dialog_low_battery_charge_cta">Vers la prochaine station solaire / charge</string>
+    <string name="dialog_technical">Infos techniques</string>
+    <string name="dialog_close">Fermer</string>
+
+    <string name="sniffer_title">Sniffer CAN (démo)</string>
+    <string name="sniffer_body">Dans l&apos;APK BMS principale, cette action ouvre le sniffer CAN. Ce projet EcoCar GUI reste autonome sans bus.</string>
+
+    <string name="settings_language_title">Langue</string>
+    <string name="language_de">Deutsch</string>
+    <string name="language_en">English</string>
+    <string name="language_fr">Français</string>
+    <string name="language_wo">Wolof</string>
+    <string name="settings_test_low_battery">Tester le dialogue batterie faible</string>
+    <string name="settings_blurb">Réglages système et véhicule (tablette, sons, VCU, batterie). Utilisez le bouton ci-dessous pour tester le dialogue batterie faible.</string>
+
+    <string name="placeholder_music">Musique : USB/local + radio (Media3) sur Android.</string>
+    <string name="placeholder_map">Carte (Android : MapLibre Compose + MapTiler dark ; bureau : placeholder).</string>
+    <string name="placeholder_battery">L&apos;onglet Batterie utilise BatterySubNav ; ce texte n&apos;apparaît qu&apos;en appel direct.</string>
+    <string name="placeholder_charts">Onglet Graphiques : ChartsSubNav (démo) ; ce texte n&apos;apparaît qu&apos;en appel direct.</string>
+    <string name="placeholder_browser">Navigateur : GeckoView (Android). Bureau : non disponible.</string>
+
+    <string name="action_ok">OK</string>
+    <string name="action_cancel">Annuler</string>
+
+    <string name="music_tab_usb">USB / Local</string>
+    <string name="music_tab_radio">Radio</string>
+    <string name="music_retry">Réessayer</string>
+    <string name="music_no_files">Aucun fichier audio trouvé (USB / externe après autorisation).</string>
+    <string name="music_search_hint">Rechercher une station ou un genre</string>
+    <string name="music_retry_search">Réessayer</string>
+    <string name="music_buffering">Mise en mémoire tampon du flux…</string>
+    <string name="music_no_stations">Aucune station pour cette recherche.</string>
+
+    <string name="browser_back">Retour</string>
+    <string name="browser_forward">Suivant</string>
+    <string name="browser_reload">Recharger</string>
+
+    <string name="notification_playback">Lecture média</string>
+</resources>

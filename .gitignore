@@ -1,0 +1,10 @@
+build/
+.gradle/
+eco-car-battery-ui/build/
+composeApp/build/
+androidApp/build/
+.idea/
+local.properties
+gradle/
+composeApp/build/
+androidApp/build/

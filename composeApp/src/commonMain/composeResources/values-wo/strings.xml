@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Wolof ~80% — omitted keys fall back to values/ (FR) -->
+<resources>
+    <string name="nav_music">Músig</string>
+    <string name="nav_map">Kàrt</string>
+    <string name="nav_battery">Batterie</string>
+    <string name="nav_charts">Graf</string>
+    <string name="nav_browser">Navigateur</string>
+    <string name="nav_settings">Parametër</string>
+
+    <string name="sidebar_collapse">Tëj barab ci kaw</string>
+    <string name="sidebar_expand">Ubbi barab ci kaw</string>
+
+    <string name="bottom_soc">Nataal charge</string>
+    <string name="bottom_trip">Yoon (trip)</string>
+    <string name="bottom_range">Gëstu</string>
+    <string name="bottom_settings">Parametër</string>
+    <string name="bottom_info">Xibaar</string>
+    <string name="bottom_collapse">Tëj barab suuf</string>
+    <string name="bottom_expand">Ubbi barab suuf</string>
+    <string name="bottom_km">%1$d km</string>
+    <string name="bottom_km_dash">—</string>
+    <string name="bottom_tons">%1$.1f t</string>
+    <string name="bottom_tons_dash">—</string>
+
+    <string name="battery_tab_overview">Xët</string>
+    <string name="battery_tab_cells">Sell</string>
+    <string name="battery_tab_alerts">Alarm</string>
+    <string name="battery_title">Batterie woltage bu kawe</string>
+    <string name="battery_live_hint">Données bu live (BMS IPC) : SOC/courant/sell.</string>
+    <string name="battery_demo_hint">Demo ngir layout — du live bu amul BMS.</string>
+    <string name="metric_soc">SOC</string>
+    <string name="metric_pack_voltage">Woltage pack</string>
+    <string name="metric_pack_current">Courant pack</string>
+    <string name="metric_power">Puissance</string>
+    <string name="battery_sniffer_btn">Ubbi CAN sniffer (demo)</string>
+    <string name="cells_bms_title">Woltage sell (BMS, %1$d)</string>
+    <string name="cells_demo_title">Woltage sell (demo, %1$d sell)</string>
+    <string name="cells_live_hint">Live ci EcoCar↔BMS AIDL.</string>
+    <string name="alerts_title">Alarm ak xibaar</string>
+    <string name="alerts_empty">Amul alarm bu active.</string>
+    <string name="severity_info">Xibaar</string>
+    <string name="severity_warning">Téere</string>
+    <string name="severity_critical">Serieux</string>
+    <string name="alert_balance">Balance sell active — amul liggéey.</string>
+    <string name="alert_cooling">Cooling : gradient température kort (demo).</string>
+
+    <string name="chart_tab_temp">Température</string>
+    <string name="chart_tab_dust">Poussière</string>
+    <string name="chart_tab_humidity">Humidité</string>
+    <string name="chart_temp_title">Température (°C)</string>
+    <string name="chart_temp_subtitle_bms">DS18B20 (pack) — mélangé ak demo.</string>
+    <string name="chart_dust_title">Poussière (µg/m³, PM2.5)</string>
+    <string name="chart_dust_subtitle_bms">PMS5003 PM2.5 — série bu live.</string>
+    <string name="chart_humidity_title">Humidité (%)</string>
+
+    <string name="dialog_low_battery_title">Charge batterie néew</string>
+    <string name="dialog_low_battery_action">Tannal benn liggéey.</string>
+    <string name="dialog_low_battery_charge_cta">Dem ci station solaire / charge</string>
+    <string name="dialog_technical">Xibaar technique</string>
+    <string name="dialog_close">Tëj</string>
+
+    <string name="sniffer_title">CAN sniffer (demo)</string>
+
+    <string name="settings_language_title">Làkk</string>
+    <string name="language_de">Deutsch</string>
+    <string name="language_en">English</string>
+    <string name="language_fr">Français</string>
+    <string name="language_wo">Wolof</string>
+    <string name="settings_test_low_battery">Test dialogue batterie néew</string>
+
+    <string name="placeholder_browser">Navigateur : GeckoView (Android).</string>
+
+    <string name="action_ok">OK</string>
+    <string name="action_cancel">Annuler</string>
+
+    <string name="music_tab_usb">USB / Local</string>
+    <string name="music_tab_radio">Radio</string>
+    <string name="music_retry">Jéemaatal</string>
+    <string name="music_search_hint">Seet station walla genre</string>
+    <string name="music_retry_search">Jéemaatal</string>
+    <string name="music_buffering">Stream dafay charge…</string>
+
+    <string name="browser_back">Dellu</string>
+    <string name="browser_forward">Jëm kanam</string>
+    <string name="browser_reload">Yeesal</string>
+
+    <string name="notification_playback">Lecture média</string>
+</resources>

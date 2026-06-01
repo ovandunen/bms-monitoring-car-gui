@@ -1,0 +1,88 @@
+package com.fleet.ecocar.ui
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import com.ecocar.gui.i18n.LanguageRepository
+import com.fleet.ecocar.nav.MainDestination
+import com.fleet.ecocar.telemetry.EcoBmsTelemetry
+import com.fleet.ecocar.theme.EcoCarColors
+import com.fleet.ecocar.ui.bottom.BottomTelemetry
+import com.fleet.ecocar.ui.bottom.EcoBottomBar
+import com.fleet.ecocar.ui.dialog.LowBatteryDialog
+import com.fleet.ecocar.ui.main.MainContentArea
+import com.fleet.ecocar.ui.side.EcoSideNav
+import com.fleet.ecocar.ui.top.EcoTopBar
+import com.fleet.ecocar.ui.top.TopBarMusicState
+
+@Composable
+fun AppScaffold(
+    modifier: Modifier = Modifier,
+    sidebarExpanded: Boolean,
+    onSidebarToggle: () -> Unit,
+    bottomExpanded: Boolean,
+    onBottomToggle: () -> Unit,
+    selected: MainDestination,
+    onSelectDestination: (MainDestination) -> Unit,
+    music: TopBarMusicState,
+    telemetry: BottomTelemetry,
+    ecoBmsTelemetry: EcoBmsTelemetry?,
+    showLowBattery: Boolean,
+    onDismissLowBattery: () -> Unit,
+    onNavigateToCharging: () -> Unit,
+    onTechnicalIssues: () -> Unit,
+    onSimulateLowBattery: () -> Unit,
+    onBottomSettings: () -> Unit,
+    onBottomInfo: () -> Unit,
+    onOpenSniffer: () -> Unit = {},
+    languageRepository: LanguageRepository? = null,
+) {
+    Box(modifier = modifier.fillMaxSize()) {
+        Row(modifier = Modifier.fillMaxSize()) {
+            EcoSideNav(
+                expanded = sidebarExpanded,
+                onToggleExpand = onSidebarToggle,
+                selected = selected,
+                onSelect = onSelectDestination,
+            )
+            Column(
+                modifier = Modifier.weight(1f).fillMaxSize(),
+            ) {
+                EcoTopBar(music = music)
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .background(EcoCarColors.NearBlack),
+                ) {
+                    MainContentArea(
+                        destination = selected,
+                        ecoBmsTelemetry = ecoBmsTelemetry,
+                        onSimulateLowBattery = onSimulateLowBattery,
+                        onOpenSniffer = onOpenSniffer,
+                        languageRepository = languageRepository,
+                    )
+                }
+                EcoBottomBar(
+                    expanded = bottomExpanded,
+                    onToggleExpand = onBottomToggle,
+                    telemetry = telemetry,
+                    onSettingsClick = onBottomSettings,
+                    onInfoClick = onBottomInfo,
+                )
+            }
+        }
+        if (showLowBattery) {
+            LowBatteryDialog(
+                onDismiss = onDismissLowBattery,
+                onNavigateToCharging = onNavigateToCharging,
+                onTechnicalIssues = onTechnicalIssues,
+            )
+        }
+    }
+}
