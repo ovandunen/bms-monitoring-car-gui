@@ -11,6 +11,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
@@ -20,6 +22,7 @@ internal fun MetricCard(
     value: String,
     unit: String,
     modifier: Modifier = Modifier,
+    valueContentDescription: String? = null,
 ) {
     Card(
         modifier = modifier,
@@ -41,6 +44,9 @@ internal fun MetricCard(
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = BatteryTheme.GoldenYellow,
+                    modifier = valueContentDescription?.let { desc ->
+                        Modifier.semantics { contentDescription = desc }
+                    } ?: Modifier,
                 )
                 Text(
                     text = " $unit",

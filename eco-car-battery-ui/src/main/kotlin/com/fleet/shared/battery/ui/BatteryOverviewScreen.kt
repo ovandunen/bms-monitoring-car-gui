@@ -48,11 +48,13 @@ fun BatteryOverviewScreen(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
+            val socValue = formatMetric(model.socPercent, 1)
             MetricCard(
                 title = model.socLabel,
-                value = formatMetric(model.socPercent, 1),
+                value = socValue,
                 unit = "%",
                 modifier = Modifier.weight(1f),
+                valueContentDescription = "battery-soc-$socValue",
             )
             MetricCard(
                 title = model.voltageLabel,

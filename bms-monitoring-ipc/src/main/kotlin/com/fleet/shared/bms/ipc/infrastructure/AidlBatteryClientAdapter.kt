@@ -81,6 +81,10 @@ class AidlBatteryClientAdapter(
                 if (snapshot == null) return
                 val domain = BatterySnapshotMapper.toDomain(snapshot)
                 _batteryState.value = domain
+                Log.d(
+                    TAG,
+                    "onStateChanged: soc=${domain.stateOfChargePercent}% ts=${domain.timestamp}",
+                )
             }
 
             override fun onConnectionStatusChanged(statusCode: Int) {
