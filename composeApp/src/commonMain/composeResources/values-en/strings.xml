@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="nav_music">Music</string>
+    <string name="nav_map">Map</string>
+    <string name="nav_battery">Battery</string>
+    <string name="nav_charts">Charts</string>
+    <string name="nav_browser">Browser</string>
+    <string name="nav_settings">Settings</string>
+
+    <string name="sidebar_collapse">Collapse sidebar</string>
+    <string name="sidebar_expand">Expand sidebar</string>
+
+    <string name="bottom_soc">State of charge</string>
+    <string name="bottom_trip">Trip distance</string>
+    <string name="bottom_range">Range</string>
+    <string name="bottom_co2">CO₂ savings</string>
+    <string name="bottom_settings">Settings</string>
+    <string name="bottom_info">Info</string>
+    <string name="bottom_collapse">Collapse bottom bar</string>
+    <string name="bottom_expand">Expand bottom bar</string>
+    <string name="bottom_km">%1$d km</string>
+    <string name="bottom_km_dash">—</string>
+    <string name="bottom_tons">%1$.1f t</string>
+    <string name="bottom_tons_dash">—</string>
+    <string name="eco_bottom_bar_dashboard">Dashboard</string>
+
+    <string name="battery_tab_overview">Overview</string>
+    <string name="battery_tab_cells">Cells</string>
+    <string name="battery_tab_alerts">Alerts</string>
+    <string name="battery_title">High-voltage battery</string>
+    <string name="battery_live_hint">Live data (BMS IPC): SOC/current/cells — demo drift may still apply.</string>
+    <string name="battery_demo_hint">Demo telemetry for layout — not live without BMS bind.</string>
+    <string name="battery_connecting">Connecting to BMS…</string>
+    <string name="battery_bms_offline">BMS offline</string>
+    <string name="battery_retry_in">Retry in %1$d s</string>
+    <string name="battery_retry_now">Connect now</string>
+    <string name="battery_demo_mode">Demo mode</string>
+    <string name="battery_demo_mode_on">Demo: On</string>
+    <string name="battery_demo_mode_off">Demo: Off</string>
+    <string name="battery_wake_bms">Wake BMS</string>
+    <string name="metric_soc">SOC</string>
+    <string name="metric_pack_voltage">Pack voltage</string>
+    <string name="metric_pack_current">Pack current</string>
+    <string name="metric_power">Power</string>
+    <string name="battery_sniffer_btn">Open CAN sniffer (demo)</string>
+    <string name="cells_bms_title">Cell voltages (BMS, %1$d values)</string>
+    <string name="cells_demo_title">Cell voltages (demo, %1$d cells)</string>
+    <string name="cells_live_hint">Live via EcoCar↔BMS AIDL (ESP32 path through BMS APK).</string>
+    <string name="cells_demo_hint">Demo — live per-cell data after binding to BMS service.</string>
+    <string name="alerts_title">Alerts &amp; notices</string>
+    <string name="alerts_empty">No active alerts.</string>
+    <string name="severity_info">Info</string>
+    <string name="severity_warning">Warning</string>
+    <string name="severity_critical">Critical</string>
+    <string name="alert_balance">Cell balancing active — no action required.</string>
+    <string name="alert_cooling">Cooling loop: temperature gradient slightly elevated (demo).</string>
+    <string name="alert_insulation">Insulation resistance: inspection recommended (demo notice).</string>
+
+    <string name="chart_tab_temp">Temperature</string>
+    <string name="chart_tab_dust">Dust</string>
+    <string name="chart_tab_humidity">Humidity</string>
+    <string name="chart_temp_title">Temperature (°C)</string>
+    <string name="chart_temp_subtitle_bms">DS18B20 (pack) — mixed with demo ticker.</string>
+    <string name="chart_temp_subtitle_demo">Cabin / intake air (demo) — BMS bind for ESP32 values.</string>
+    <string name="chart_dust_title">Dust density (µg/m³, PM2.5 proxy)</string>
+    <string name="chart_dust_subtitle_bms">PMS5003 PM2.5 time series — extra demo drift.</string>
+    <string name="chart_dust_subtitle_demo">Particle trend (demo) — live with BMS (PMS5003).</string>
+    <string name="chart_humidity_title">Relative humidity (%)</string>
+    <string name="chart_humidity_subtitle_bms">SHT31-D relative humidity — mixed with demo.</string>
+    <string name="chart_humidity_subtitle_demo">Relative humidity (demo) — BMS provides SHT31 after bind.</string>
+
+    <string name="dialog_low_battery_title">Low battery charge</string>
+    <string name="dialog_low_battery_body">Battery low — may affect both HV battery and 12 V board net.</string>
+    <string name="dialog_low_battery_action">Please choose a next action.</string>
+    <string name="dialog_low_battery_charge_cta">Go to next solar / charging station</string>
+    <string name="dialog_technical">Technical notes</string>
+    <string name="dialog_close">Close</string>
+
+    <string name="sniffer_title">CAN sniffer (demo)</string>
+    <string name="sniffer_body">In the main BMS APK this opens the CAN sniffer. This EcoCar GUI project stays standalone without bus wiring.</string>
+
+    <string name="settings_language_title">Language</string>
+    <string name="language_de">Deutsch</string>
+    <string name="language_en">English</string>
+    <string name="language_fr">Français</string>
+    <string name="language_wo">Wolof</string>
+    <string name="settings_test_low_battery">Test low-battery dialog</string>
+    <string name="settings_blurb">System and vehicle settings (tablet, sounds, VCU, battery). Use the button below to test the low-battery dialog.</string>
+
+    <string name="placeholder_music">Music: USB/local + radio (Media3) on Android.</string>
+    <string name="placeholder_map">Map (Android: MapLibre Compose + MapTiler dark; desktop: placeholder).</string>
+    <string name="placeholder_battery">Battery tab uses BatterySubNav; this text only on direct call.</string>
+    <string name="placeholder_charts">Charts tab: ChartsSubNav (demo); this text only on direct call.</string>
+    <string name="placeholder_browser">Browser: GeckoView (Android). Desktop: not available.</string>
+
+    <string name="action_ok">OK</string>
+    <string name="action_cancel">Cancel</string>
+
+    <string name="music_tab_internet">Internet</string>
+    <string name="music_tab_radio_player">Radio</string>
+    <string name="music_tab_usb">USB</string>
+    <string name="music_radio_player_blurb">FM / AM — station list and RDS. Vehicle radio (Radio HAL) integration coming soon.</string>
+    <string name="music_retry">Retry</string>
+    <string name="music_no_files">No audio files found (USB / external after permission).</string>
+    <string name="music_search_hint">Search station or genre</string>
+    <string name="music_retry_search">Try again</string>
+    <string name="music_buffering">Stream buffering…</string>
+    <string name="music_no_stations">No stations for this search.</string>
+
+    <string name="browser_back">Back</string>
+    <string name="browser_forward">Forward</string>
+    <string name="browser_reload">Reload</string>
+
+    <string name="notification_playback">Media playback</string>
+</resources>
