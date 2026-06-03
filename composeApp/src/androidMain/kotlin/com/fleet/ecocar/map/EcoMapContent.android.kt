@@ -14,6 +14,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -39,6 +40,10 @@ actual fun EcoMapContent(
 ) {
     LaunchedEffect(Unit) {
         onRefreshStations()
+    }
+
+    LaunchedEffect(stations.size) {
+        Log.d("ChargingStationMapScreen", "ChargingStationMapScreen: rendering ${stations.size} stations")
     }
 
     val styleUri = remember(BuildConfig.MAPTILER_KEY) {

@@ -53,6 +53,7 @@ class BmsTelemetryBinder(
 
         override fun onChargingStationsUpdate(stations: Array<out ChargingStationSnapshot>?) {
             val mapped = stations?.map { it.toEcoChargingStation() }.orEmpty()
+            Log.d("BmsTelemetry", "onChargingStationsAvailable: updating map")
             mainHandler.post { onChargingStations(mapped) }
         }
     }

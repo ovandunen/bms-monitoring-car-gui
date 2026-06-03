@@ -3,6 +3,7 @@ package com.fleet.ecocar
 import android.app.Application
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -174,8 +175,17 @@ open class EcoCarApplication : Application() {
                     } ?: legacy
                 }
             },
-            onChargingStations = { _chargingStations.value = it },
-        ).also { it.connect() }
+            onChargingStations = { stations ->
+                Log.d(
+                    "ChargingStationMapScreen",
+                    "ChargingStationMapScreen: rendering ${stations.size} stations",
+                )
+                _chargingStations.value = stations
+            },
+        ).also { binder ->
+            binder.connect()
+            Log.d("EcoCarIpc", "Dual bind: monitor AIDL + BmsService (charging stations)")
+        }
     }
 
     fun refreshChargingStationsNearby(radiusMeters: Double = 0.0) {
