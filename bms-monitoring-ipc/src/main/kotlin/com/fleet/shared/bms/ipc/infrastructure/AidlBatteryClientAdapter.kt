@@ -83,7 +83,8 @@ class AidlBatteryClientAdapter(
                 _batteryState.value = domain
                 Log.d(
                     TAG,
-                    "onStateChanged: soc=${domain.stateOfChargePercent}% ts=${domain.timestamp}",
+                    "onStateChanged: soc=${domain.stateOfChargePercent}% " +
+                        "V=${domain.totalVoltage}A=${domain.current} ts=${domain.timestamp}",
                 )
             }
 

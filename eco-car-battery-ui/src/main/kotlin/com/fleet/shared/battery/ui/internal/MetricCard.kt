@@ -60,3 +60,7 @@ internal fun MetricCard(
 
 internal fun formatMetric(value: Float?, decimals: Int): String =
     value?.let { "%.${decimals}f".format(it) } ?: "–"
+
+/** Locale-invariant value for integration-test accessibility hooks (always `.` decimal). */
+internal fun formatMetricHook(value: Float?, decimals: Int): String =
+    value?.let { String.format(java.util.Locale.US, "%.${decimals}f", it) } ?: "na"

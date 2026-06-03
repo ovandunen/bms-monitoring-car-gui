@@ -18,6 +18,7 @@ import com.fleet.shared.battery.ui.internal.BatteryTheme
 import com.fleet.shared.battery.ui.internal.MetricCard
 import com.fleet.shared.battery.ui.internal.StatusHintRow
 import com.fleet.shared.battery.ui.internal.formatMetric
+import com.fleet.shared.battery.ui.internal.formatMetricHook
 
 /**
  * Shared driver-facing battery overview (port). Stateless — callers supply [BatteryOverviewUiModel].
@@ -54,13 +55,14 @@ fun BatteryOverviewScreen(
                 value = socValue,
                 unit = "%",
                 modifier = Modifier.weight(1f),
-                valueContentDescription = "battery-soc-$socValue",
+                valueContentDescription = "battery-soc=${formatMetricHook(model.socPercent, 1)}",
             )
             MetricCard(
                 title = model.voltageLabel,
                 value = formatMetric(model.packVoltageV, 1),
                 unit = "V",
                 modifier = Modifier.weight(1f),
+                valueContentDescription = "battery-voltage=${formatMetricHook(model.packVoltageV, 1)}",
             )
         }
         Row(
@@ -72,12 +74,14 @@ fun BatteryOverviewScreen(
                 value = formatMetric(model.packCurrentA, 1),
                 unit = "A",
                 modifier = Modifier.weight(1f),
+                valueContentDescription = "battery-current=${formatMetricHook(model.packCurrentA, 1)}",
             )
             MetricCard(
                 title = model.powerLabel,
                 value = formatMetric(model.powerKw, 2),
                 unit = "kW",
                 modifier = Modifier.weight(1f),
+                valueContentDescription = "battery-power=${formatMetricHook(model.powerKw, 2)}",
             )
         }
         Button(
