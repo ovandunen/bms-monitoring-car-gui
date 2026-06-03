@@ -30,6 +30,14 @@
     <string name="battery_title">Hochvolt-Batterie</string>
     <string name="battery_live_hint">Live-Daten (BMS‑IPC): SOC/Strom/Zellen — zusätzliche Demo‑Drift möglich.</string>
     <string name="battery_demo_hint">Demo-Telemetrie für Layout — ohne BMS-Bind nicht live.</string>
+    <string name="battery_connecting">Verbinde mit BMS…</string>
+    <string name="battery_bms_offline">BMS offline</string>
+    <string name="battery_retry_in">Erneut in %1$d s</string>
+    <string name="battery_retry_now">Jetzt verbinden</string>
+    <string name="battery_demo_mode">Demo-Modus</string>
+    <string name="battery_demo_mode_on">Demo: Ein</string>
+    <string name="battery_demo_mode_off">Demo: Aus</string>
+    <string name="battery_wake_bms">BMS wecken</string>
     <string name="metric_soc">SOC</string>
     <string name="metric_pack_voltage">Pack-Spannung</string>
     <string name="metric_pack_current">Pack-Strom</string>
@@ -88,8 +96,10 @@
     <string name="action_ok">OK</string>
     <string name="action_cancel">Abbrechen</string>
 
-    <string name="music_tab_usb">USB / Lokal</string>
-    <string name="music_tab_radio">Radio</string>
+    <string name="music_tab_internet">Internet</string>
+    <string name="music_tab_radio_player">Radio</string>
+    <string name="music_tab_usb">USB</string>
+    <string name="music_radio_player_blurb">UKW / FM — Senderliste und RDS. Anbindung an die Fahrzeug-Radio-HAL folgt.</string>
     <string name="music_retry">Erneut</string>
     <string name="music_no_files">Keine Audiodateien gefunden (USB / extern nach Berechtigung).</string>
     <string name="music_search_hint">Sender oder Genre suchen</string>

@@ -29,6 +29,14 @@
     <string name="battery_title">Batterie woltage bu kawe</string>
     <string name="battery_live_hint">Données bu live (BMS IPC) : SOC/courant/sell.</string>
     <string name="battery_demo_hint">Demo ngir layout — du live bu amul BMS.</string>
+    <string name="battery_connecting">Connecting to BMS…</string>
+    <string name="battery_bms_offline">BMS offline</string>
+    <string name="battery_retry_in">Retry in %1$d s</string>
+    <string name="battery_retry_now">Connect now</string>
+    <string name="battery_demo_mode">Demo mode</string>
+    <string name="battery_demo_mode_on">Demo: On</string>
+    <string name="battery_demo_mode_off">Demo: Off</string>
+    <string name="battery_wake_bms">Wake BMS</string>
     <string name="metric_soc">SOC</string>
     <string name="metric_pack_voltage">Woltage pack</string>
     <string name="metric_pack_current">Courant pack</string>
@@ -74,8 +82,10 @@
     <string name="action_ok">OK</string>
     <string name="action_cancel">Annuler</string>
 
-    <string name="music_tab_usb">USB / Local</string>
-    <string name="music_tab_radio">Radio</string>
+    <string name="music_tab_internet">Internet</string>
+    <string name="music_tab_radio_player">Radio</string>
+    <string name="music_tab_usb">USB</string>
+    <string name="music_radio_player_blurb">FM / AM — liste stations ak RDS. Radio bu réew (Radio HAL) dina ñu ko def.</string>
     <string name="music_retry">Jéemaatal</string>
     <string name="music_search_hint">Seet station walla genre</string>
     <string name="music_retry_search">Jéemaatal</string>

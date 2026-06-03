@@ -1,29 +1,30 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.compose.compiler)
+    id("org.jetbrains.kotlin.plugin.parcelize")
     id("maven-publish")
 }
 
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(21)
 }
 
 android {
-    namespace = "com.fleet.shared.battery.ui"
-    compileSdk = 34
+    namespace = "com.fleet.shared.bms.ipc"
+    compileSdk = 36
 
     defaultConfig {
         minSdk = 26
+        consumerProguardFiles("consumer-rules.pro")
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 
     buildFeatures {
-        compose = true
+        aidl = true
     }
 
     publishing {
@@ -34,19 +35,16 @@ android {
 }
 
 dependencies {
-    val composeBom = platform("androidx.compose:compose-bom:2024.06.00")
-    implementation(composeBom)
-    implementation("androidx.compose.ui:ui")
-    implementation("androidx.compose.ui:ui-graphics")
-    implementation("androidx.compose.material3:material3")
+    implementation("androidx.core:core-ktx:1.15.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
 }
 
 publishing {
     publications {
         create<MavenPublication>("release") {
             groupId = "com.fleet.shared"
-            artifactId = "eco-car-battery-ui"
-            version = "1.0.0"
+            artifactId = "bms-monitoring-ipc"
+            version = "1.0.0-SNAPSHOT"
             afterEvaluate {
                 from(components["release"])
             }

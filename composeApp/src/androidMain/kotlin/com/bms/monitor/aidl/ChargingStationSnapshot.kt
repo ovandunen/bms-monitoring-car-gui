@@ -3,7 +3,6 @@ package com.bms.monitor.aidl
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 
-/** IPC payload for CSMS charging stations (see [ChargingStationSnapshot.aidl]). */
 @Parcelize
 data class ChargingStationSnapshot(
     val stationId: String? = null,

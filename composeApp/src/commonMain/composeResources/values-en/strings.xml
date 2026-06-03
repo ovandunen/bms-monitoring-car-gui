@@ -30,6 +30,14 @@
     <string name="battery_title">High-voltage battery</string>
     <string name="battery_live_hint">Live data (BMS IPC): SOC/current/cells — demo drift may still apply.</string>
     <string name="battery_demo_hint">Demo telemetry for layout — not live without BMS bind.</string>
+    <string name="battery_connecting">Connecting to BMS…</string>
+    <string name="battery_bms_offline">BMS offline</string>
+    <string name="battery_retry_in">Retry in %1$d s</string>
+    <string name="battery_retry_now">Connect now</string>
+    <string name="battery_demo_mode">Demo mode</string>
+    <string name="battery_demo_mode_on">Demo: On</string>
+    <string name="battery_demo_mode_off">Demo: Off</string>
+    <string name="battery_wake_bms">Wake BMS</string>
     <string name="metric_soc">SOC</string>
     <string name="metric_pack_voltage">Pack voltage</string>
     <string name="metric_pack_current">Pack current</string>
@@ -88,8 +96,10 @@
     <string name="action_ok">OK</string>
     <string name="action_cancel">Cancel</string>
 
-    <string name="music_tab_usb">USB / Local</string>
-    <string name="music_tab_radio">Radio</string>
+    <string name="music_tab_internet">Internet</string>
+    <string name="music_tab_radio_player">Radio</string>
+    <string name="music_tab_usb">USB</string>
+    <string name="music_radio_player_blurb">FM / AM — station list and RDS. Vehicle radio (Radio HAL) integration coming soon.</string>
     <string name="music_retry">Retry</string>
     <string name="music_no_files">No audio files found (USB / external after permission).</string>
     <string name="music_search_hint">Search station or genre</string>

@@ -18,7 +18,7 @@ fun String.escapeForBuildConfig(): String =
     replace("\\", "\\\\").replace("\"", "\\\"")
 
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(21)
 
     androidTarget()
 
@@ -36,6 +36,10 @@ kotlin {
             implementation("androidx.datastore:datastore-preferences-core:1.1.1")
         }
         androidMain.dependencies {
+            implementation(project(":bms-monitoring-ipc"))
+            implementation(project(":eco-car-battery-ui"))
+            implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
+            implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.7")
             implementation(libs.appcompat)
             implementation("androidx.datastore:datastore-preferences:1.1.1")
             implementation(libs.maplibre.compose.android)
@@ -58,18 +62,18 @@ kotlin {
 }
 
 android {
-    namespace = "com.fleet.ecocar"
+    namespace = "com.fleet.ecocar.composeapp"
     compileSdk = 36
 
     defaultConfig {
-        minSdk = 23
+        minSdk = 26
         consumerProguardFiles("src/androidMain/consumer-rules.pro")
         buildConfigField("String", "MAPTILER_KEY", "\"${mapTilerKey.escapeForBuildConfig()}\"")
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
 
     buildFeatures {

@@ -33,6 +33,7 @@ import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.outlined.Radio
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material3.Button
@@ -78,7 +79,9 @@ import eco_car_gui.composeapp.generated.resources.music_no_stations
 import eco_car_gui.composeapp.generated.resources.music_retry
 import eco_car_gui.composeapp.generated.resources.music_retry_search
 import eco_car_gui.composeapp.generated.resources.music_search_hint
-import eco_car_gui.composeapp.generated.resources.music_tab_radio
+import eco_car_gui.composeapp.generated.resources.music_radio_player_blurb
+import eco_car_gui.composeapp.generated.resources.music_tab_internet
+import eco_car_gui.composeapp.generated.resources.music_tab_radio_player
 import eco_car_gui.composeapp.generated.resources.music_tab_usb
 import org.jetbrains.compose.resources.stringResource
 import kotlinx.coroutines.Dispatchers
@@ -92,6 +95,10 @@ private val TabActive = Color(0xFFF5C518)
 private val SidebarGreen = Color(0xFF2D6A4F)
 private val TextPrimary = Color.White
 private val TextSecondary = Color(0xFFAAAAAA)
+
+private const val TAB_INTERNET = 0
+private const val TAB_RADIO_PLAYER = 1
+private const val TAB_USB = 2
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -138,7 +145,8 @@ fun MusicScreen(modifier: Modifier = Modifier) {
         permissionLauncher.launch(permissions)
     }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(mainTab) {
+        if (mainTab != TAB_INTERNET || stations.isNotEmpty() || radioLoading) return@LaunchedEffect
         radioLoading = true
         radioError = null
         runCatching {
@@ -200,15 +208,7 @@ fun MusicScreen(modifier: Modifier = Modifier) {
                 .fillMaxWidth(),
         ) {
             when (mainTab) {
-                0 -> UsbTrackList(
-                    tracks = usbTracks,
-                    playingIndex = if (isUsbMode) currentUsbIndex else -1,
-                    onTrackClick = { index ->
-                        playbackError = null
-                        app.playUsbTracks(usbTracks, index)
-                    },
-                )
-                else -> RadioStationList(
+                TAB_INTERNET -> RadioStationList(
                     stations = filteredStations,
                     loading = radioLoading,
                     error = radioError,
@@ -223,10 +223,20 @@ fun MusicScreen(modifier: Modifier = Modifier) {
                     },
                     searchQuery = searchQuery,
                     onSearchChange = { searchQuery = it },
-                    buffering = playbackState == Player.STATE_BUFFERING && app.musicPlaybackSurface == MusicPlaybackSurface.RADIO,
+                    buffering = playbackState == Player.STATE_BUFFERING &&
+                        app.musicPlaybackSurface == MusicPlaybackSurface.RADIO,
                     onStationClick = { station ->
                         playbackError = null
                         app.playRadioStation(station)
+                    },
+                )
+                TAB_RADIO_PLAYER -> RadioPlayerPlaceholder(Modifier.fillMaxSize())
+                TAB_USB -> UsbTrackList(
+                    tracks = usbTracks,
+                    playingIndex = if (isUsbMode) currentUsbIndex else -1,
+                    onTrackClick = { index ->
+                        playbackError = null
+                        app.playUsbTracks(usbTracks, index)
                     },
                 )
             }
@@ -275,19 +285,51 @@ private fun MusicTabRow(selectedIndex: Int, onSelect: (Int) -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         MusicTabChip(
-            label = "🎵 ${stringResource(Res.string.music_tab_usb)}",
-            selected = selectedIndex == 0,
-            onClick = { onSelect(0) },
+            label = "🌐 ${stringResource(Res.string.music_tab_internet)}",
+            selected = selectedIndex == TAB_INTERNET,
+            onClick = { onSelect(TAB_INTERNET) },
             modifier = Modifier.weight(1f),
         )
         MusicTabChip(
-            label = "📻 ${stringResource(Res.string.music_tab_radio)}",
-            selected = selectedIndex == 1,
-            onClick = { onSelect(1) },
+            label = "📻 ${stringResource(Res.string.music_tab_radio_player)}",
+            selected = selectedIndex == TAB_RADIO_PLAYER,
+            onClick = { onSelect(TAB_RADIO_PLAYER) },
             modifier = Modifier.weight(1f),
+        )
+        MusicTabChip(
+            label = "🎵 ${stringResource(Res.string.music_tab_usb)}",
+            selected = selectedIndex == TAB_USB,
+            onClick = { onSelect(TAB_USB) },
+            modifier = Modifier.weight(1f),
+        )
+    }
+}
+
+@Composable
+private fun RadioPlayerPlaceholder(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier.padding(24.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Icon(
+            imageVector = Icons.Outlined.Radio,
+            contentDescription = null,
+            tint = TabActive,
+            modifier = Modifier.size(56.dp),
+        )
+        Text(
+            text = stringResource(Res.string.music_tab_radio_player),
+            color = TextPrimary,
+            fontSize = 22.sp,
+        )
+        Text(
+            text = stringResource(Res.string.music_radio_player_blurb),
+            color = TextSecondary,
+            fontSize = 15.sp,
         )
     }
 }
@@ -312,10 +354,10 @@ private fun MusicTabChip(
         Text(
             text = label,
             color = if (selected) TabActive else TextPrimary,
-            fontSize = 15.sp,
+            fontSize = 13.sp,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.padding(horizontal = 8.dp),
+            modifier = Modifier.padding(horizontal = 6.dp),
         )
     }
 }

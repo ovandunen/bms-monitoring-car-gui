@@ -22,23 +22,19 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.fleet.ecocar.telemetry.EcoBmsTelemetry
 import com.fleet.ecocar.theme.EcoCarColors
 import com.fleet.ecocar.ui.subnav.EcoSubChipsBar
 import eco_car_gui.composeapp.generated.resources.Res
-import eco_car_gui.composeapp.generated.resources.alert_balance
-import eco_car_gui.composeapp.generated.resources.alert_cooling
-import eco_car_gui.composeapp.generated.resources.alert_insulation
 import eco_car_gui.composeapp.generated.resources.alerts_empty
 import eco_car_gui.composeapp.generated.resources.alerts_title
 import eco_car_gui.composeapp.generated.resources.battery_demo_hint
@@ -59,36 +55,23 @@ import eco_car_gui.composeapp.generated.resources.metric_soc
 import eco_car_gui.composeapp.generated.resources.severity_critical
 import eco_car_gui.composeapp.generated.resources.severity_info
 import eco_car_gui.composeapp.generated.resources.severity_warning
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun BatterySubNav(
     onOpenSniffer: () -> Unit,
-    bmsTelemetry: EcoBmsTelemetry? = null,
+    ecoBmsTelemetry: EcoBmsTelemetry? = null,
     modifier: Modifier = Modifier,
 ) {
     var tab by rememberSaveable { mutableStateOf(0) }
-    var snapshot by remember { mutableStateOf(DemoBatterySnapshot.initial()) }
-    val alerts = demoAlertsLocalized()
+    val bmsActive = ecoBmsTelemetry != null && ecoBmsTelemetry.timestamp > 0L
+    val cellVolts = ecoBmsTelemetry?.cellVolts.orEmpty()
 
     val tabLabels = listOf(
         stringResource(Res.string.battery_tab_overview),
         stringResource(Res.string.battery_tab_cells),
         stringResource(Res.string.battery_tab_alerts),
     )
-
-    LaunchedEffect(Unit) {
-        while (isActive) {
-            delay(900L)
-            snapshot = snapshot.evolve()
-        }
-    }
-
-    val displaySnapshot = remember(snapshot, bmsTelemetry) {
-        bmsTelemetry?.overlayOn(snapshot) ?: snapshot
-    }
 
     Column(modifier = modifier.fillMaxSize()) {
         EcoSubChipsBar(
@@ -98,19 +81,17 @@ fun BatterySubNav(
         )
         HorizontalDivider(color = EcoCarColors.Divider)
         when (tab) {
-            0 -> BatteryOverviewTab(
-                snapshot = displaySnapshot,
-                bmsActive = bmsTelemetry != null,
+            0 -> BatteryOverviewContent(
                 onOpenSniffer = onOpenSniffer,
                 modifier = Modifier.weight(1f).fillMaxWidth(),
             )
             1 -> BatteryCellsGrid(
-                cellVolts = displaySnapshot.cellVolts,
-                bmsActive = bmsTelemetry != null,
+                cellVolts = cellVolts,
+                bmsActive = bmsActive,
                 modifier = Modifier.weight(1f).fillMaxWidth(),
             )
             else -> BatteryAlertsList(
-                alerts = alerts,
+                alerts = emptyList(),
                 modifier = Modifier.weight(1f).fillMaxWidth(),
             )
         }
@@ -118,19 +99,14 @@ fun BatterySubNav(
 }
 
 @Composable
-private fun demoAlertsLocalized(): List<DemoBatteryAlert> = listOf(
-    DemoBatteryAlert(DemoAlertSeverity.INFO, stringResource(Res.string.alert_balance)),
-    DemoBatteryAlert(DemoAlertSeverity.WARNING, stringResource(Res.string.alert_cooling)),
-    DemoBatteryAlert(DemoAlertSeverity.CRITICAL, stringResource(Res.string.alert_insulation)),
-)
-
-@Composable
-private fun BatteryOverviewTab(
+internal fun BatteryOverviewTab(
     snapshot: DemoBatterySnapshot,
     bmsActive: Boolean,
     onOpenSniffer: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val socIsLow = snapshot.socPercent < 30f
+    val socColor = if (socIsLow) MaterialTheme.colorScheme.error else EcoCarColors.GoldenYellow
     Column(
         modifier = modifier
             .verticalScroll(rememberScrollState())
@@ -157,6 +133,8 @@ private fun BatteryOverviewTab(
                 title = stringResource(Res.string.metric_soc),
                 value = "%.1f".format(snapshot.socPercent),
                 unit = "%",
+                valueColor = socColor,
+                unitColor = if (socIsLow) socColor else EcoCarColors.OnDark,
                 modifier = Modifier.weight(1f),
             )
             MetricCard(
@@ -201,6 +179,8 @@ private fun MetricCard(
     title: String,
     value: String,
     unit: String,
+    valueColor: Color = EcoCarColors.GoldenYellow,
+    unitColor: Color = EcoCarColors.OnDark,
     modifier: Modifier = Modifier,
 ) {
     Card(
@@ -222,12 +202,12 @@ private fun MetricCard(
                     text = value,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    color = EcoCarColors.GoldenYellow,
+                    color = valueColor,
                 )
                 Text(
                     text = " $unit",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = EcoCarColors.OnDark,
+                    color = unitColor,
                 )
             }
         }

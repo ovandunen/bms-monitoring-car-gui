@@ -3,7 +3,6 @@ package com.bms.monitor.aidl
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 
-/** Must stay identical to the BMS app `BmsData` (AIDL parcelable). */
 @Parcelize
 data class BmsData(
     val timestamp: Long,

@@ -1,7 +1,7 @@
 package com.bms.monitor.aidl;
 
-import com.bms.monitor.aidl.IBmsCallback;
 import com.bms.monitor.aidl.ChargingStationSnapshot;
+import com.bms.monitor.aidl.IBmsCallback;
 
 interface IBmsService {
     void registerCallback(IBmsCallback callback);

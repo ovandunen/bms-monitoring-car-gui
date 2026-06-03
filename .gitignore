@@ -8,3 +8,5 @@ local.properties
 gradle/
 composeApp/build/
 androidApp/build/
+.DS_Store
+bms-monitoring-ipc/build/

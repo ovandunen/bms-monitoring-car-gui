@@ -53,7 +53,7 @@ fun MainContentArea(
                 MainDestination.Battery ->
                     BatterySubNav(
                         onOpenSniffer = onOpenSniffer,
-                        bmsTelemetry = ecoBmsTelemetry,
+                        ecoBmsTelemetry = ecoBmsTelemetry,
                         modifier = Modifier.fillMaxSize(),
                     )
                 MainDestination.Map -> {

@@ -15,20 +15,35 @@ import com.fleet.ecocar.music.MusicPlaybackSurface
 import com.fleet.ecocar.music.RadioStation
 import com.fleet.ecocar.music.Track
 import com.fleet.ecocar.telemetry.EcoBmsTelemetry
+import com.fleet.ecocar.telemetry.toEcoBmsTelemetry
 import com.fleet.ecocar.ui.top.TopBarMusicState
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import org.mozilla.geckoview.GeckoRuntime
+import com.fleet.shared.bms.ipc.infrastructure.AidlBatteryClientAdapter
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import org.mozilla.geckoview.GeckoRuntime
 import org.mozilla.geckoview.GeckoSession
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
 open class EcoCarApplication : Application() {
+
+    private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+
+    /**
+     * Application-scoped driving adapter for BMS monitor IPC ([AidlBatteryClientAdapter]).
+     * Survives rotation; connect once in [onCreate], disconnect only on process death.
+     */
+    lateinit var batteryClient: AidlBatteryClientAdapter
+        private set
 
     private val mainHandler = Handler(Looper.getMainLooper())
 
@@ -57,15 +72,12 @@ open class EcoCarApplication : Application() {
 
     private val _topBarMusic = MutableStateFlow(TopBarMusicState(clock = formatClockStatic()))
 
-    /** Live title / duration / source for the top bar (USB or Radio). */
     val topBarMusicState: StateFlow<TopBarMusicState> = _topBarMusic.asStateFlow()
 
     private val _ecoBmsTelemetry = MutableStateFlow<EcoBmsTelemetry?>(null)
 
-    /** Letzter Snapshot vom BMS (`[BmsService]` / AIDL), sofern IPC aktiv. */
     val ecoBmsTelemetry: StateFlow<EcoBmsTelemetry?> = _ecoBmsTelemetry.asStateFlow()
 
-    /** CSMS charging stations via BMS AIDL (live or offline cache). */
     private val _chargingStations = MutableStateFlow<List<EcoChargingStation>>(emptyList())
     val chargingStations: StateFlow<List<EcoChargingStation>> = _chargingStations.asStateFlow()
 
@@ -126,14 +138,46 @@ open class EcoCarApplication : Application() {
         super.onCreate()
         instance = this
         mainHandler.post(clockRunnable)
+
+        batteryClient = AidlBatteryClientAdapter(this, appScope)
+        batteryClient.connect()
+
+        appScope.launch {
+            batteryClient.batteryState.collect { snap ->
+                if (snap == null || snap.timestamp == 0L) return@collect
+                val ipc = snap.toEcoBmsTelemetry()
+                _ecoBmsTelemetry.value = _ecoBmsTelemetry.value?.let { existing ->
+                    ipc.copy(
+                        cellVolts = ipc.cellVolts.ifEmpty { existing.cellVolts },
+                        packHumidity = if (ipc.packHumidity == 0f) existing.packHumidity else ipc.packHumidity,
+                        pm25 = if (ipc.pm25 == 0) existing.pm25 else ipc.pm25,
+                        pm10 = if (ipc.pm10 == 0) existing.pm10 else ipc.pm10,
+                    )
+                } ?: ipc
+            }
+        }
+
         bmsTelemetryBinder = BmsTelemetryBinder(
             this,
-            onTelemetry = { _ecoBmsTelemetry.value = it },
+            onTelemetry = { legacy ->
+                val ipcLive = batteryClient.batteryState.value?.timestamp?.let { it > 0L } == true
+                if (!ipcLive) {
+                    _ecoBmsTelemetry.value = legacy
+                } else {
+                    _ecoBmsTelemetry.value = _ecoBmsTelemetry.value?.let { current ->
+                        current.copy(
+                            cellVolts = legacy.cellVolts.ifEmpty { current.cellVolts },
+                            packHumidity = if (current.packHumidity == 0f) legacy.packHumidity else current.packHumidity,
+                            pm25 = if (current.pm25 == 0) legacy.pm25 else current.pm25,
+                            pm10 = if (current.pm10 == 0) legacy.pm10 else current.pm10,
+                        )
+                    } ?: legacy
+                }
+            },
             onChargingStations = { _chargingStations.value = it },
         ).also { it.connect() }
     }
 
-    /** Requests nearby stations from BMS → CSMS MQTT; uses device GPS when available. */
     fun refreshChargingStationsNearby(radiusMeters: Double = 0.0) {
         val fused = LocationServices.getFusedLocationProviderClient(this)
         val cancel = CancellationTokenSource()
@@ -149,6 +193,7 @@ open class EcoCarApplication : Application() {
     }
 
     override fun onTerminate() {
+        batteryClient.disconnect()
         bmsTelemetryBinder?.disconnect()
         bmsTelemetryBinder = null
         super.onTerminate()

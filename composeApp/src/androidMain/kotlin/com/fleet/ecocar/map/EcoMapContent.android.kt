@@ -22,7 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.fleet.ecocar.BuildConfig
+import com.fleet.ecocar.composeapp.BuildConfig
 import com.fleet.ecocar.theme.EcoCarColors
 import org.maplibre.compose.map.MaplibreMap
 import org.maplibre.compose.style.BaseStyle

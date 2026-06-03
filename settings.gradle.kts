@@ -21,4 +21,4 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "bms-monitoring-car-gui"
-include(":eco-car-battery-ui", ":composeApp", ":androidApp")
+include(":eco-car-battery-ui", ":bms-monitoring-ipc", ":composeApp", ":androidApp")
