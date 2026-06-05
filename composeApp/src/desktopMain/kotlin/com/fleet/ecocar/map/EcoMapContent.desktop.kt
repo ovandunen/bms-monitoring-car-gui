@@ -12,6 +12,7 @@ import com.fleet.ecocar.ui.main.PlaceholderScreen
 actual fun EcoMapContent(
     modifier: Modifier,
     stations: List<EcoChargingStation>,
+    isRefreshing: Boolean,
     onRefreshStations: () -> Unit,
 ) {
     Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

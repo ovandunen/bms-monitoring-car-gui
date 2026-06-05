@@ -1,3 +1,5 @@
+import org.gradle.api.tasks.testing.Test
+
 plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.android.library) apply false
@@ -12,4 +14,14 @@ plugins {
 
 tasks.register("clean", Delete::class) {
     delete(rootProject.layout.buildDirectory)
+}
+
+val integrationContract = file("../bms-monitoring-app/integration-test.contract.properties")
+
+subprojects {
+    tasks.withType<Test>().configureEach {
+        if (integrationContract.exists()) {
+            systemProperty("integration.contract.file", integrationContract.absolutePath)
+        }
+    }
 }

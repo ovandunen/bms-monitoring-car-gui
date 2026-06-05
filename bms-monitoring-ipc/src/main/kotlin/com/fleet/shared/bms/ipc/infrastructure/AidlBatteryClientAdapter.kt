@@ -10,6 +10,7 @@ import android.util.Log
 import androidx.core.content.ContextCompat
 import com.fleet.shared.bms.ipc.IBmsCallback
 import com.fleet.shared.bms.ipc.IBmsService
+import com.fleet.shared.bms.ipc.application.IpcSnapshotAuditFormatter
 import com.fleet.shared.bms.ipc.ParcelableBmsCommand
 import com.fleet.shared.bms.ipc.application.ports.BatteryQueryPort
 import com.fleet.shared.bms.ipc.domain.BatterySnapshot
@@ -56,7 +57,7 @@ class AidlBatteryClientAdapter(
     private val connection =
         object : ServiceConnection {
             override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
-                Log.d(TAG, "onServiceConnected: $name binder=$binder")
+                Log.i(TAG, IpcSnapshotAuditFormatter.formatServiceConnectedAuditLine(name, binder))
                 service = IBmsService.Stub.asInterface(binder)
                 reconnectAttempt = 0
                 bound = true
@@ -81,6 +82,7 @@ class AidlBatteryClientAdapter(
                 if (snapshot == null) return
                 val domain = BatterySnapshotMapper.toDomain(snapshot)
                 _batteryState.value = domain
+                Log.i(TAG, IpcSnapshotAuditFormatter.formatStateChangedAuditLine(domain))
             }
 
             override fun onConnectionStatusChanged(statusCode: Int) {
@@ -167,7 +169,9 @@ class AidlBatteryClientAdapter(
         try {
             val parcel = service?.currentSnapshot ?: return
             if (parcel.timestamp == 0L) return
-            _batteryState.value = BatterySnapshotMapper.toDomain(parcel)
+            val domain = BatterySnapshotMapper.toDomain(parcel)
+            _batteryState.value = domain
+            Log.i(TAG, IpcSnapshotAuditFormatter.formatStateChangedAuditLine(domain))
         } catch (_: RemoteException) {
             // Ignore; stream callbacks may still deliver updates.
         }

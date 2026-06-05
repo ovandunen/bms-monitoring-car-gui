@@ -16,8 +16,8 @@ import com.fleet.ecocar.map.EcoChargingStation
 import com.fleet.ecocar.telemetry.EcoBmsTelemetry
 
 /**
- * Bindet gegen die Business-Logic-APK (`com.fleet.bms`), registriert [IBmsCallback] und aktualisiert
- * Snapshots auf dem Main-Thread für Compose-[androidx.lifecycle.compose] / StateFlow.
+ * Binds EcoCar to BMS [IBmsService] for charging-station **data** (AIDL callbacks).
+ * Map layout and when to query stations are owned by EcoCar — not BMS.
  */
 class BmsTelemetryBinder(
     private val context: Context,
@@ -103,11 +103,34 @@ class BmsTelemetryBinder(
         }
     }
 
-    fun refreshChargingStations(latitude: Double, longitude: Double, radiusMeters: Double = 0.0) {
+    /**
+     * Publishes BMS in-memory / Room cache immediately (CSMS is not always available).
+     * Safe to call on the main thread before a live refresh.
+     */
+    fun publishCachedChargingStations(): Boolean {
+        return try {
+            val cached = binder?.getCachedChargingStations() ?: return false
+            val mapped = cached.map { it.toEcoChargingStation() }
+            if (mapped.isNotEmpty()) {
+                mainHandler.post { onChargingStations(mapped) }
+            }
+            mapped.isNotEmpty()
+        } catch (e: Exception) {
+            Log.e(TAG, "publishCachedChargingStations failed", e)
+            false
+        }
+    }
+
+    /** EcoCar requests station pins for map display (IBmsService data API — not a map refresh in BMS). */
+    fun requestChargingStationsForDisplay(
+        latitude: Double,
+        longitude: Double,
+        radiusMeters: Double = 0.0,
+    ) {
         try {
             binder?.refreshChargingStations(null, latitude, longitude, radiusMeters)
         } catch (e: Exception) {
-            Log.e(TAG, "refreshChargingStations failed", e)
+            Log.e(TAG, "requestChargingStationsForDisplay failed", e)
         }
     }
 

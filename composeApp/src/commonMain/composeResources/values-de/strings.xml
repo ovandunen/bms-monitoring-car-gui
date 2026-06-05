@@ -112,4 +112,10 @@
     <string name="browser_reload">Neu laden</string>
 
     <string name="notification_playback">Medienwiedergabe</string>
+
+    <string name="map_stations_title">Ladestationen (%1$d)</string>
+    <string name="map_stations_legend">Grün = verfügbar · Lila = Offline-Cache (CSMS nicht immer erreichbar)</string>
+    <string name="map_stations_loading">Aktualisiere… Live-CSMS ist nicht immer verfügbar.</string>
+    <string name="map_stations_empty">Keine gespeicherten Stationen. Ohne erreichbares CSMS/MQTT bleibt die Liste leer, bis einmal live Daten ankamen.</string>
+    <string name="map_refresh">Aktualisieren</string>
 </resources>

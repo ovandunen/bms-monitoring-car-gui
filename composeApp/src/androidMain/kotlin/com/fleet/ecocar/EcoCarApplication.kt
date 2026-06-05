@@ -23,7 +23,9 @@ import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -81,6 +83,11 @@ open class EcoCarApplication : Application() {
     private val _chargingStations = MutableStateFlow<List<EcoChargingStation>>(emptyList())
     val chargingStations: StateFlow<List<EcoChargingStation>> = _chargingStations.asStateFlow()
 
+    private val _chargingStationsRefreshing = MutableStateFlow(false)
+    val chargingStationsRefreshing: StateFlow<Boolean> = _chargingStationsRefreshing.asStateFlow()
+
+    private var chargingStationsRefreshJob: Job? = null
+
     private var bmsTelemetryBinder: BmsTelemetryBinder? = null
 
     @Volatile
@@ -89,6 +96,9 @@ open class EcoCarApplication : Application() {
 
     companion object {
         const val BROWSER_DEFAULT_HOME_URL: String = "https://www.startpage.com"
+
+        /** Matches BMS GUI refresh timeout + margin when CSMS is unavailable. */
+        private const val CHARGING_STATIONS_REFRESH_MAX_MS = 12_000L
 
         @Volatile
         private var geckoRuntime: GeckoRuntime? = null
@@ -174,22 +184,47 @@ open class EcoCarApplication : Application() {
                     } ?: legacy
                 }
             },
-            onChargingStations = { _chargingStations.value = it },
+            onChargingStations = { stations ->
+                _chargingStations.value = stations
+                finishChargingStationsRefresh()
+            },
         ).also { it.connect() }
     }
 
-    fun refreshChargingStationsNearby(radiusMeters: Double = 0.0) {
+    /**
+     * GUI: request station pins when the user opens/refreshes the map.
+     * CSMS is not always available — show BMS cache first, then try live MQTT in the background.
+     */
+    fun requestChargingStationsForMap(radiusMeters: Double = 0.0) {
+        bmsTelemetryBinder?.publishCachedChargingStations()
+        beginChargingStationsRefresh()
+
         val fused = LocationServices.getFusedLocationProviderClient(this)
         val cancel = CancellationTokenSource()
         fused.getCurrentLocation(Priority.PRIORITY_BALANCED_POWER_ACCURACY, cancel.token)
             .addOnSuccessListener { loc ->
                 val lat = loc?.latitude ?: 52.52
                 val lon = loc?.longitude ?: 13.405
-                bmsTelemetryBinder?.refreshChargingStations(lat, lon, radiusMeters)
+                bmsTelemetryBinder?.requestChargingStationsForDisplay(lat, lon, radiusMeters)
             }
             .addOnFailureListener {
-                bmsTelemetryBinder?.refreshChargingStations(52.52, 13.405, radiusMeters)
+                bmsTelemetryBinder?.requestChargingStationsForDisplay(52.52, 13.405, radiusMeters)
             }
+    }
+
+    private fun beginChargingStationsRefresh() {
+        chargingStationsRefreshJob?.cancel()
+        _chargingStationsRefreshing.value = true
+        chargingStationsRefreshJob = appScope.launch {
+            delay(CHARGING_STATIONS_REFRESH_MAX_MS)
+            finishChargingStationsRefresh()
+        }
+    }
+
+    private fun finishChargingStationsRefresh() {
+        chargingStationsRefreshJob?.cancel()
+        chargingStationsRefreshJob = null
+        _chargingStationsRefreshing.value = false
     }
 
     override fun onTerminate() {

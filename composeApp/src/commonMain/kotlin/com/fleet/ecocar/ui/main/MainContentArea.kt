@@ -61,6 +61,7 @@ fun MainContentArea(
                     EcoMapContent(
                         modifier = Modifier.fillMaxSize(),
                         stations = mapState.stations,
+                        isRefreshing = mapState.isRefreshing,
                         onRefreshStations = mapState.refresh,
                     )
                 }

@@ -11,6 +11,11 @@ import com.fleet.ecocar.EcoCarApplication
 actual fun rememberChargingStationMapState(): ChargingStationMapState {
     val app = LocalContext.current.applicationContext as EcoCarApplication
     val stations by app.chargingStations.collectAsState(initial = emptyList())
-    val refresh = remember(app) { { app.refreshChargingStationsNearby() } }
-    return ChargingStationMapState(stations = stations, refresh = refresh)
+    val isRefreshing by app.chargingStationsRefreshing.collectAsState(initial = false)
+    val refresh = remember(app) { { app.requestChargingStationsForMap() } }
+    return ChargingStationMapState(
+        stations = stations,
+        isRefreshing = isRefreshing,
+        refresh = refresh,
+    )
 }
