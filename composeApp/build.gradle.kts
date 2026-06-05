@@ -39,6 +39,7 @@ kotlin {
             implementation(project(":bms-monitoring-ipc"))
             implementation(project(":eco-car-battery-ui"))
             implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
+            implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7")
             implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.7")
             implementation(libs.appcompat)
             implementation("androidx.datastore:datastore-preferences:1.1.1")

@@ -9,6 +9,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
+import com.fleet.ecocar.composeapp.BuildConfig
 import com.fleet.ecocar.ipc.BmsTelemetryBinder
 import com.fleet.ecocar.map.EcoChargingStation
 import com.fleet.ecocar.music.MusicPlaybackSurface
@@ -30,6 +31,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import org.maplibre.android.MapLibre
+import org.maplibre.android.WellKnownTileServer
 import org.mozilla.geckoview.GeckoRuntime
 import org.mozilla.geckoview.GeckoSession
 import java.text.SimpleDateFormat
@@ -145,6 +148,11 @@ open class EcoCarApplication : Application() {
     }
 
     override fun onCreate() {
+        MapLibre.getInstance(
+            this,
+            BuildConfig.MAPTILER_API_KEY,
+            WellKnownTileServer.MapTiler,
+        )
         super.onCreate()
         instance = this
         mainHandler.post(clockRunnable)
@@ -193,22 +201,32 @@ open class EcoCarApplication : Application() {
 
     /**
      * GUI: request station pins when the user opens/refreshes the map.
-     * CSMS is not always available — show BMS cache first, then try live MQTT in the background.
+     * CSMS is not always available — show BMS cache first.
+     * Live CSMS query runs only with a real GPS fix; never invent coordinates (that would
+     * falsely imply nearby stations, e.g. demo CP-DEMO-001 at Berlin).
+     * BMS low-SOC path uses its own fallback when CAN has no GPS — not EcoCar's job.
      */
     fun requestChargingStationsForMap(radiusMeters: Double = 0.0) {
         bmsTelemetryBinder?.publishCachedChargingStations()
-        beginChargingStationsRefresh()
 
         val fused = LocationServices.getFusedLocationProviderClient(this)
         val cancel = CancellationTokenSource()
         fused.getCurrentLocation(Priority.PRIORITY_BALANCED_POWER_ACCURACY, cancel.token)
             .addOnSuccessListener { loc ->
-                val lat = loc?.latitude ?: 52.52
-                val lon = loc?.longitude ?: 13.405
-                bmsTelemetryBinder?.requestChargingStationsForDisplay(lat, lon, radiusMeters)
+                if (loc == null) {
+                    finishChargingStationsRefresh()
+                    return@addOnSuccessListener
+                }
+                beginChargingStationsRefresh()
+                bmsTelemetryBinder?.requestChargingStationsForDisplay(
+                    loc.latitude,
+                    loc.longitude,
+                    radiusMeters,
+                )
             }
             .addOnFailureListener {
-                bmsTelemetryBinder?.requestChargingStationsForDisplay(52.52, 13.405, radiusMeters)
+                // No GPS: cached pins only — do not query CSMS with fake coordinates.
+                finishChargingStationsRefresh()
             }
     }
 
