@@ -12,7 +12,7 @@ plugins {
 val localProperties = Properties().apply {
     rootProject.file("local.properties").takeIf { it.exists() }?.reader(Charsets.UTF_8)?.use { load(it) }
 }
-val mapTilerKey: String = localProperties.getProperty("maptiler.key") ?: ""
+val mapTilerKey: String = localProperties.getProperty("maptiler.api_key") ?: ""
 
 fun String.escapeForBuildConfig(): String =
     replace("\\", "\\\\").replace("\"", "\\\"")
@@ -68,7 +68,7 @@ android {
     defaultConfig {
         minSdk = 26
         consumerProguardFiles("src/androidMain/consumer-rules.pro")
-        buildConfigField("String", "MAPTILER_KEY", "\"${mapTilerKey.escapeForBuildConfig()}\"")
+        buildConfigField("String", "MAPTILER_API_KEY", "\"${mapTilerKey.escapeForBuildConfig()}\"")
     }
 
     compileOptions {

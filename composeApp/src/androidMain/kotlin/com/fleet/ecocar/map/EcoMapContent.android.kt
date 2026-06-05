@@ -28,7 +28,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.fleet.ecocar.composeapp.BuildConfig
 import com.fleet.ecocar.theme.EcoCarColors
 import eco_car_gui.composeapp.generated.resources.Res
 import eco_car_gui.composeapp.generated.resources.map_refresh
@@ -40,7 +39,6 @@ import org.jetbrains.compose.resources.stringResource
 import org.maplibre.compose.map.MaplibreMap
 import org.maplibre.compose.style.BaseStyle
 
-private const val MAPTILER_DARK_BASE = "https://api.maptiler.com/maps/streets-v2-dark/style.json"
 private val PurpleUnknown = Color(0xFF9C27B0)
 private val GreenAvailable = Color(0xFF4CAF50)
 
@@ -55,10 +53,8 @@ actual fun EcoMapContent(
         onRefreshStations()
     }
 
-    val styleUri = remember(BuildConfig.MAPTILER_KEY) {
-        val key = BuildConfig.MAPTILER_KEY
-        if (key.isBlank()) MAPTILER_DARK_BASE else "$MAPTILER_DARK_BASE?key=$key"
-    }
+    val mapStyleRepository = rememberMapStyleRepository()
+    val styleUri = remember(mapStyleRepository) { mapStyleRepository.getStyleUrl() }
 
     // Defer MapLibre init by one frame so the station list can paint while CSMS refresh runs.
     var showMap by remember { mutableStateOf(false) }
