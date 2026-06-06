@@ -9,7 +9,9 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
+import com.fleet.ecocar.composeapp.BuildConfig
 import com.fleet.ecocar.ipc.BmsTelemetryBinder
+import com.fleet.ecocar.map.ChargingStationMapRequestPolicy
 import com.fleet.ecocar.map.EcoChargingStation
 import com.fleet.ecocar.music.MusicPlaybackSurface
 import com.fleet.ecocar.music.RadioStation
@@ -23,11 +25,15 @@ import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import org.maplibre.android.MapLibre
+import org.maplibre.android.WellKnownTileServer
 import org.mozilla.geckoview.GeckoRuntime
 import org.mozilla.geckoview.GeckoSession
 import java.text.SimpleDateFormat
@@ -81,6 +87,11 @@ open class EcoCarApplication : Application() {
     private val _chargingStations = MutableStateFlow<List<EcoChargingStation>>(emptyList())
     val chargingStations: StateFlow<List<EcoChargingStation>> = _chargingStations.asStateFlow()
 
+    private val _chargingStationsRefreshing = MutableStateFlow(false)
+    val chargingStationsRefreshing: StateFlow<Boolean> = _chargingStationsRefreshing.asStateFlow()
+
+    private var chargingStationsRefreshJob: Job? = null
+
     private var bmsTelemetryBinder: BmsTelemetryBinder? = null
 
     @Volatile
@@ -89,6 +100,9 @@ open class EcoCarApplication : Application() {
 
     companion object {
         const val BROWSER_DEFAULT_HOME_URL: String = "https://www.startpage.com"
+
+        /** Matches BMS GUI refresh timeout + margin when CSMS is unavailable. */
+        private const val CHARGING_STATIONS_REFRESH_MAX_MS = 12_000L
 
         @Volatile
         private var geckoRuntime: GeckoRuntime? = null
@@ -135,6 +149,11 @@ open class EcoCarApplication : Application() {
     }
 
     override fun onCreate() {
+        MapLibre.getInstance(
+            this,
+            BuildConfig.MAPTILER_API_KEY,
+            WellKnownTileServer.MapTiler,
+        )
         super.onCreate()
         instance = this
         mainHandler.post(clockRunnable)
@@ -174,22 +193,66 @@ open class EcoCarApplication : Application() {
                     } ?: legacy
                 }
             },
-            onChargingStations = { _chargingStations.value = it },
+            onChargingStations = { stations ->
+                _chargingStations.value = ChargingStationMapRequestPolicy.applyIpcUpdate(stations)
+                finishChargingStationsRefresh()
+            },
         ).also { it.connect() }
     }
 
-    fun refreshChargingStationsNearby(radiusMeters: Double = 0.0) {
+    /**
+     * GUI: request station pins when the user opens/refreshes the map.
+     * CSMS is not always available — show BMS cache first.
+     * Live CSMS query runs only with a real GPS fix; never invent coordinates (that would
+     * falsely imply nearby stations, e.g. demo CP-DEMO-001 at Berlin).
+     * BMS low-SOC path uses its own fallback when CAN has no GPS — not EcoCar's job.
+     */
+    fun requestChargingStationsForMap(radiusMeters: Double = 0.0) {
+        bmsTelemetryBinder?.publishCachedChargingStations()
+
         val fused = LocationServices.getFusedLocationProviderClient(this)
         val cancel = CancellationTokenSource()
         fused.getCurrentLocation(Priority.PRIORITY_BALANCED_POWER_ACCURACY, cancel.token)
             .addOnSuccessListener { loc ->
-                val lat = loc?.latitude ?: 52.52
-                val lon = loc?.longitude ?: 13.405
-                bmsTelemetryBinder?.refreshChargingStations(lat, lon, radiusMeters)
+                val coords = ChargingStationMapRequestPolicy.coordinatesForBmsRefresh(
+                    loc?.let {
+                        ChargingStationMapRequestPolicy.Coordinates(
+                            latitude = it.latitude,
+                            longitude = it.longitude,
+                        )
+                    },
+                )
+                beginChargingStationsRefresh()
+                bmsTelemetryBinder?.requestChargingStationsForDisplay(
+                    coords.latitude,
+                    coords.longitude,
+                    radiusMeters,
+                )
             }
             .addOnFailureListener {
-                bmsTelemetryBinder?.refreshChargingStations(52.52, 13.405, radiusMeters)
+                val coords = ChargingStationMapRequestPolicy.coordinatesForBmsRefresh(gpsFix = null)
+                beginChargingStationsRefresh()
+                bmsTelemetryBinder?.requestChargingStationsForDisplay(
+                    coords.latitude,
+                    coords.longitude,
+                    radiusMeters,
+                )
             }
+    }
+
+    private fun beginChargingStationsRefresh() {
+        chargingStationsRefreshJob?.cancel()
+        _chargingStationsRefreshing.value = true
+        chargingStationsRefreshJob = appScope.launch {
+            delay(CHARGING_STATIONS_REFRESH_MAX_MS)
+            finishChargingStationsRefresh()
+        }
+    }
+
+    private fun finishChargingStationsRefresh() {
+        chargingStationsRefreshJob?.cancel()
+        chargingStationsRefreshJob = null
+        _chargingStationsRefreshing.value = false
     }
 
     override fun onTerminate() {

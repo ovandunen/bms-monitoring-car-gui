@@ -11,23 +11,33 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.fleet.ecocar.composeapp.BuildConfig
+import com.fleet.ecocar.infrastructure.map.MapViewWithStationPins
 import com.fleet.ecocar.theme.EcoCarColors
-import org.maplibre.compose.map.MaplibreMap
-import org.maplibre.compose.style.BaseStyle
+import eco_car_gui.composeapp.generated.resources.Res
+import eco_car_gui.composeapp.generated.resources.map_refresh
+import eco_car_gui.composeapp.generated.resources.map_stations_empty
+import eco_car_gui.composeapp.generated.resources.map_stations_legend
+import eco_car_gui.composeapp.generated.resources.map_stations_loading
+import eco_car_gui.composeapp.generated.resources.map_stations_title
+import org.jetbrains.compose.resources.stringResource
 
-private const val MAPTILER_DARK_BASE = "https://api.maptiler.com/maps/streets-v2-dark/style.json"
 private val PurpleUnknown = Color(0xFF9C27B0)
 private val GreenAvailable = Color(0xFF4CAF50)
 
@@ -35,28 +45,59 @@ private val GreenAvailable = Color(0xFF4CAF50)
 actual fun EcoMapContent(
     modifier: Modifier,
     stations: List<EcoChargingStation>,
+    isRefreshing: Boolean,
     onRefreshStations: () -> Unit,
 ) {
     LaunchedEffect(Unit) {
         onRefreshStations()
     }
 
-    val styleUri = remember(BuildConfig.MAPTILER_KEY) {
-        val key = BuildConfig.MAPTILER_KEY
-        if (key.isBlank()) MAPTILER_DARK_BASE else "$MAPTILER_DARK_BASE?key=$key"
+    val pinStations = remember(stations) { EcoMapStationPresenter.mapPins(stations) }
+    val mapStyleRepository = rememberMapStyleRepository()
+    val styleUri = remember(mapStyleRepository) { mapStyleRepository.getStyleUrl() }
+
+    var showMap by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        withFrameNanos { }
+        showMap = true
     }
 
     Column(modifier = modifier.fillMaxSize()) {
         Box(modifier = Modifier.weight(0.55f).fillMaxWidth()) {
-            MaplibreMap(
-                modifier = Modifier.fillMaxSize(),
-                baseStyle = BaseStyle.Uri(styleUri),
-            )
+            if (showMap) {
+                MapViewWithStationPins(
+                    styleUri = styleUri,
+                    stations = pinStations,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(EcoCarColors.NearBlack),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(36.dp),
+                        color = EcoCarColors.GoldenYellow,
+                    )
+                }
+            }
+            if (isRefreshing) {
+                LinearProgressIndicator(
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .fillMaxWidth(),
+                    color = EcoCarColors.GoldenYellow,
+                    trackColor = EcoCarColors.SurfaceElevated,
+                )
+            }
             TextButton(
                 onClick = onRefreshStations,
+                enabled = !isRefreshing,
                 modifier = Modifier.align(Alignment.TopEnd).padding(8.dp),
             ) {
-                Text("Aktualisieren", color = EcoCarColors.GoldenYellow)
+                Text(stringResource(Res.string.map_refresh), color = EcoCarColors.GoldenYellow)
             }
         }
         Column(
@@ -67,23 +108,46 @@ actual fun EcoMapContent(
                 .padding(12.dp),
         ) {
             Text(
-                text = "Ladestationen (${stations.size})",
+                text = stringResource(
+                    Res.string.map_stations_title,
+                    EcoMapStationPresenter.stationCount(stations),
+                ),
                 style = MaterialTheme.typography.titleMedium,
                 color = EcoCarColors.OnDark,
             )
             Text(
-                text = "Grün = verfügbar · Lila = Status unbekannt (Offline-Cache)",
+                text = stringResource(Res.string.map_stations_legend),
                 style = MaterialTheme.typography.labelSmall,
                 color = EcoCarColors.OnDarkSecondary,
                 modifier = Modifier.padding(bottom = 8.dp),
             )
-            if (stations.isEmpty()) {
+            if (isRefreshing) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(16.dp),
+                        color = EcoCarColors.GoldenYellow,
+                        strokeWidth = 2.dp,
+                    )
+                    Text(
+                        text = stringResource(Res.string.map_stations_loading),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = EcoCarColors.OnDarkSecondary,
+                        modifier = Modifier.padding(start = 8.dp),
+                    )
+                }
+            }
+            if (EcoMapStationPresenter.shouldShowEmptyState(stations, isRefreshing)) {
                 Text(
-                    text = "Keine Stationen in Reichweite oder MQTT nicht erreichbar.",
+                    text = stringResource(Res.string.map_stations_empty),
                     style = MaterialTheme.typography.bodyMedium,
                     color = EcoCarColors.OnDarkSecondary,
                 )
-            } else {
+            } else if (EcoMapStationPresenter.shouldShowStationList(stations)) {
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
                     items(stations, key = { it.stationId }) { station ->
                         StationRow(station)

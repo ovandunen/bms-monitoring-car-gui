@@ -2,9 +2,6 @@ package com.fleet.ecocar.ui
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -21,14 +18,10 @@ import com.ecocar.gui.i18n.LanguageRepository
 import com.ecocar.gui.i18n.collectLanguageAsState
 import com.fleet.ecocar.nav.MainDestination
 import com.fleet.ecocar.telemetry.rememberEcoBmsTelemetry
-import com.fleet.ecocar.ui.bottom.BottomTelemetry
+import com.fleet.ecocar.ui.bottom.rememberBottomTelemetry
+import com.fleet.ecocar.ui.vehicle.ObserveVcuLowBattery
 import com.fleet.ecocar.ui.theme.EcoCarTheme
 import com.fleet.ecocar.ui.top.rememberLiveMusicTopBarState
-import eco_car_gui.composeapp.generated.resources.Res
-import eco_car_gui.composeapp.generated.resources.action_ok
-import eco_car_gui.composeapp.generated.resources.sniffer_body
-import eco_car_gui.composeapp.generated.resources.sniffer_title
-import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun EcoCarApp(
@@ -44,11 +37,12 @@ fun EcoCarApp(
             var bottomExpanded by remember { mutableStateOf(true) }
             var selected by remember { mutableStateOf(MainDestination.Battery) }
             var showLowBattery by remember { mutableStateOf(false) }
-            var showSnifferDemo by remember { mutableStateOf(false) }
 
             val music = rememberLiveMusicTopBarState()
-            val telemetry = remember { BottomTelemetry() }
+            val telemetry = rememberBottomTelemetry()
             val ecoBmsTelemetry = rememberEcoBmsTelemetry()
+
+            ObserveVcuLowBattery { showLowBattery = true }
 
             Box(Modifier.fillMaxSize()) {
                 AppScaffold(
@@ -78,21 +72,8 @@ fun EcoCarApp(
                     onSimulateLowBattery = { showLowBattery = true },
                     onBottomSettings = { selected = MainDestination.Settings },
                     onBottomInfo = { /* v1: Info-Panel */ },
-                    onOpenSniffer = { showSnifferDemo = true },
                     languageRepository = languageRepository,
                 )
-                if (showSnifferDemo) {
-                    AlertDialog(
-                        onDismissRequest = { showSnifferDemo = false },
-                        title = { Text(stringResource(Res.string.sniffer_title)) },
-                        text = { Text(stringResource(Res.string.sniffer_body)) },
-                        confirmButton = {
-                            TextButton(onClick = { showSnifferDemo = false }) {
-                                Text(stringResource(Res.string.action_ok))
-                            }
-                        },
-                    )
-                }
             }
         }
     }

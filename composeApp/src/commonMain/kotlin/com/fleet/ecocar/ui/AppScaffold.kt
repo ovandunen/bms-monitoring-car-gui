@@ -39,7 +39,6 @@ fun AppScaffold(
     onSimulateLowBattery: () -> Unit,
     onBottomSettings: () -> Unit,
     onBottomInfo: () -> Unit,
-    onOpenSniffer: () -> Unit = {},
     languageRepository: LanguageRepository? = null,
 ) {
     Box(modifier = modifier.fillMaxSize()) {
@@ -64,7 +63,6 @@ fun AppScaffold(
                         destination = selected,
                         ecoBmsTelemetry = ecoBmsTelemetry,
                         onSimulateLowBattery = onSimulateLowBattery,
-                        onOpenSniffer = onOpenSniffer,
                         languageRepository = languageRepository,
                     )
                 }

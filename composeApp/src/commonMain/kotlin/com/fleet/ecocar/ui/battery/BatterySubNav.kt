@@ -14,8 +14,6 @@ import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -31,15 +29,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.fleet.ecocar.domain.vehicle.LadestationSocPolicy
 import com.fleet.ecocar.telemetry.EcoBmsTelemetry
 import com.fleet.ecocar.theme.EcoCarColors
+import com.fleet.ecocar.theme.socDisplayColor
 import com.fleet.ecocar.ui.subnav.EcoSubChipsBar
 import eco_car_gui.composeapp.generated.resources.Res
 import eco_car_gui.composeapp.generated.resources.alerts_empty
 import eco_car_gui.composeapp.generated.resources.alerts_title
 import eco_car_gui.composeapp.generated.resources.battery_demo_hint
 import eco_car_gui.composeapp.generated.resources.battery_live_hint
-import eco_car_gui.composeapp.generated.resources.battery_sniffer_btn
 import eco_car_gui.composeapp.generated.resources.battery_tab_alerts
 import eco_car_gui.composeapp.generated.resources.battery_tab_cells
 import eco_car_gui.composeapp.generated.resources.battery_tab_overview
@@ -59,7 +58,6 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun BatterySubNav(
-    onOpenSniffer: () -> Unit,
     ecoBmsTelemetry: EcoBmsTelemetry? = null,
     modifier: Modifier = Modifier,
 ) {
@@ -82,7 +80,6 @@ fun BatterySubNav(
         HorizontalDivider(color = EcoCarColors.Divider)
         when (tab) {
             0 -> BatteryOverviewContent(
-                onOpenSniffer = onOpenSniffer,
                 modifier = Modifier.weight(1f).fillMaxWidth(),
             )
             1 -> BatteryCellsGrid(
@@ -98,15 +95,26 @@ fun BatterySubNav(
     }
 }
 
+internal data class BatteryOverviewMetrics(
+    val socPercent: Float?,
+    val packVoltageV: Float?,
+    val packCurrentA: Float?,
+    val powerKw: Float?,
+) {
+    companion object {
+        val Empty = BatteryOverviewMetrics(null, null, null, null)
+    }
+}
+
 @Composable
 internal fun BatteryOverviewTab(
-    snapshot: DemoBatterySnapshot,
+    metrics: BatteryOverviewMetrics,
     bmsActive: Boolean,
-    onOpenSniffer: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val socIsLow = snapshot.socPercent < 30f
-    val socColor = if (socIsLow) MaterialTheme.colorScheme.error else EcoCarColors.GoldenYellow
+    val socIsLow = metrics.socPercent != null &&
+        metrics.socPercent < LadestationSocPolicy.LOW_BATTERY_PERCENT
+    val socColor = metrics.socPercent?.socDisplayColor() ?: EcoCarColors.OnDarkSecondary
     Column(
         modifier = modifier
             .verticalScroll(rememberScrollState())
@@ -131,7 +139,7 @@ internal fun BatteryOverviewTab(
         ) {
             MetricCard(
                 title = stringResource(Res.string.metric_soc),
-                value = "%.1f".format(snapshot.socPercent),
+                value = formatOverviewMetric(metrics.socPercent, 1),
                 unit = "%",
                 valueColor = socColor,
                 unitColor = if (socIsLow) socColor else EcoCarColors.OnDark,
@@ -139,7 +147,7 @@ internal fun BatteryOverviewTab(
             )
             MetricCard(
                 title = stringResource(Res.string.metric_pack_voltage),
-                value = "%.1f".format(snapshot.packVoltageV),
+                value = formatOverviewMetric(metrics.packVoltageV, 1),
                 unit = "V",
                 modifier = Modifier.weight(1f),
             )
@@ -150,29 +158,22 @@ internal fun BatteryOverviewTab(
         ) {
             MetricCard(
                 title = stringResource(Res.string.metric_pack_current),
-                value = "%.1f".format(snapshot.packCurrentA),
+                value = formatOverviewMetric(metrics.packCurrentA, 1),
                 unit = "A",
                 modifier = Modifier.weight(1f),
             )
             MetricCard(
                 title = stringResource(Res.string.metric_power),
-                value = "%.2f".format(snapshot.powerKw),
+                value = formatOverviewMetric(metrics.powerKw, 2),
                 unit = "kW",
                 modifier = Modifier.weight(1f),
             )
         }
-        Button(
-            onClick = onOpenSniffer,
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = EcoCarColors.GoldenYellow,
-                contentColor = EcoCarColors.NearBlack,
-            ),
-        ) {
-            Text(stringResource(Res.string.battery_sniffer_btn))
-        }
     }
 }
+
+private fun formatOverviewMetric(value: Float?, decimals: Int): String =
+    value?.let { "%.${decimals}f".format(it) } ?: "–"
 
 @Composable
 private fun MetricCard(

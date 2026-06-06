@@ -27,6 +27,7 @@ android {
         aidl = true
     }
 
+
     publishing {
         singleVariant("release") {
             withSourcesJar()
@@ -37,6 +38,16 @@ android {
 dependencies {
     implementation("androidx.core:core-ktx:1.15.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
+
+    testImplementation("junit:junit:4.13.2")
+    testImplementation(kotlin("test"))
+}
+
+val integrationContract = rootProject.file("../bms-monitoring-app/integration-test.contract.properties")
+tasks.withType<Test>().configureEach {
+    if (integrationContract.exists()) {
+        systemProperty("integration.contract.file", integrationContract.absolutePath)
+    }
 }
 
 publishing {

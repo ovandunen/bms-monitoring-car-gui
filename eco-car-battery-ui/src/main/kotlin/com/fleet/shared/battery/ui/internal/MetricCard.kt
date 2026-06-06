@@ -11,6 +11,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
@@ -20,6 +23,10 @@ internal fun MetricCard(
     value: String,
     unit: String,
     modifier: Modifier = Modifier,
+    valueColor: Color = BatteryTheme.GoldenYellow,
+    unitColor: Color = BatteryTheme.OnDark,
+    /** Exposed to uiautomator for integration tests (e.g. `battery-soc=12.0`). */
+    automationDescriptor: String? = null,
 ) {
     Card(
         modifier = modifier,
@@ -34,18 +41,28 @@ internal fun MetricCard(
             )
             Row(
                 verticalAlignment = Alignment.Bottom,
-                modifier = Modifier.padding(top = 4.dp),
+                modifier = Modifier
+                    .padding(top = 4.dp)
+                    .then(
+                        if (automationDescriptor != null) {
+                            Modifier.semantics(mergeDescendants = true) {
+                                contentDescription = automationDescriptor
+                            }
+                        } else {
+                            Modifier
+                        },
+                    ),
             ) {
                 Text(
                     text = value,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    color = BatteryTheme.GoldenYellow,
+                    color = valueColor,
                 )
                 Text(
                     text = " $unit",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = BatteryTheme.OnDark,
+                    color = unitColor,
                 )
             }
         }
@@ -53,4 +70,5 @@ internal fun MetricCard(
 }
 
 internal fun formatMetric(value: Float?, decimals: Int): String =
-    value?.let { "%.${decimals}f".format(it) } ?: "–"
+    com.fleet.shared.battery.ui.application.BatteryOverviewAutomationDescriptors
+        .formatMetric(value, decimals)

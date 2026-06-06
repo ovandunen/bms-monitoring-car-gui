@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 
 data class ChargingStationMapState(
     val stations: List<EcoChargingStation>,
+    val isRefreshing: Boolean,
     val refresh: () -> Unit,
 )
 

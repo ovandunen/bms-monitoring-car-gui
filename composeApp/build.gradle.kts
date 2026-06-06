@@ -12,7 +12,7 @@ plugins {
 val localProperties = Properties().apply {
     rootProject.file("local.properties").takeIf { it.exists() }?.reader(Charsets.UTF_8)?.use { load(it) }
 }
-val mapTilerKey: String = localProperties.getProperty("maptiler.key") ?: ""
+val mapTilerKey: String = localProperties.getProperty("maptiler.api_key") ?: ""
 
 fun String.escapeForBuildConfig(): String =
     replace("\\", "\\\\").replace("\"", "\\\"")
@@ -39,6 +39,7 @@ kotlin {
             implementation(project(":bms-monitoring-ipc"))
             implementation(project(":eco-car-battery-ui"))
             implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
+            implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7")
             implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.7")
             implementation(libs.appcompat)
             implementation("androidx.datastore:datastore-preferences:1.1.1")
@@ -58,6 +59,24 @@ kotlin {
                 implementation(compose.desktop.currentOs)
             }
         }
+        val desktopTest by getting {
+            dependencies {
+                implementation(kotlin("test"))
+                implementation(kotlin("test-junit5"))
+            }
+        }
+        val commonTest by getting {
+            dependencies {
+                implementation(kotlin("test"))
+                implementation(kotlin("test-junit5"))
+            }
+        }
+        val androidUnitTest by getting {
+            dependencies {
+                implementation(kotlin("test"))
+                implementation(kotlin("test-junit5"))
+            }
+        }
     }
 }
 
@@ -68,7 +87,7 @@ android {
     defaultConfig {
         minSdk = 26
         consumerProguardFiles("src/androidMain/consumer-rules.pro")
-        buildConfigField("String", "MAPTILER_KEY", "\"${mapTilerKey.escapeForBuildConfig()}\"")
+        buildConfigField("String", "MAPTILER_API_KEY", "\"${mapTilerKey.escapeForBuildConfig()}\"")
     }
 
     compileOptions {
@@ -96,4 +115,8 @@ compose.desktop {
             packageVersion = "1.0.0"
         }
     }
+}
+
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
 }

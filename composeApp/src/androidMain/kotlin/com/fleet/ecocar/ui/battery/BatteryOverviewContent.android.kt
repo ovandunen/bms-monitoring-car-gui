@@ -5,11 +5,9 @@ import androidx.compose.ui.Modifier
 
 @Composable
 actual fun BatteryOverviewContent(
-    onOpenSniffer: () -> Unit,
     modifier: Modifier,
 ) {
     BatteryDashboardOverview(
-        onOpenSniffer = onOpenSniffer,
         modifier = modifier,
     )
 }

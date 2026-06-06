@@ -39,6 +39,16 @@ dependencies {
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.material3:material3")
+
+    testImplementation("junit:junit:4.13.2")
+    testImplementation(kotlin("test"))
+}
+
+val integrationContract = rootProject.file("../bms-monitoring-app/integration-test.contract.properties")
+tasks.withType<Test>().configureEach {
+    if (integrationContract.exists()) {
+        systemProperty("integration.contract.file", integrationContract.absolutePath)
+    }
 }
 
 publishing {

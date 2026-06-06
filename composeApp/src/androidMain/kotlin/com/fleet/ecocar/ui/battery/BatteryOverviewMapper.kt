@@ -1,5 +1,6 @@
 package com.fleet.ecocar.ui.battery
 
+import com.fleet.ecocar.domain.vehicle.LadestationSocPolicy
 import com.fleet.shared.battery.ui.BatteryOverviewUiModel
 import com.fleet.shared.bms.ipc.domain.BatterySnapshot
 import com.fleet.shared.bms.ipc.domain.ConnectionStatus
@@ -8,7 +9,12 @@ internal fun BatterySnapshot.toOverviewUiModel(
     connection: ConnectionStatus,
     labels: BatteryOverviewLabels,
 ): BatteryOverviewUiModel {
-    val powerKw = (totalVoltage * current) / 1000f
+    val hasLiveData = timestamp > 0L
+    val powerKw = if (hasLiveData && (totalVoltage > 0f || current != 0f)) {
+        (totalVoltage * current) / 1000f
+    } else {
+        null
+    }
     val hint = when (connection) {
         is ConnectionStatus.Connected -> labels.liveHint
         is ConnectionStatus.Connecting -> labels.connectingHint
@@ -17,9 +23,9 @@ internal fun BatterySnapshot.toOverviewUiModel(
         ConnectionStatus.Disconnected -> labels.offlineHint
     }
     return BatteryOverviewUiModel(
-        socPercent = stateOfChargePercent,
-        packVoltageV = totalVoltage,
-        packCurrentA = current,
+        socPercent = stateOfChargePercent.takeIf { hasLiveData },
+        packVoltageV = totalVoltage.takeIf { hasLiveData && totalVoltage > 0f },
+        packCurrentA = current.takeIf { hasLiveData },
         powerKw = powerKw,
         screenTitle = labels.screenTitle,
         socLabel = labels.socLabel,
@@ -27,9 +33,10 @@ internal fun BatterySnapshot.toOverviewUiModel(
         currentLabel = labels.currentLabel,
         powerLabel = labels.powerLabel,
         statusHint = hint,
-        snifferButtonLabel = labels.snifferLabel,
-        showProgress = stateOfChargePercent in 1f..99f,
-        progress = stateOfChargePercent / 100f,
+        showProgress = hasLiveData && stateOfChargePercent in 1f..99f,
+        progress = stateOfChargePercent.takeIf { hasLiveData },
+        socIsLow = hasLiveData &&
+            stateOfChargePercent in 0.01f..<LadestationSocPolicy.LOW_BATTERY_PERCENT,
     )
 }
 
@@ -43,5 +50,4 @@ internal data class BatteryOverviewLabels(
     val demoHint: String,
     val connectingHint: String,
     val offlineHint: String,
-    val snifferLabel: String,
 )

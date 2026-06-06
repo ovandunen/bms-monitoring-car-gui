@@ -15,7 +15,7 @@ data class BatteryOverviewUiModel(
     val currentLabel: String,
     val powerLabel: String,
     val statusHint: String,
-    val snifferButtonLabel: String,
     val showProgress: Boolean = false,
     val progress: Float? = null,
+    val socIsLow: Boolean = false,
 )

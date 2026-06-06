@@ -7,5 +7,6 @@ import androidx.compose.ui.Modifier
 expect fun EcoMapContent(
     modifier: Modifier,
     stations: List<EcoChargingStation>,
+    isRefreshing: Boolean,
     onRefreshStations: () -> Unit,
 )

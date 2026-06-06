@@ -13,6 +13,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.fleet.ecocar.theme.EcoCarColors
@@ -86,7 +89,18 @@ fun LowBatteryDialog(
                     ) {
                         Text(stringResource(Res.string.dialog_technical), color = EcoCarColors.GoldenYellow)
                     }
-                    TextButton(onClick = onDismiss, modifier = Modifier.weight(1f)) {
+                    TextButton(
+                        onClick = onDismiss,
+                        modifier = Modifier
+                            .weight(1f)
+                            .semantics {
+                                contentDescription = "low-battery-dialog-close"
+                                onClick(label = "Close low battery dialog") {
+                                    onDismiss()
+                                    true
+                                }
+                            },
+                    ) {
                         Text(stringResource(Res.string.dialog_close), color = EcoCarColors.OnDarkSecondary)
                     }
                 }
