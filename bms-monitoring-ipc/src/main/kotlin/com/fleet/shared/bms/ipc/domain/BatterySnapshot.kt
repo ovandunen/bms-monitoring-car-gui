@@ -17,5 +17,7 @@ data class BatterySnapshot(
     val motorRpm: Int,
     val vehicleSpeed: Float,
     val estimatedRangeKm: Float = 0f,
+    /** Trip distance from BMS [com.fleet.bms.infrastructure.co2.TripEnergyAccumulator]. */
+    val tripDistanceKm: Float = 0f,
     val faultCodes: List<String> = emptyList(),
 )

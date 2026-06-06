@@ -1,5 +1,10 @@
+@file:OptIn(ExperimentalFoundationApi::class)
+
 package com.fleet.ecocar.ui.bottom
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -18,9 +23,14 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
@@ -38,13 +48,14 @@ import eco_car_gui.composeapp.generated.resources.bottom_settings
 import eco_car_gui.composeapp.generated.resources.bottom_soc
 import eco_car_gui.composeapp.generated.resources.bottom_tons
 import eco_car_gui.composeapp.generated.resources.bottom_trip
+import eco_car_gui.composeapp.generated.resources.bottom_trip_reset_hint
+import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.stringResource
+import androidx.compose.foundation.ExperimentalFoundationApi
 
 data class BottomTelemetry(
     val socPercent: Int = 0,
-    /** No trip sensor in-app; null shows as "—". */
     val tripDistanceKm: Int? = null,
-    /** BMS-computed estimate via IPC; null shows as "—". */
     val rangeKm: Double? = null,
     val co2SavingTons: Double = -1.7,
 )
@@ -56,6 +67,9 @@ fun EcoBottomBar(
     telemetry: BottomTelemetry,
     onSettingsClick: () -> Unit,
     onInfoClick: () -> Unit,
+    onTripLongPress: () -> Unit = {},
+    showTripResetHint: Boolean = false,
+    onTripResetHintDismissed: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val tripText = formatKmChip(telemetry.tripDistanceKm)
@@ -63,6 +77,21 @@ fun EcoBottomBar(
     val co2Text = stringResource(Res.string.bottom_tons, telemetry.co2SavingTons)
     val socColor = telemetry.socPercent.socDisplayColor()
     val rangeDescriptor = telemetry.rangeKm?.let { formatRangeDescriptor(it) }
+    val tripResetHint = stringResource(Res.string.bottom_trip_reset_hint)
+    val haptic = LocalHapticFeedback.current
+    val tripInteractionSource = remember { MutableInteractionSource() }
+
+    LaunchedEffect(showTripResetHint) {
+        if (showTripResetHint) {
+            delay(3_000L)
+            onTripResetHintDismissed()
+        }
+    }
+
+    val hintAlpha by animateFloatAsState(
+        targetValue = if (showTripResetHint) 1f else 0f,
+        label = "tripResetHintAlpha",
+    )
 
     Surface(
         modifier = modifier.fillMaxWidth(),
@@ -82,7 +111,41 @@ fun EcoBottomBar(
                         value = "${telemetry.socPercent} %",
                         valueColor = socColor,
                     )
-                    TelemetryChip(stringResource(Res.string.bottom_trip), tripText)
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Column(
+                            modifier = Modifier
+                                .combinedClickable(
+                                    interactionSource = tripInteractionSource,
+                                    indication = null,
+                                    onClick = {},
+                                    onLongClick = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        onTripLongPress()
+                                    },
+                                )
+                                .padding(horizontal = 8.dp, vertical = 4.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                        ) {
+                            Text(
+                                text = stringResource(Res.string.bottom_trip),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = EcoCarColors.OnDarkSecondary,
+                            )
+                            Text(
+                                text = tripText,
+                                style = MaterialTheme.typography.titleSmall,
+                                color = EcoCarColors.OnDark,
+                            )
+                        }
+                        if (hintAlpha > 0.01f) {
+                            Text(
+                                text = tripResetHint,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = EcoCarColors.GoldenYellow.copy(alpha = hintAlpha),
+                                modifier = Modifier.padding(top = 2.dp),
+                            )
+                        }
+                    }
                     TelemetryChip(
                         label = stringResource(Res.string.bottom_range),
                         value = rangeText,

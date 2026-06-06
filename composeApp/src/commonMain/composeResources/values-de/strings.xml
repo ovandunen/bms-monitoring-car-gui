@@ -12,6 +12,8 @@
 
     <string name="bottom_soc">Ladestand</string>
     <string name="bottom_trip">Distanz (Trip)</string>
+    <string name="bottom_trip_reset_snackbar">Distanz zurückgesetzt</string>
+    <string name="bottom_trip_reset_hint">Gedrückt halten zum Zurücksetzen</string>
     <string name="bottom_range">Reichweite</string>
     <string name="bottom_co2">CO₂-Ersparnis</string>
     <string name="bottom_settings">Einstellungen</string>

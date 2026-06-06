@@ -13,6 +13,8 @@
 
     <string name="bottom_soc">Charge</string>
     <string name="bottom_trip">Distance (trajet)</string>
+    <string name="bottom_trip_reset_snackbar">Distanz zurückgesetzt</string>
+    <string name="bottom_trip_reset_hint">Gedrückt halten zum Zurücksetzen</string>
     <string name="bottom_range">Autonomie</string>
     <string name="bottom_co2">Économie CO₂</string>
     <string name="bottom_settings">Réglages</string>

@@ -6,8 +6,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.ecocar.gui.i18n.LanguageRepository
 import com.fleet.ecocar.nav.MainDestination
 import com.fleet.ecocar.telemetry.EcoBmsTelemetry
@@ -39,6 +44,10 @@ fun AppScaffold(
     onSimulateLowBattery: () -> Unit,
     onBottomSettings: () -> Unit,
     onBottomInfo: () -> Unit,
+    onTripLongPress: () -> Unit = {},
+    showTripResetHint: Boolean = false,
+    onTripResetHintDismissed: () -> Unit = {},
+    snackbarHostState: SnackbarHostState? = null,
     languageRepository: LanguageRepository? = null,
 ) {
     Box(modifier = modifier.fillMaxSize()) {
@@ -72,8 +81,19 @@ fun AppScaffold(
                     telemetry = telemetry,
                     onSettingsClick = onBottomSettings,
                     onInfoClick = onBottomInfo,
+                    onTripLongPress = onTripLongPress,
+                    showTripResetHint = showTripResetHint,
+                    onTripResetHintDismissed = onTripResetHintDismissed,
                 )
             }
+        }
+        snackbarHostState?.let { hostState ->
+            SnackbarHost(
+                hostState = hostState,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 72.dp),
+            )
         }
         if (showLowBattery) {
             LowBatteryDialog(
