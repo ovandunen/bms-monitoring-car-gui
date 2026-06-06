@@ -20,14 +20,19 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.fleet.ecocar.theme.EcoCarColors
+import com.fleet.ecocar.theme.socDisplayColor
 import eco_car_gui.composeapp.generated.resources.Res
 import eco_car_gui.composeapp.generated.resources.bottom_collapse
 import eco_car_gui.composeapp.generated.resources.bottom_co2
 import eco_car_gui.composeapp.generated.resources.bottom_expand
 import eco_car_gui.composeapp.generated.resources.bottom_info
 import eco_car_gui.composeapp.generated.resources.bottom_km
+import eco_car_gui.composeapp.generated.resources.bottom_km_dash
 import eco_car_gui.composeapp.generated.resources.bottom_range
 import eco_car_gui.composeapp.generated.resources.bottom_settings
 import eco_car_gui.composeapp.generated.resources.bottom_soc
@@ -36,9 +41,11 @@ import eco_car_gui.composeapp.generated.resources.bottom_trip
 import org.jetbrains.compose.resources.stringResource
 
 data class BottomTelemetry(
-    val socPercent: Int = 74,
-    val tripDistanceKm: Int = 71,
-    val rangeKm: Int = 103,
+    val socPercent: Int = 0,
+    /** No trip sensor in-app; null shows as "—". */
+    val tripDistanceKm: Int? = null,
+    /** BMS-computed estimate via IPC; null shows as "—". */
+    val rangeKm: Double? = null,
     val co2SavingTons: Double = -1.7,
 )
 
@@ -51,9 +58,11 @@ fun EcoBottomBar(
     onInfoClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val tripText = stringResource(Res.string.bottom_km, telemetry.tripDistanceKm)
-    val rangeText = stringResource(Res.string.bottom_km, telemetry.rangeKm)
+    val tripText = formatKmChip(telemetry.tripDistanceKm)
+    val rangeText = formatKmChip(telemetry.rangeKm?.let { kotlin.math.round(it).toInt() })
     val co2Text = stringResource(Res.string.bottom_tons, telemetry.co2SavingTons)
+    val socColor = telemetry.socPercent.socDisplayColor()
+    val rangeDescriptor = telemetry.rangeKm?.let { formatRangeDescriptor(it) }
 
     Surface(
         modifier = modifier.fillMaxWidth(),
@@ -68,9 +77,17 @@ fun EcoBottomBar(
                     horizontalArrangement = Arrangement.SpaceEvenly,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    TelemetryChip(stringResource(Res.string.bottom_soc), "${telemetry.socPercent} %")
+                    TelemetryChip(
+                        label = stringResource(Res.string.bottom_soc),
+                        value = "${telemetry.socPercent} %",
+                        valueColor = socColor,
+                    )
                     TelemetryChip(stringResource(Res.string.bottom_trip), tripText)
-                    TelemetryChip(stringResource(Res.string.bottom_range), rangeText)
+                    TelemetryChip(
+                        label = stringResource(Res.string.bottom_range),
+                        value = rangeText,
+                        valueContentDescription = rangeDescriptor,
+                    )
                     TelemetryChip(stringResource(Res.string.bottom_co2), co2Text)
                 }
                 Row(
@@ -106,7 +123,7 @@ fun EcoBottomBar(
                     Text(
                         text = "${telemetry.socPercent} %",
                         style = MaterialTheme.typography.titleMedium,
-                        color = EcoCarColors.GoldenYellow,
+                        color = socColor,
                     )
                     Text(
                         text = "$tripText · $rangeText · $co2Text",
@@ -134,9 +151,33 @@ fun EcoBottomBar(
 }
 
 @Composable
-private fun TelemetryChip(label: String, value: String) {
+private fun formatKmChip(km: Int?): String =
+    km?.let { stringResource(Res.string.bottom_km, it) }
+        ?: stringResource(Res.string.bottom_km_dash)
+
+@Composable
+private fun TelemetryChip(
+    label: String,
+    value: String,
+    valueColor: Color = EcoCarColors.OnDark,
+    valueContentDescription: String? = null,
+) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(text = label, style = MaterialTheme.typography.labelSmall, color = EcoCarColors.OnDarkSecondary)
-        Text(text = value, style = MaterialTheme.typography.titleSmall, color = EcoCarColors.OnDark)
+        Text(
+            text = value,
+            style = MaterialTheme.typography.titleSmall,
+            color = valueColor,
+            modifier = if (valueContentDescription != null) {
+                Modifier.semantics { contentDescription = valueContentDescription }
+            } else {
+                Modifier
+            },
+        )
     }
+}
+
+private fun formatRangeDescriptor(rangeKm: Double): String {
+    val rounded = kotlin.math.round(rangeKm * 10.0) / 10.0
+    return "battery-range=$rounded"
 }

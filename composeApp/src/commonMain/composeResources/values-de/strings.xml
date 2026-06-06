@@ -70,7 +70,7 @@
     <string name="chart_humidity_subtitle_demo">Relative Feuchte (Demo) — BMS liefert SHT31 nach Bind.</string>
 
     <string name="dialog_low_battery_title">Niedriger Batterieladestand</string>
-    <string name="dialog_low_battery_body">Battery low — es betrifft ggf. beide Systeme: Hochvoltbatterie und 12-V-Bordnetz.</string>
+    <string name="dialog_low_battery_body">Der Ladestand der Hochvoltbatterie ist niedrig.</string>
     <string name="dialog_low_battery_action">Bitte wählen Sie eine nächste Aktion.</string>
     <string name="dialog_low_battery_charge_cta">Zur nächsten Solar-/Ladestation</string>
     <string name="dialog_technical">Technische Hinweise</string>

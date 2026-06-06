@@ -11,6 +11,7 @@ import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import com.fleet.ecocar.composeapp.BuildConfig
 import com.fleet.ecocar.ipc.BmsTelemetryBinder
+import com.fleet.ecocar.map.ChargingStationMapRequestPolicy
 import com.fleet.ecocar.map.EcoChargingStation
 import com.fleet.ecocar.music.MusicPlaybackSurface
 import com.fleet.ecocar.music.RadioStation
@@ -193,7 +194,7 @@ open class EcoCarApplication : Application() {
                 }
             },
             onChargingStations = { stations ->
-                _chargingStations.value = stations
+                _chargingStations.value = ChargingStationMapRequestPolicy.applyIpcUpdate(stations)
                 finishChargingStationsRefresh()
             },
         ).also { it.connect() }
@@ -213,20 +214,29 @@ open class EcoCarApplication : Application() {
         val cancel = CancellationTokenSource()
         fused.getCurrentLocation(Priority.PRIORITY_BALANCED_POWER_ACCURACY, cancel.token)
             .addOnSuccessListener { loc ->
-                if (loc == null) {
-                    finishChargingStationsRefresh()
-                    return@addOnSuccessListener
-                }
+                val coords = ChargingStationMapRequestPolicy.coordinatesForBmsRefresh(
+                    loc?.let {
+                        ChargingStationMapRequestPolicy.Coordinates(
+                            latitude = it.latitude,
+                            longitude = it.longitude,
+                        )
+                    },
+                )
                 beginChargingStationsRefresh()
                 bmsTelemetryBinder?.requestChargingStationsForDisplay(
-                    loc.latitude,
-                    loc.longitude,
+                    coords.latitude,
+                    coords.longitude,
                     radiusMeters,
                 )
             }
             .addOnFailureListener {
-                // No GPS: cached pins only — do not query CSMS with fake coordinates.
-                finishChargingStationsRefresh()
+                val coords = ChargingStationMapRequestPolicy.coordinatesForBmsRefresh(gpsFix = null)
+                beginChargingStationsRefresh()
+                bmsTelemetryBinder?.requestChargingStationsForDisplay(
+                    coords.latitude,
+                    coords.longitude,
+                    radiusMeters,
+                )
             }
     }
 

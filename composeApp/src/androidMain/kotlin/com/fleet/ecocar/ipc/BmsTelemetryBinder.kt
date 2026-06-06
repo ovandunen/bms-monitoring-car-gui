@@ -12,6 +12,7 @@ import com.bms.monitor.aidl.BmsData
 import com.bms.monitor.aidl.ChargingStationSnapshot
 import com.bms.monitor.aidl.IBmsCallback
 import com.bms.monitor.aidl.IBmsService
+import com.fleet.ecocar.map.ChargingStationSnapshotMapper
 import com.fleet.ecocar.map.EcoChargingStation
 import com.fleet.ecocar.telemetry.EcoBmsTelemetry
 
@@ -30,6 +31,11 @@ class BmsTelemetryBinder(
 
     @Volatile
     private var binder: IBmsService? = null
+
+    @Volatile
+    private var pendingRefresh: RefreshRequest? = null
+
+    private data class RefreshRequest(val latitude: Double, val longitude: Double, val radiusMeters: Double)
 
     private val callback = object : IBmsCallback.Stub() {
         override fun onDataUpdate(data: BmsData) {
@@ -66,9 +72,8 @@ class BmsTelemetryBinder(
             binder = svc
             try {
                 svc.registerCallback(callback)
-                svc.getCachedChargingStations()?.let { cached ->
-                    mainHandler.post { onChargingStations(cached.map { it.toEcoChargingStation() }) }
-                }
+                publishCachedChargingStationsInternal(svc)
+                flushPendingRefresh()
             } catch (e: Exception) {
                 Log.e(TAG, "registerCallback failed", e)
             }
@@ -80,8 +85,9 @@ class BmsTelemetryBinder(
     }
 
     fun connect() {
-        val intent = Intent(BMS_SERVICE_ACTION).setPackage(BMS_PACKAGE)
+        val intent = serviceIntent()
         try {
+            appContext.startService(intent)
             val ok = appContext.bindService(intent, connection, Context.BIND_AUTO_CREATE)
             if (!ok) {
                 Log.w(TAG, "bindService returned false (BMS APK installiert / Signatur BIND_BMS?)")
@@ -97,6 +103,7 @@ class BmsTelemetryBinder(
         } catch (_: Exception) {
         }
         binder = null
+        pendingRefresh = null
         try {
             appContext.unbindService(connection)
         } catch (_: Exception) {
@@ -108,8 +115,28 @@ class BmsTelemetryBinder(
      * Safe to call on the main thread before a live refresh.
      */
     fun publishCachedChargingStations(): Boolean {
+        val svc = binder ?: return false
+        return publishCachedChargingStationsInternal(svc)
+    }
+
+    /** EcoCar requests station pins for map display (IBmsService data API — not a map refresh in BMS). */
+    fun requestChargingStationsForDisplay(
+        latitude: Double,
+        longitude: Double,
+        radiusMeters: Double = 0.0,
+    ) {
+        val svc = binder
+        if (svc == null) {
+            pendingRefresh = RefreshRequest(latitude, longitude, radiusMeters)
+            Log.d(TAG, "requestChargingStationsForDisplay queued until BmsService bind")
+            return
+        }
+        invokeRefresh(svc, latitude, longitude, radiusMeters)
+    }
+
+    private fun publishCachedChargingStationsInternal(svc: IBmsService): Boolean {
         return try {
-            val cached = binder?.getCachedChargingStations() ?: return false
+            val cached = svc.getCachedChargingStations()
             val mapped = cached.map { it.toEcoChargingStation() }
             if (mapped.isNotEmpty()) {
                 mainHandler.post { onChargingStations(mapped) }
@@ -121,18 +148,27 @@ class BmsTelemetryBinder(
         }
     }
 
-    /** EcoCar requests station pins for map display (IBmsService data API — not a map refresh in BMS). */
-    fun requestChargingStationsForDisplay(
+    private fun flushPendingRefresh() {
+        val pending = pendingRefresh ?: return
+        pendingRefresh = null
+        binder?.let { invokeRefresh(it, pending.latitude, pending.longitude, pending.radiusMeters) }
+    }
+
+    private fun invokeRefresh(
+        svc: IBmsService,
         latitude: Double,
         longitude: Double,
-        radiusMeters: Double = 0.0,
+        radiusMeters: Double,
     ) {
         try {
-            binder?.refreshChargingStations(null, latitude, longitude, radiusMeters)
+            svc.refreshChargingStations(null, latitude, longitude, radiusMeters)
         } catch (e: Exception) {
             Log.e(TAG, "requestChargingStationsForDisplay failed", e)
         }
     }
+
+    private fun serviceIntent(): Intent =
+        Intent(BMS_SERVICE_ACTION).setPackage(BMS_PACKAGE)
 
     companion object {
         private const val TAG = "BmsTelemetryBinder"
@@ -141,14 +177,17 @@ class BmsTelemetryBinder(
     }
 }
 
-private fun ChargingStationSnapshot.toEcoChargingStation() = EcoChargingStation(
-    stationId = stationId.orEmpty(),
-    displayName = displayName?.takeIf { it.isNotBlank() } ?: stationId.orEmpty(),
-    streetAddress = streetAddress,
-    city = city,
-    latitude = latitude,
-    longitude = longitude,
-    solarCapacityKw = solarCapacityKw,
-    status = status.orEmpty(),
-    offlineCache = offlineCache,
-)
+private fun ChargingStationSnapshot.toEcoChargingStation() =
+    ChargingStationSnapshotMapper.toEco(
+        ChargingStationSnapshotMapper.Fields(
+            stationId = stationId,
+            displayName = displayName,
+            streetAddress = streetAddress,
+            city = city,
+            latitude = latitude,
+            longitude = longitude,
+            solarCapacityKw = solarCapacityKw,
+            status = status,
+            offlineCache = offlineCache,
+        ),
+    )

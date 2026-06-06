@@ -70,7 +70,7 @@
     <string name="chart_humidity_subtitle_demo">Relative humidity (demo) — BMS provides SHT31 after bind.</string>
 
     <string name="dialog_low_battery_title">Low battery charge</string>
-    <string name="dialog_low_battery_body">Battery low — may affect both HV battery and 12 V board net.</string>
+    <string name="dialog_low_battery_body">High-voltage battery state of charge is low.</string>
     <string name="dialog_low_battery_action">Please choose a next action.</string>
     <string name="dialog_low_battery_charge_cta">Go to next solar / charging station</string>
     <string name="dialog_technical">Technical notes</string>

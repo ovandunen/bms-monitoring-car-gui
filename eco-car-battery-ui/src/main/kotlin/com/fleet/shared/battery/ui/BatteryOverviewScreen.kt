@@ -7,8 +7,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,7 +24,6 @@ import com.fleet.shared.battery.ui.internal.formatMetric
 @Composable
 fun BatteryOverviewScreen(
     model: BatteryOverviewUiModel,
-    onOpenSniffer: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -44,6 +41,7 @@ fun BatteryOverviewScreen(
             statusHint = model.statusHint,
             showProgress = model.showProgress,
             progress = model.progress,
+            progressColor = if (model.socIsLow) BatteryTheme.LowSocOrange else BatteryTheme.GoldenYellow,
         )
         val automation = BatteryOverviewAutomationDescriptors.fromMetrics(
             socPercent = model.socPercent,
@@ -51,6 +49,7 @@ fun BatteryOverviewScreen(
             packCurrentA = model.packCurrentA,
             powerKw = model.powerKw,
         )
+        val socColor = if (model.socIsLow) BatteryTheme.LowSocOrange else BatteryTheme.GoldenYellow
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -60,6 +59,8 @@ fun BatteryOverviewScreen(
                 value = formatMetric(model.socPercent, 1),
                 unit = "%",
                 modifier = Modifier.weight(1f),
+                valueColor = socColor,
+                unitColor = if (model.socIsLow) socColor else BatteryTheme.OnDark,
                 automationDescriptor = automation.soc,
             )
             MetricCard(
@@ -88,16 +89,6 @@ fun BatteryOverviewScreen(
                 modifier = Modifier.weight(1f),
                 automationDescriptor = automation.power,
             )
-        }
-        Button(
-            onClick = onOpenSniffer,
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = BatteryTheme.GoldenYellow,
-                contentColor = BatteryTheme.NearBlack,
-            ),
-        ) {
-            Text(model.snifferButtonLabel)
         }
     }
 }

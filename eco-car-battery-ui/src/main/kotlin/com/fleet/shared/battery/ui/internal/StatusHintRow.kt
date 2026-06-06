@@ -6,6 +6,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 
 @Composable
 internal fun StatusHintRow(
@@ -13,6 +14,7 @@ internal fun StatusHintRow(
     showProgress: Boolean,
     progress: Float?,
     modifier: Modifier = Modifier,
+    progressColor: Color = BatteryTheme.GoldenYellow,
 ) {
     Text(
         text = statusHint,
@@ -24,7 +26,7 @@ internal fun StatusHintRow(
         LinearProgressIndicator(
             progress = { (progress / 100f).coerceIn(0f, 1f) },
             modifier = Modifier.fillMaxWidth(),
-            color = BatteryTheme.GoldenYellow,
+            color = progressColor,
             trackColor = BatteryTheme.Divider,
         )
     }

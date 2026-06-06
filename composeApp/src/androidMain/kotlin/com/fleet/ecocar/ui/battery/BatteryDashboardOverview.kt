@@ -30,7 +30,6 @@ import eco_car_gui.composeapp.generated.resources.battery_bms_offline
 import eco_car_gui.composeapp.generated.resources.battery_connecting
 import eco_car_gui.composeapp.generated.resources.battery_demo_hint
 import eco_car_gui.composeapp.generated.resources.battery_live_hint
-import eco_car_gui.composeapp.generated.resources.battery_sniffer_btn
 import eco_car_gui.composeapp.generated.resources.battery_title
 import eco_car_gui.composeapp.generated.resources.battery_wake_bms
 import eco_car_gui.composeapp.generated.resources.metric_pack_current
@@ -41,7 +40,6 @@ import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun BatteryDashboardOverview(
-    onOpenSniffer: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: BatteryDashboardViewModel = viewModel(
         factory = ViewModelProvider.AndroidViewModelFactory.getInstance(
@@ -62,7 +60,6 @@ internal fun BatteryDashboardOverview(
         demoHint = stringResource(Res.string.battery_demo_hint),
         connectingHint = stringResource(Res.string.battery_connecting),
         offlineHint = stringResource(Res.string.battery_bms_offline),
-        snifferLabel = stringResource(Res.string.battery_sniffer_btn),
     )
 
     Box(modifier = modifier.fillMaxSize()) {
@@ -71,7 +68,6 @@ internal fun BatteryDashboardOverview(
                 batteryState?.let { snap ->
                     BatteryOverviewScreen(
                         model = snap.toOverviewUiModel(s, labels),
-                        onOpenSniffer = onOpenSniffer,
                         modifier = Modifier.fillMaxSize(),
                     )
                 } ?: ConnectingPanel(stringResource(Res.string.battery_connecting))

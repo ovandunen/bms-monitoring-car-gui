@@ -26,6 +26,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.ecocar.gui.nav.localizedLabel
@@ -107,6 +109,13 @@ private fun NavTile(
         .background(bg)
         .border(borderWidth, borderColor, shape)
         .clickable(onClick = onClick)
+        .then(
+            if (destination == MainDestination.Battery) {
+                Modifier.semantics { contentDescription = "nav-destination-battery" }
+            } else {
+                Modifier
+            },
+        )
         .padding(horizontal = 10.dp, vertical = 12.dp)
 
     if (expanded) {

@@ -16,5 +16,6 @@ data class BatterySnapshot(
     val motorTemp: Int,
     val motorRpm: Int,
     val vehicleSpeed: Float,
+    val estimatedRangeKm: Float = 0f,
     val faultCodes: List<String> = emptyList(),
 )

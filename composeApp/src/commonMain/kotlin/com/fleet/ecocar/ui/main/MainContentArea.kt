@@ -36,7 +36,6 @@ fun MainContentArea(
     destination: MainDestination,
     ecoBmsTelemetry: EcoBmsTelemetry?,
     onSimulateLowBattery: () -> Unit,
-    onOpenSniffer: () -> Unit = {},
     languageRepository: LanguageRepository? = null,
     modifier: Modifier = Modifier,
 ) {
@@ -52,7 +51,6 @@ fun MainContentArea(
                     EcoMusicContent(Modifier.fillMaxSize())
                 MainDestination.Battery ->
                     BatterySubNav(
-                        onOpenSniffer = onOpenSniffer,
                         ecoBmsTelemetry = ecoBmsTelemetry,
                         modifier = Modifier.fillMaxSize(),
                     )

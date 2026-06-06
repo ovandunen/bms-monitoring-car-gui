@@ -1,6 +1,5 @@
 package com.fleet.ecocar.map
 
-import android.app.Application
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,21 +18,16 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.fleet.ecocar.domain.map.ChargingStation
 import com.fleet.ecocar.infrastructure.map.MapViewWithStationPins
 import com.fleet.ecocar.theme.EcoCarColors
 import eco_car_gui.composeapp.generated.resources.Res
@@ -54,18 +48,11 @@ actual fun EcoMapContent(
     isRefreshing: Boolean,
     onRefreshStations: () -> Unit,
 ) {
-    val viewModel: EcoMapViewModel = viewModel(
-        factory = ViewModelProvider.AndroidViewModelFactory.getInstance(
-            LocalContext.current.applicationContext as Application,
-        ),
-    )
-    val mapStations by viewModel.chargingStations.collectAsState()
-    val mapRefreshing by viewModel.isRefreshing.collectAsState()
-
     LaunchedEffect(Unit) {
-        viewModel.refreshStations()
+        onRefreshStations()
     }
 
+    val pinStations = remember(stations) { EcoMapStationPresenter.mapPins(stations) }
     val mapStyleRepository = rememberMapStyleRepository()
     val styleUri = remember(mapStyleRepository) { mapStyleRepository.getStyleUrl() }
 
@@ -80,7 +67,7 @@ actual fun EcoMapContent(
             if (showMap) {
                 MapViewWithStationPins(
                     styleUri = styleUri,
-                    stations = mapStations,
+                    stations = pinStations,
                     modifier = Modifier.fillMaxSize(),
                 )
             } else {
@@ -96,7 +83,7 @@ actual fun EcoMapContent(
                     )
                 }
             }
-            if (mapRefreshing) {
+            if (isRefreshing) {
                 LinearProgressIndicator(
                     modifier = Modifier
                         .align(Alignment.TopCenter)
@@ -106,8 +93,8 @@ actual fun EcoMapContent(
                 )
             }
             TextButton(
-                onClick = { viewModel.refreshStations() },
-                enabled = !mapRefreshing,
+                onClick = onRefreshStations,
+                enabled = !isRefreshing,
                 modifier = Modifier.align(Alignment.TopEnd).padding(8.dp),
             ) {
                 Text(stringResource(Res.string.map_refresh), color = EcoCarColors.GoldenYellow)
@@ -121,7 +108,10 @@ actual fun EcoMapContent(
                 .padding(12.dp),
         ) {
             Text(
-                text = stringResource(Res.string.map_stations_title, mapStations.size),
+                text = stringResource(
+                    Res.string.map_stations_title,
+                    EcoMapStationPresenter.stationCount(stations),
+                ),
                 style = MaterialTheme.typography.titleMedium,
                 color = EcoCarColors.OnDark,
             )
@@ -131,7 +121,7 @@ actual fun EcoMapContent(
                 color = EcoCarColors.OnDarkSecondary,
                 modifier = Modifier.padding(bottom = 8.dp),
             )
-            if (mapRefreshing) {
+            if (isRefreshing) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -151,16 +141,16 @@ actual fun EcoMapContent(
                     )
                 }
             }
-            if (mapStations.isEmpty() && !mapRefreshing) {
+            if (EcoMapStationPresenter.shouldShowEmptyState(stations, isRefreshing)) {
                 Text(
                     text = stringResource(Res.string.map_stations_empty),
                     style = MaterialTheme.typography.bodyMedium,
                     color = EcoCarColors.OnDarkSecondary,
                 )
-            } else if (mapStations.isNotEmpty()) {
+            } else if (EcoMapStationPresenter.shouldShowStationList(stations)) {
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    items(mapStations, key = { it.id }) { station ->
-                        StationRow(station, stations)
+                    items(stations, key = { it.stationId }) { station ->
+                        StationRow(station)
                     }
                 }
             }
@@ -169,16 +159,11 @@ actual fun EcoMapContent(
 }
 
 @Composable
-private fun StationRow(
-    station: ChargingStation,
-    ecoStations: List<EcoChargingStation>,
-) {
-    val eco = ecoStations.find { it.stationId == station.id }
+private fun StationRow(station: EcoChargingStation) {
     val dotColor = when {
-        eco?.isPurpleUnknown == true -> PurpleUnknown
-        eco?.status.equals("AVAILABLE", ignoreCase = true) -> GreenAvailable
-        eco != null -> Color(0xFFFF9800)
-        else -> GreenAvailable
+        station.isPurpleUnknown -> PurpleUnknown
+        station.status.equals("AVAILABLE", ignoreCase = true) -> GreenAvailable
+        else -> Color(0xFFFF9800)
     }
     Row(
         modifier = Modifier
@@ -193,12 +178,12 @@ private fun StationRow(
                 .background(dotColor),
         )
         Column(modifier = Modifier.padding(start = 12.dp)) {
-            Text(station.name, color = EcoCarColors.OnDark, style = MaterialTheme.typography.bodyLarge)
-            eco?.addressLine?.let {
+            Text(station.displayName, color = EcoCarColors.OnDark, style = MaterialTheme.typography.bodyLarge)
+            station.addressLine?.let {
                 Text(it, color = EcoCarColors.OnDarkSecondary, style = MaterialTheme.typography.bodySmall)
             }
             Text(
-                text = "${"%.5f".format(station.latitude)}, ${"%.5f".format(station.longitude)}",
+                text = "${"%.5f".format(station.latitude)}, ${"%.5f".format(station.longitude)} · ${station.solarCapacityKw.toInt()} kW",
                 color = EcoCarColors.OnDarkSecondary,
                 style = MaterialTheme.typography.labelSmall,
             )

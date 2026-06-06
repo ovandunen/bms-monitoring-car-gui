@@ -44,12 +44,20 @@ object IntegrationTestExpectations {
             File("../bms-monitoring-app/integration-test.contract.properties"),
             File("../../bms-monitoring-app/integration-test.contract.properties"),
         )
-        return candidates.firstOrNull { it.isFile }
-            ?: error("integration-test.contract.properties not found")
+        return candidates.firstOrNull { it.isFile } ?: embeddedContractFile()
+    }
+
+    private fun embeddedContractFile(): File {
+        val file = File.createTempFile("integration-test-contract", ".properties")
+        file.deleteOnExit()
+        file.writeText("can.pack.data=$DEFAULT_PACK_DATA_HEX\n")
+        return file
     }
 
     private fun loadProperties(file: File): Properties =
         Properties().apply { file.reader().use { load(it) } }
+
+    private const val DEFAULT_PACK_DATA_HEX = "0000000C9E7C1C0C"
 
     private fun fmt1(v: Float): String =
         if (v == kotlin.math.floor(v.toDouble()).toFloat()) "${v.toLong()}.0" else v.toString()

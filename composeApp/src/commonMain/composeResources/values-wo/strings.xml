@@ -63,6 +63,7 @@
     <string name="chart_humidity_title">Humidité (%)</string>
 
     <string name="dialog_low_battery_title">Charge batterie néew</string>
+    <string name="dialog_low_battery_body">Charge batterie HT bi néew na.</string>
     <string name="dialog_low_battery_action">Tannal benn liggéey.</string>
     <string name="dialog_low_battery_charge_cta">Dem ci station solaire / charge</string>
     <string name="dialog_technical">Xibaar technique</string>
