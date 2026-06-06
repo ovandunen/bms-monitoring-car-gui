@@ -16,7 +16,7 @@ actual fun rememberBottomTelemetry(): BottomTelemetry {
             BottomTelemetry(
                 socPercent = live?.stateOfChargePercent?.toInt() ?: 0,
                 tripDistanceKm = null,
-                rangeKm = live?.estimatedRangeKm?.toDouble(),
+                rangeKm = live?.estimatedRangeKm?.takeIf { it > 0f }?.toDouble(),
             )
         }
 }
