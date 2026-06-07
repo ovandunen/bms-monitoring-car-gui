@@ -30,6 +30,7 @@ kotlin {
             api(compose.foundation)
             api(compose.material3)
             api(compose.ui)
+            api(compose.animation)
             api(compose.materialIconsExtended)
             implementation(compose.components.resources)
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.1")
@@ -53,6 +54,7 @@ kotlin {
             implementation(libs.glide)
             implementation(libs.androidx.media)
             implementation("com.google.android.gms:play-services-location:21.1.0")
+            implementation("com.jakewharton.timber:timber:5.0.1")
         }
         named("desktopMain") {
             dependencies {
@@ -75,6 +77,8 @@ kotlin {
             dependencies {
                 implementation(kotlin("test"))
                 implementation(kotlin("test-junit5"))
+                implementation("junit:junit:4.13.2")
+                implementation("androidx.arch.core:core-testing:2.2.0")
             }
         }
     }

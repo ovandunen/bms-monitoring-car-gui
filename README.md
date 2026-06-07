@@ -116,3 +116,59 @@ Modules use `jvmToolchain(21)`.
 ```
 
 Artifact: `com.fleet.shared:eco-car-battery-ui:1.0.0`
+
+## Recent features
+
+### Battery overview (live IPC)
+
+- **`:eco-car-battery-ui`** — shared `BatteryOverviewScreen` fed by `BatteryDashboardViewModel` + `AidlBatteryClientAdapter`
+- **Automation descriptors** — metric cards expose uiautomator `contentDescription` values such as `battery-soc=12.0`, `battery-voltage=310.0` (used by `make verify-ui-metrics` in `bms-monitoring-app`)
+- **Low SOC styling** — orange SOC progress/text below 20%; **Low battery dialog** when HV SOC drops under 20% (copy is HV-only, no 12 V Bordnetz wording)
+
+### Map & charging stations
+
+- **MapLibre map** with station pins (`MapViewWithStationPins`) and a scrollable **Ladestationen** list
+- **GPS fallback** — when location is unavailable, requests use Berlin demo coordinates (aligned with BMS CSMS defaults) so offline/dev runs still show cached stations
+- **IPC preload** — on BMS bind, EcoCar publishes Room offline cache to IPC when CSMS is down or SOC is low
+
+### IPC client
+
+- `BmsTelemetryBinder` starts the BMS monitor service and queues map refresh until bind completes
+- `ObserveVcuLowBattery` triggers the low-battery dialog once per low-SOC episode (same threshold as BMS Ladestation preload)
+
+## Unit tests (no emulator)
+
+```bash
+# Battery metric descriptors (integration-test contract values)
+./gradlew :eco-car-battery-ui:test
+
+# Snapshot → UI model → descriptor strings
+./gradlew :composeApp:testDebugUnitTest --tests "com.fleet.ecocar.ui.battery.BatteryOverviewViewModelTest"
+
+# Map / charging-station logic
+./gradlew :composeApp:desktopTest --tests "com.fleet.ecocar.map.*"
+```
+
+## Integration testing (Makefile, sibling repo)
+
+Full CAN → BMS → EcoCar → UI pipeline is driven from **`bms-monitoring-app/Makefile`** (not this repo). Run from the BMS app directory:
+
+```bash
+cd ../bms-monitoring-app
+make integration-test-ui
+```
+
+That target runs `build-install` (both APKs), sends test CAN frames (SOC **12%**), verifies IPC in logcat, then **`verify-ui-metrics`** on the emulator.
+
+**Tips**
+
+| Situation | What to do |
+|-----------|------------|
+| `battery-soc=12.0 not in UI dump` | Run `make build-install` in `bms-monitoring-app` so the emulator gets the latest EcoCar APK with automation descriptors |
+| Low-battery dialog blocks the test | Expected at 12% SOC — Makefile dismisses it; ensure EcoCar opens on **Battery** (default start destination) |
+| `relay port 9999 not open` | First Lima run is slow (`apt-get` in Docker); retry `make relay` or wait up to 180 s |
+| IPC bind fails | Same debug keystore on both APKs — see [Development](#development-local-machine--deviceemulator) |
+| Stale emulator / ANR | `make shutdown` then rerun `make integration-test-ui` |
+
+See [`bms-monitoring-app/README.md`](../bms-monitoring-app/README.md#integration-testing-makefile) for relay, clean/shutdown, and CSMS targets.
+

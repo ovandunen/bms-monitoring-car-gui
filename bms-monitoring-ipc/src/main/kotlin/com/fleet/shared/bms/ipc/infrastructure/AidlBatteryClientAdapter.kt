@@ -131,6 +131,15 @@ class AidlBatteryClientAdapter(
         }
     }
 
+    fun resetTrip() {
+        try {
+            service?.resetTrip()
+                ?: Log.w(TAG, "AidlBatteryClient: resetTrip() called but service not bound")
+        } catch (e: RemoteException) {
+            Log.e(TAG, "AidlBatteryClient: resetTrip() RemoteException", e)
+        }
+    }
+
     override fun getCurrentSnapshot(): BatterySnapshot? = _batteryState.value
 
     private suspend fun attemptBind(wakeBmsIfNeeded: Boolean): Boolean {

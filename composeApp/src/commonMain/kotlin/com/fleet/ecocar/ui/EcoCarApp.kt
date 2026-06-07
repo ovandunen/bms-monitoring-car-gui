@@ -18,7 +18,7 @@ import com.ecocar.gui.i18n.LanguageRepository
 import com.ecocar.gui.i18n.collectLanguageAsState
 import com.fleet.ecocar.nav.MainDestination
 import com.fleet.ecocar.telemetry.rememberEcoBmsTelemetry
-import com.fleet.ecocar.ui.bottom.rememberBottomTelemetry
+import com.fleet.ecocar.ui.bottom.rememberBottomBarIntegration
 import com.fleet.ecocar.ui.vehicle.ObserveVcuLowBattery
 import com.fleet.ecocar.ui.theme.EcoCarTheme
 import com.fleet.ecocar.ui.top.rememberLiveMusicTopBarState
@@ -39,7 +39,7 @@ fun EcoCarApp(
             var showLowBattery by remember { mutableStateOf(false) }
 
             val music = rememberLiveMusicTopBarState()
-            val telemetry = rememberBottomTelemetry()
+            val bottomBar = rememberBottomBarIntegration()
             val ecoBmsTelemetry = rememberEcoBmsTelemetry()
 
             ObserveVcuLowBattery { showLowBattery = true }
@@ -63,7 +63,7 @@ fun EcoCarApp(
                     selected = selected,
                     onSelectDestination = { selected = it },
                     music = music,
-                    telemetry = telemetry,
+                    telemetry = bottomBar.telemetry,
                     ecoBmsTelemetry = ecoBmsTelemetry,
                     showLowBattery = showLowBattery,
                     onDismissLowBattery = { showLowBattery = false },
@@ -72,6 +72,10 @@ fun EcoCarApp(
                     onSimulateLowBattery = { showLowBattery = true },
                     onBottomSettings = { selected = MainDestination.Settings },
                     onBottomInfo = { /* v1: Info-Panel */ },
+                    onTripLongPress = bottomBar.onTripLongPress,
+                    showTripResetHint = bottomBar.showTripResetHint,
+                    onTripResetHintDismissed = bottomBar.onTripResetHintDismissed,
+                    snackbarHostState = bottomBar.snackbarHostState,
                     languageRepository = languageRepository,
                 )
             }

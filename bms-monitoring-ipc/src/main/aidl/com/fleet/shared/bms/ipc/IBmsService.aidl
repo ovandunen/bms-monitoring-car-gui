@@ -9,4 +9,5 @@ interface IBmsService {
     void registerCallback(IBmsCallback callback);
     void unregisterCallback(IBmsCallback callback);
     void sendCommand(in ParcelableBmsCommand command);
+    void resetTrip();
 }

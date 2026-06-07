@@ -12,6 +12,8 @@
 
     <string name="bottom_soc">Ladestand</string>
     <string name="bottom_trip">Distanz (Trip)</string>
+    <string name="bottom_trip_reset_snackbar">Distanz zurückgesetzt</string>
+    <string name="bottom_trip_reset_hint">Gedrückt halten zum Zurücksetzen</string>
     <string name="bottom_range">Reichweite</string>
     <string name="bottom_co2">CO₂-Ersparnis</string>
     <string name="bottom_settings">Einstellungen</string>
@@ -20,7 +22,8 @@
     <string name="bottom_expand">Untere Leiste aufklappen</string>
     <string name="bottom_km">%1$d km</string>
     <string name="bottom_km_dash">—</string>
-    <string name="bottom_tons">%1$.1f t</string>
+    <string name="bottom_tons">%1$s t</string>
+    <string name="bottom_co2_kg">%1$s kg</string>
     <string name="bottom_tons_dash">—</string>
     <string name="eco_bottom_bar_dashboard">Dashboard</string>
 

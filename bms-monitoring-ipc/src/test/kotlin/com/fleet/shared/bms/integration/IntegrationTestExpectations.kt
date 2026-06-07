@@ -20,7 +20,8 @@ object IntegrationTestExpectations {
 
     val ipcAuditLine: String
         get() = "onStateChanged: soc=${fmt1(socPercent)}% " +
-            "V=${fmt1(packVoltageV)}A=${fmt1(packCurrentA)}"
+            "V=${fmt1(packVoltageV)}A=${fmt1(packCurrentA)} " +
+            "trip=0.0km co2=0.0kg"
 
     val descriptorSoc: String get() = "battery-soc=${fmt1(socPercent)}"
     val descriptorVoltage: String get() = "battery-voltage=${fmt1(packVoltageV)}"
