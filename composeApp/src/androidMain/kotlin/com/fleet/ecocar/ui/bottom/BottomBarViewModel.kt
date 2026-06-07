@@ -63,6 +63,7 @@ class BottomBarViewModel(
             socPercent = live?.stateOfChargePercent?.toInt() ?: 0,
             tripDistanceKm = live?.tripDistanceKm?.takeIf { it >= 0.5f }?.roundToInt(),
             rangeKm = live?.estimatedRangeKm?.takeIf { it > 0f }?.toDouble(),
+            co2SavingKg = live?.co2SavingKg?.takeIf { live.tripDistanceKm >= 0.5f }?.toDouble(),
         )
     }
 }

@@ -22,7 +22,8 @@
     <string name="bottom_expand">Expand bottom bar</string>
     <string name="bottom_km">%1$d km</string>
     <string name="bottom_km_dash">—</string>
-    <string name="bottom_tons">%1$.1f t</string>
+    <string name="bottom_tons">%1$s t</string>
+    <string name="bottom_co2_kg">%1$s kg</string>
     <string name="bottom_tons_dash">—</string>
     <string name="eco_bottom_bar_dashboard">Dashboard</string>
 

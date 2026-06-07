@@ -73,7 +73,29 @@ class TripResetViewModelTest {
         }
     }
 
-    private fun sampleSnapshot(tripDistanceKm: Float) = BatterySnapshot(
+    @Test
+    fun co2Saving_mapsKgWhenTripAtLeastHalfKm() {
+        val port = FakeBottomBarBatteryPort(
+            sampleSnapshot(tripDistanceKm = 2f, co2SavingKg = 512f),
+        )
+        val viewModel = BottomBarViewModel(port, FakeHintRepository(shown = true))
+        awaitTelemetry(viewModel)
+
+        assertEquals(512.0, viewModel.telemetry.value.co2SavingKg!!, 0.001)
+    }
+
+    @Test
+    fun co2Saving_hiddenBelowHalfKmTrip() {
+        val port = FakeBottomBarBatteryPort(
+            sampleSnapshot(tripDistanceKm = 0.3f, co2SavingKg = 500f),
+        )
+        val viewModel = BottomBarViewModel(port, FakeHintRepository(shown = true))
+        awaitTelemetry(viewModel)
+
+        assertNull(viewModel.telemetry.value.co2SavingKg)
+    }
+
+    private fun sampleSnapshot(tripDistanceKm: Float, co2SavingKg: Float = 0f) = BatterySnapshot(
         timestamp = 1L,
         stateOfChargePercent = 50f,
         totalVoltage = 310f,
@@ -87,6 +109,7 @@ class TripResetViewModelTest {
         motorRpm = 0,
         vehicleSpeed = 0f,
         tripDistanceKm = tripDistanceKm,
+        co2SavingKg = co2SavingKg,
     )
 
     private class FakeBottomBarBatteryPort(

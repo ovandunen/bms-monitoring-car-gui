@@ -14,7 +14,9 @@ object IpcSnapshotAuditFormatter {
     fun formatStateChangedAuditLine(snapshot: BatterySnapshot): String =
         "onStateChanged: soc=${formatPercent(snapshot.stateOfChargePercent)}% " +
             "V=${formatOneDecimal(snapshot.totalVoltage)}" +
-            "A=${formatOneDecimal(snapshot.current)}"
+            "A=${formatOneDecimal(snapshot.current)} " +
+            "trip=${formatOneDecimal(snapshot.tripDistanceKm)}km " +
+            "co2=${formatOneDecimal(snapshot.co2SavingKg)}kg"
 
     private fun formatPercent(value: Float): String = "%.1f".format(Locale.US, value)
 

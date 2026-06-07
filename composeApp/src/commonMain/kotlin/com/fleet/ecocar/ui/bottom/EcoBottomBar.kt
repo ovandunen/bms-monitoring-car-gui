@@ -39,6 +39,7 @@ import com.fleet.ecocar.theme.socDisplayColor
 import eco_car_gui.composeapp.generated.resources.Res
 import eco_car_gui.composeapp.generated.resources.bottom_collapse
 import eco_car_gui.composeapp.generated.resources.bottom_co2
+import eco_car_gui.composeapp.generated.resources.bottom_co2_kg
 import eco_car_gui.composeapp.generated.resources.bottom_expand
 import eco_car_gui.composeapp.generated.resources.bottom_info
 import eco_car_gui.composeapp.generated.resources.bottom_km
@@ -47,8 +48,10 @@ import eco_car_gui.composeapp.generated.resources.bottom_range
 import eco_car_gui.composeapp.generated.resources.bottom_settings
 import eco_car_gui.composeapp.generated.resources.bottom_soc
 import eco_car_gui.composeapp.generated.resources.bottom_tons
+import eco_car_gui.composeapp.generated.resources.bottom_tons_dash
 import eco_car_gui.composeapp.generated.resources.bottom_trip
 import eco_car_gui.composeapp.generated.resources.bottom_trip_reset_hint
+import java.util.Locale
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.stringResource
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -57,7 +60,7 @@ data class BottomTelemetry(
     val socPercent: Int = 0,
     val tripDistanceKm: Int? = null,
     val rangeKm: Double? = null,
-    val co2SavingTons: Double = -1.7,
+    val co2SavingKg: Double? = null,
 )
 
 @Composable
@@ -74,7 +77,7 @@ fun EcoBottomBar(
 ) {
     val tripText = formatKmChip(telemetry.tripDistanceKm)
     val rangeText = formatKmChip(telemetry.rangeKm?.let { kotlin.math.round(it).toInt() })
-    val co2Text = stringResource(Res.string.bottom_tons, telemetry.co2SavingTons)
+    val co2Text = formatCo2Chip(telemetry.co2SavingKg)
     val socColor = telemetry.socPercent.socDisplayColor()
     val rangeDescriptor = telemetry.rangeKm?.let { formatRangeDescriptor(it) }
     val tripResetHint = stringResource(Res.string.bottom_trip_reset_hint)
@@ -244,3 +247,16 @@ private fun formatRangeDescriptor(rangeKm: Double): String {
     val rounded = kotlin.math.round(rangeKm * 10.0) / 10.0
     return "battery-range=$rounded"
 }
+
+@Composable
+private fun formatCo2Chip(co2SavingKg: Double?): String {
+    if (co2SavingKg == null) return stringResource(Res.string.bottom_tons_dash)
+    return if (kotlin.math.abs(co2SavingKg) >= 1000.0) {
+        stringResource(Res.string.bottom_tons, formatCo2Decimal(co2SavingKg / 1000.0))
+    } else {
+        stringResource(Res.string.bottom_co2_kg, formatCo2Decimal(co2SavingKg))
+    }
+}
+
+/** One decimal; pre-format for Compose Resources (`%1$s` — `%1$.1f` breaks on `$` escaping). */
+internal fun formatCo2Decimal(value: Double): String = "%.1f".format(Locale.US, value)

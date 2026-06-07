@@ -25,5 +25,6 @@ data class ParcelableBatterySnapshot(
     val vehicleSpeed: Float,
     val estimatedRangeKm: Float = 0f,
     val tripDistanceKm: Float = 0f,
+    val co2SavingKg: Float = 0f,
     val faultCodes: List<String> = emptyList(),
 ) : Parcelable

@@ -28,6 +28,7 @@ object BatterySnapshotMapper {
             vehicleSpeed = domain.vehicleSpeed,
             estimatedRangeKm = domain.estimatedRangeKm,
             tripDistanceKm = domain.tripDistanceKm,
+            co2SavingKg = domain.co2SavingKg,
             faultCodes = domain.faultCodes,
         )
 
@@ -47,6 +48,7 @@ object BatterySnapshotMapper {
             vehicleSpeed = parcel.vehicleSpeed,
             estimatedRangeKm = parcel.estimatedRangeKm,
             tripDistanceKm = parcel.tripDistanceKm,
+            co2SavingKg = parcel.co2SavingKg,
             faultCodes = parcel.faultCodes,
         )
 }

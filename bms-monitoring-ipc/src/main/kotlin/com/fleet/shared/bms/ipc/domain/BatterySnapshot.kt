@@ -19,5 +19,7 @@ data class BatterySnapshot(
     val estimatedRangeKm: Float = 0f,
     /** Trip distance from BMS [com.fleet.bms.infrastructure.co2.TripEnergyAccumulator]. */
     val tripDistanceKm: Float = 0f,
+    /** Trip CO₂ saved (kg) from BMS [com.fleet.bms.application.usecase.Co2SavingUseCase]; may be negative. */
+    val co2SavingKg: Float = 0f,
     val faultCodes: List<String> = emptyList(),
 )

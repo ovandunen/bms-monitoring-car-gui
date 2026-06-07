@@ -108,6 +108,7 @@ class AidlBatteryServiceAdapter : IBmsService.Stub(), BatteryTelemetryPort {
                 vehicleSpeed = 0f,
                 estimatedRangeKm = 0f,
                 tripDistanceKm = 0f,
+                co2SavingKg = 0f,
             )
     }
 
