@@ -6,6 +6,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import com.fleet.ecocar.EcoCarApplication
+import kotlin.math.roundToInt
 
 @Composable
 actual fun rememberBottomTelemetry(): BottomTelemetry {
@@ -15,7 +16,7 @@ actual fun rememberBottomTelemetry(): BottomTelemetry {
             val live = snapshot?.takeIf { it.timestamp > 0L }
             BottomTelemetry(
                 socPercent = live?.stateOfChargePercent?.toInt() ?: 0,
-                tripDistanceKm = null,
+                tripDistanceKm = live?.tripDistanceKm?.takeIf { it >= 0.5f }?.roundToInt(),
                 rangeKm = live?.estimatedRangeKm?.takeIf { it > 0f }?.toDouble(),
             )
         }
