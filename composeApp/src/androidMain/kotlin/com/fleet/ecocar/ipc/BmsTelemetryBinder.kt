@@ -33,7 +33,16 @@ class BmsTelemetryBinder(
     private var binder: IBmsService? = null
 
     @Volatile
+    private var bound = false
+
+    @Volatile
+    private var bindRequested = false
+
+    @Volatile
     private var pendingRefresh: RefreshRequest? = null
+
+    private var bindRetryAttempt = 0
+    private var bindRetryRunnable: Runnable? = null
 
     private data class RefreshRequest(val latitude: Double, val longitude: Double, val radiusMeters: Double)
 
@@ -66,13 +75,19 @@ class BmsTelemetryBinder(
     private val connection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
             val svc = IBmsService.Stub.asInterface(service) ?: run {
-                Log.w(TAG, "asInterface null")
+                Log.w(TAG, "onServiceConnected but asInterface null ($name)")
                 return
             }
             binder = svc
+            bound = true
+            bindRequested = true
+            bindRetryAttempt = 0
+            cancelBindRetry()
+            Log.i(TAG, "onServiceConnected: $name — charging-station IPC ready")
             try {
                 svc.registerCallback(callback)
-                publishCachedChargingStationsInternal(svc)
+                val cachedCount = publishCachedChargingStationsInternal(svc)
+                Log.d(TAG, "onServiceConnected: published $cachedCount cached station(s) to GUI")
                 flushPendingRefresh()
             } catch (e: Exception) {
                 Log.e(TAG, "registerCallback failed", e)
@@ -80,29 +95,78 @@ class BmsTelemetryBinder(
         }
 
         override fun onServiceDisconnected(name: ComponentName?) {
+            Log.w(TAG, "onServiceDisconnected: $name — will retry bind")
             binder = null
+            bound = false
+            bindRequested = false
+            scheduleBindRetry()
         }
     }
 
     fun connect() {
+        ensureBound()
+    }
+
+    /** (Re)bind to BmsService; safe to call from map refresh when the first bind has not completed yet. */
+    private fun ensureBound() {
+        if (bound && binder != null) return
+        if (bindRequested) return
+
+        Log.i(TAG, "ensureBound(): binding to $BMS_PACKAGE / $BMS_SERVICE_ACTION")
         val intent = serviceIntent()
+        bindRequested = true
         try {
             appContext.startService(intent)
             val ok = appContext.bindService(intent, connection, Context.BIND_AUTO_CREATE)
             if (!ok) {
-                Log.w(TAG, "bindService returned false (BMS APK installiert / Signatur BIND_BMS?)")
+                bindRequested = false
+                Log.w(
+                    TAG,
+                    "bindService returned false — is BMS APK installed? same debug signature? " +
+                        "permission $BIND_BMS_PERMISSION required",
+                )
+                scheduleBindRetry()
             }
         } catch (e: SecurityException) {
+            bindRequested = false
             Log.e(TAG, "bindService permission denied — gleiche Signatur wie BMS?", e)
+            scheduleBindRetry()
         }
     }
 
+    private fun scheduleBindRetry() {
+        if (bound) return
+        if (bindRetryAttempt >= MAX_BIND_RETRIES) {
+            Log.e(TAG, "BmsService bind gave up after $MAX_BIND_RETRIES retries")
+            return
+        }
+        cancelBindRetry()
+        val delayMs = BIND_RETRY_DELAYS_MS.getOrElse(bindRetryAttempt) { 5_000L }
+        bindRetryAttempt++
+        bindRetryRunnable = Runnable {
+            Log.w(TAG, "ensureBound retry #$bindRetryAttempt (BmsService still not bound)")
+            bindRequested = false
+            ensureBound()
+            if (!bound) scheduleBindRetry()
+        }
+        mainHandler.postDelayed(bindRetryRunnable!!, delayMs)
+    }
+
+    private fun cancelBindRetry() {
+        bindRetryRunnable?.let { mainHandler.removeCallbacks(it) }
+        bindRetryRunnable = null
+    }
+
     fun disconnect() {
+        cancelBindRetry()
         try {
             binder?.unregisterCallback(callback)
         } catch (_: Exception) {
         }
         binder = null
+        bound = false
+        bindRequested = false
+        bindRetryAttempt = 0
         pendingRefresh = null
         try {
             appContext.unbindService(connection)
@@ -115,8 +179,9 @@ class BmsTelemetryBinder(
      * Safe to call on the main thread before a live refresh.
      */
     fun publishCachedChargingStations(): Boolean {
+        ensureBound()
         val svc = binder ?: return false
-        return publishCachedChargingStationsInternal(svc)
+        return publishCachedChargingStationsInternal(svc) > 0
     }
 
     /** EcoCar requests station pins for map display (IBmsService data API — not a map refresh in BMS). */
@@ -125,32 +190,47 @@ class BmsTelemetryBinder(
         longitude: Double,
         radiusMeters: Double = 0.0,
     ) {
+        ensureBound()
         val svc = binder
         if (svc == null) {
             pendingRefresh = RefreshRequest(latitude, longitude, radiusMeters)
-            Log.d(TAG, "requestChargingStationsForDisplay queued until BmsService bind")
+            scheduleBindRetry()
+            Log.w(
+                TAG,
+                "requestChargingStationsForDisplay queued until BmsService bind " +
+                    "(lat=$latitude lon=$longitude) — bind in progress, will flush when connected",
+            )
             return
         }
+        Log.d(TAG, "requestChargingStationsForDisplay lat=$latitude lon=$longitude radius=$radiusMeters")
         invokeRefresh(svc, latitude, longitude, radiusMeters)
     }
 
-    private fun publishCachedChargingStationsInternal(svc: IBmsService): Boolean {
+    private fun publishCachedChargingStationsInternal(svc: IBmsService): Int {
         return try {
             val cached = svc.getCachedChargingStations()
             val mapped = cached.map { it.toEcoChargingStation() }
             if (mapped.isNotEmpty()) {
                 mainHandler.post { onChargingStations(mapped) }
+                Log.d(TAG, "publishCachedChargingStations: ${mapped.size} station(s) from BMS cache")
+            } else {
+                Log.d(TAG, "publishCachedChargingStations: BMS cache empty")
             }
-            mapped.isNotEmpty()
+            mapped.size
         } catch (e: Exception) {
             Log.e(TAG, "publishCachedChargingStations failed", e)
-            false
+            0
         }
     }
 
     private fun flushPendingRefresh() {
         val pending = pendingRefresh ?: return
         pendingRefresh = null
+        Log.d(
+            TAG,
+            "flushPendingRefresh: lat=${pending.latitude} lon=${pending.longitude} " +
+                "radius=${pending.radiusMeters}",
+        )
         binder?.let { invokeRefresh(it, pending.latitude, pending.longitude, pending.radiusMeters) }
     }
 
@@ -161,6 +241,7 @@ class BmsTelemetryBinder(
         radiusMeters: Double,
     ) {
         try {
+            Log.d(TAG, "invokeRefresh → BmsService.refreshChargingStations lat=$latitude lon=$longitude")
             svc.refreshChargingStations(null, latitude, longitude, radiusMeters)
         } catch (e: Exception) {
             Log.e(TAG, "requestChargingStationsForDisplay failed", e)
@@ -172,8 +253,11 @@ class BmsTelemetryBinder(
 
     companion object {
         private const val TAG = "BmsTelemetryBinder"
+        private const val BIND_BMS_PERMISSION = "com.ecocar.bms.BIND_BMS_SERVICE"
         const val BMS_PACKAGE = "com.fleet.bms"
         private const val BMS_SERVICE_ACTION = "com.ecocar.bms.action.BMS_SERVICE"
+        private const val MAX_BIND_RETRIES = 5
+        private val BIND_RETRY_DELAYS_MS = longArrayOf(500L, 1_000L, 2_000L, 3_000L, 5_000L)
     }
 }
 
