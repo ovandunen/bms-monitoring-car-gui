@@ -28,7 +28,9 @@ class AidlBatteryServiceAdapter : IBmsService.Stub(), BatteryTelemetryPort {
     val binder: IBinder get() = this
 
     private val callbacks = RemoteCallbackList<IBmsCallback>()
+    @Volatile
     private var latestSnapshot: BatterySnapshot? = null
+    private val snapshotLock = Any()
     private var commandHandler: ((BmsCommand) -> Unit)? = null
     private var tripResetHandler: (() -> Unit)? = null
 
@@ -37,9 +39,26 @@ class AidlBatteryServiceAdapter : IBmsService.Stub(), BatteryTelemetryPort {
     }
 
     override fun publishState(snapshot: BatterySnapshot) {
-        latestSnapshot = snapshot
+        synchronized(snapshotLock) {
+            latestSnapshot = snapshot
+        }
         val parcelable = BatterySnapshotMapper.toParcelable(snapshot)
         broadcastState(parcelable)
+    }
+
+    override fun publishAlert(level: Int, message: String) {
+        val count = callbacks.beginBroadcast()
+        try {
+            for (i in 0 until count) {
+                try {
+                    callbacks.getBroadcastItem(i).onAlert(level, message)
+                } catch (e: RemoteException) {
+                    // Client process gone; ignore per callback.
+                }
+            }
+        } finally {
+            callbacks.finishBroadcast()
+        }
     }
 
     override fun registerCommandHandler(handler: (BmsCommand) -> Unit) {
@@ -63,7 +82,7 @@ class AidlBatteryServiceAdapter : IBmsService.Stub(), BatteryTelemetryPort {
     }
 
     override fun getCurrentSnapshot(): ParcelableBatterySnapshot {
-        val snapshot = latestSnapshot ?: return EMPTY_SNAPSHOT
+        val snapshot = synchronized(snapshotLock) { latestSnapshot } ?: return EMPTY_SNAPSHOT
         return BatterySnapshotMapper.toParcelable(snapshot)
     }
 

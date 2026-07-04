@@ -12,8 +12,10 @@ import com.fleet.ecocar.domain.map.toMapPin
  */
 object EcoMapStationPresenter {
 
-    fun mapPins(stations: List<EcoChargingStation>): List<ChargingStation> =
-        stations.map { it.toMapPin() }
+    fun mapPins(stations: List<EcoChargingStation>, highlightStationId: String? = null): List<ChargingStation> =
+        stations.map { station ->
+            station.toMapPin().copy(recommended = station.stationId == highlightStationId)
+        }
 
     fun stationCount(stations: List<EcoChargingStation>): Int = stations.size
 

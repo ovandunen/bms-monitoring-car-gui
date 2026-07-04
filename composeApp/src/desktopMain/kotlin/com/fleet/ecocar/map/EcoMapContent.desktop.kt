@@ -14,6 +14,7 @@ actual fun EcoMapContent(
     stations: List<EcoChargingStation>,
     isRefreshing: Boolean,
     onRefreshStations: () -> Unit,
+    highlightStationId: String?,
 ) {
     Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         PlaceholderScreen(destination = MainDestination.Map)

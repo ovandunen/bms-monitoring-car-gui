@@ -62,9 +62,9 @@
     <string name="chart_tab_temp">Temperature</string>
     <string name="chart_tab_dust">Dust</string>
     <string name="chart_tab_humidity">Humidity</string>
-    <string name="chart_temp_title">Temperature (°C)</string>
-    <string name="chart_temp_subtitle_bms">DS18B20 (pack) — mixed with demo ticker.</string>
-    <string name="chart_temp_subtitle_demo">Cabin / intake air (demo) — BMS bind for ESP32 values.</string>
+    <string name="chart_temp_title">External temperature (°C)</string>
+    <string name="chart_temp_subtitle_bms">DS18B20 outside air (ESP32 USB) — live sensor.</string>
+    <string name="chart_temp_subtitle_demo">Demo curve — BMS bind for DS18B20 external values.</string>
     <string name="chart_dust_title">Dust density (µg/m³, PM2.5 proxy)</string>
     <string name="chart_dust_subtitle_bms">PMS5003 PM2.5 time series — extra demo drift.</string>
     <string name="chart_dust_subtitle_demo">Particle trend (demo) — live with BMS (PMS5003).</string>
@@ -75,9 +75,17 @@
     <string name="dialog_low_battery_title">Low battery charge</string>
     <string name="dialog_low_battery_body">High-voltage battery state of charge is low.</string>
     <string name="dialog_low_battery_action">Please choose a next action.</string>
-    <string name="dialog_low_battery_charge_cta">Go to next solar / charging station</string>
+    <string name="dialog_low_battery_charge_cta">Go to nearest station</string>
+    <string name="dialog_last_chance_title">Last chance to swap</string>
+    <string name="dialog_last_chance_body">High-voltage battery charge is critical (≤ 5 %). Go to a swap station immediately.</string>
+    <string name="dialog_last_chance_contract">Under your contract, continuing without a swap may result in towing and additional charges.</string>
+    <string name="dialog_last_chance_charge_cta">Go to nearest station</string>
     <string name="dialog_technical">Technical notes</string>
     <string name="dialog_close">Close</string>
+
+    <string name="dialog_optimal_swap_title">Optimal swap window</string>
+    <string name="dialog_optimal_swap_body">CSMS recommends swapping at station %1$s (confidence %2$d%%).</string>
+    <string name="dialog_optimal_swap_cta">Show station on map</string>
 
     <string name="sniffer_title">CAN sniffer (demo)</string>
     <string name="sniffer_body">In the main BMS APK this opens the CAN sniffer. This EcoCar GUI project stays standalone without bus wiring.</string>
@@ -88,6 +96,7 @@
     <string name="language_fr">Français</string>
     <string name="language_wo">Wolof</string>
     <string name="settings_test_low_battery">Test low-battery dialog</string>
+    <string name="settings_test_last_chance_battery">Test last-chance dialog (≤ 5 %)</string>
     <string name="settings_blurb">System and vehicle settings (tablet, sounds, VCU, battery). Use the button below to test the low-battery dialog.</string>
 
     <string name="placeholder_music">Music: USB/local + radio (Media3) on Android.</string>

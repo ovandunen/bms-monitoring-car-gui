@@ -47,12 +47,15 @@ actual fun EcoMapContent(
     stations: List<EcoChargingStation>,
     isRefreshing: Boolean,
     onRefreshStations: () -> Unit,
+    highlightStationId: String?,
 ) {
     LaunchedEffect(Unit) {
         onRefreshStations()
     }
 
-    val pinStations = remember(stations) { EcoMapStationPresenter.mapPins(stations) }
+    val pinStations = remember(stations, highlightStationId) {
+        EcoMapStationPresenter.mapPins(stations, highlightStationId)
+    }
     val mapStyleRepository = rememberMapStyleRepository()
     val styleUri = remember(mapStyleRepository) { mapStyleRepository.getStyleUrl() }
 
@@ -150,7 +153,10 @@ actual fun EcoMapContent(
             } else if (EcoMapStationPresenter.shouldShowStationList(stations)) {
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
                     items(stations, key = { it.stationId }) { station ->
-                        StationRow(station)
+                        StationRow(
+                            station = station,
+                            recommended = station.stationId == highlightStationId,
+                        )
                     }
                 }
             }
@@ -159,8 +165,9 @@ actual fun EcoMapContent(
 }
 
 @Composable
-private fun StationRow(station: EcoChargingStation) {
+private fun StationRow(station: EcoChargingStation, recommended: Boolean = false) {
     val dotColor = when {
+        recommended -> EcoCarColors.GoldenYellow
         station.isPurpleUnknown -> PurpleUnknown
         station.status.equals("AVAILABLE", ignoreCase = true) -> GreenAvailable
         else -> Color(0xFFFF9800)

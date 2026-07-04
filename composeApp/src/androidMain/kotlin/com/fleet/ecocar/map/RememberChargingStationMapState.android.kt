@@ -12,10 +12,12 @@ actual fun rememberChargingStationMapState(): ChargingStationMapState {
     val app = LocalContext.current.applicationContext as EcoCarApplication
     val stations by app.chargingStations.collectAsState(initial = emptyList())
     val isRefreshing by app.chargingStationsRefreshing.collectAsState(initial = false)
+    val highlightStationId by app.mapHighlightStationId.collectAsState(initial = null)
     val refresh = remember(app) { { app.requestChargingStationsForMap() } }
     return ChargingStationMapState(
         stations = stations,
         isRefreshing = isRefreshing,
+        highlightStationId = highlightStationId,
         refresh = refresh,
     )
 }

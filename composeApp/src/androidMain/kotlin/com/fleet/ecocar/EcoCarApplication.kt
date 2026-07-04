@@ -3,6 +3,7 @@ package com.fleet.ecocar
 import android.app.Application
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -10,6 +11,7 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import com.fleet.ecocar.composeapp.BuildConfig
+import com.fleet.ecocar.infrastructure.navigation.VehicleNavigationCoordinator
 import com.fleet.ecocar.ipc.BmsTelemetryBinder
 import com.fleet.ecocar.map.ChargingStationMapRequestPolicy
 import com.fleet.ecocar.map.EcoChargingStation
@@ -17,6 +19,7 @@ import com.fleet.ecocar.music.MusicPlaybackSurface
 import com.fleet.ecocar.music.RadioStation
 import com.fleet.ecocar.music.Track
 import com.fleet.ecocar.telemetry.EcoBmsTelemetry
+import com.fleet.ecocar.telemetry.EcoBmsTelemetryMerge
 import com.fleet.ecocar.telemetry.toEcoBmsTelemetry
 import com.fleet.ecocar.ui.top.TopBarMusicState
 import com.fleet.shared.bms.ipc.infrastructure.AidlBatteryClientAdapter
@@ -49,6 +52,9 @@ open class EcoCarApplication : Application() {
      * Survives rotation; connect once in [onCreate], disconnect only on process death.
      */
     lateinit var batteryClient: AidlBatteryClientAdapter
+        private set
+
+    lateinit var vehicleNavigation: VehicleNavigationCoordinator
         private set
 
     private val mainHandler = Handler(Looper.getMainLooper())
@@ -90,6 +96,13 @@ open class EcoCarApplication : Application() {
     private val _chargingStationsRefreshing = MutableStateFlow(false)
     val chargingStationsRefreshing: StateFlow<Boolean> = _chargingStationsRefreshing.asStateFlow()
 
+    private val _swapRecommendation = MutableStateFlow<com.bms.monitor.aidl.SwapRecommendationSnapshot?>(null)
+    val swapRecommendation: StateFlow<com.bms.monitor.aidl.SwapRecommendationSnapshot?> =
+        _swapRecommendation.asStateFlow()
+
+    private val _mapHighlightStationId = MutableStateFlow<String?>(null)
+    val mapHighlightStationId: StateFlow<String?> = _mapHighlightStationId.asStateFlow()
+
     private var chargingStationsRefreshJob: Job? = null
 
     private var bmsTelemetryBinder: BmsTelemetryBinder? = null
@@ -99,6 +112,8 @@ open class EcoCarApplication : Application() {
         private set
 
     companion object {
+        private const val TAG = "EcoCarApplication"
+
         const val BROWSER_DEFAULT_HOME_URL: String = "https://www.startpage.com"
 
         /** Matches BMS GUI refresh timeout + margin when CSMS is unavailable. */
@@ -161,17 +176,15 @@ open class EcoCarApplication : Application() {
         batteryClient = AidlBatteryClientAdapter(this, appScope)
         batteryClient.connect()
 
+        vehicleNavigation = VehicleNavigationCoordinator(this)
+        vehicleNavigation.initialize()
+
         appScope.launch {
             batteryClient.batteryState.collect { snap ->
                 if (snap == null || snap.timestamp == 0L) return@collect
                 val ipc = snap.toEcoBmsTelemetry()
                 _ecoBmsTelemetry.value = _ecoBmsTelemetry.value?.let { existing ->
-                    ipc.copy(
-                        cellVolts = ipc.cellVolts.ifEmpty { existing.cellVolts },
-                        packHumidity = if (ipc.packHumidity == 0f) existing.packHumidity else ipc.packHumidity,
-                        pm25 = if (ipc.pm25 == 0) existing.pm25 else ipc.pm25,
-                        pm10 = if (ipc.pm10 == 0) existing.pm10 else ipc.pm10,
-                    )
+                    EcoBmsTelemetryMerge.mergeIpcUpdate(ipc, existing)
                 } ?: ipc
             }
         }
@@ -184,20 +197,25 @@ open class EcoCarApplication : Application() {
                     _ecoBmsTelemetry.value = legacy
                 } else {
                     _ecoBmsTelemetry.value = _ecoBmsTelemetry.value?.let { current ->
-                        current.copy(
-                            cellVolts = legacy.cellVolts.ifEmpty { current.cellVolts },
-                            packHumidity = if (current.packHumidity == 0f) legacy.packHumidity else current.packHumidity,
-                            pm25 = if (current.pm25 == 0) legacy.pm25 else current.pm25,
-                            pm10 = if (current.pm10 == 0) legacy.pm10 else current.pm10,
-                        )
+                        EcoBmsTelemetryMerge.mergeUsbSensors(current, legacy)
                     } ?: legacy
                 }
             },
             onChargingStations = { stations ->
-                _chargingStations.value = ChargingStationMapRequestPolicy.applyIpcUpdate(stations)
+                val applied = ChargingStationMapRequestPolicy.applyIpcUpdate(stations)
+                Log.i(TAG, "chargingStations IPC update: ${applied.size} station(s) for map")
+                _chargingStations.value = applied
                 finishChargingStationsRefresh()
             },
+            onSwapRecommendation = { recommendation ->
+                _swapRecommendation.value = recommendation
+                _mapHighlightStationId.value = recommendation.stationId
+            },
         ).also { it.connect() }
+    }
+
+    fun publishSwapFeedback(correlationId: String, state: String, stationId: String?) {
+        bmsTelemetryBinder?.publishSwapFeedback(correlationId, state, stationId)
     }
 
     /**
@@ -215,12 +233,7 @@ open class EcoCarApplication : Application() {
         fused.getCurrentLocation(Priority.PRIORITY_BALANCED_POWER_ACCURACY, cancel.token)
             .addOnSuccessListener { loc ->
                 val coords = ChargingStationMapRequestPolicy.coordinatesForBmsRefresh(
-                    loc?.let {
-                        ChargingStationMapRequestPolicy.Coordinates(
-                            latitude = it.latitude,
-                            longitude = it.longitude,
-                        )
-                    },
+                    gpsFixForBmsRefresh(loc, BuildConfig.DEBUG),
                 )
                 beginChargingStationsRefresh()
                 bmsTelemetryBinder?.requestChargingStationsForDisplay(
@@ -406,3 +419,28 @@ open class EcoCarApplication : Application() {
 
 private fun formatClockStatic(): String =
     SimpleDateFormat("H:mm", Locale.getDefault()).format(Date())
+
+internal fun gpsFixForBmsRefresh(
+    location: android.location.Location?,
+    acceptMockLocations: Boolean,
+): ChargingStationMapRequestPolicy.Coordinates? =
+    location?.let {
+        resolveGpsFixForBmsRefresh(
+            latitude = it.latitude,
+            longitude = it.longitude,
+            isFromMockProvider = it.isFromMockProvider,
+            acceptMockLocations = acceptMockLocations,
+        )
+    }
+
+internal fun resolveGpsFixForBmsRefresh(
+    latitude: Double,
+    longitude: Double,
+    isFromMockProvider: Boolean,
+    acceptMockLocations: Boolean,
+): ChargingStationMapRequestPolicy.Coordinates? =
+    if (!acceptMockLocations && isFromMockProvider) {
+        null
+    } else {
+        ChargingStationMapRequestPolicy.Coordinates(latitude, longitude)
+    }

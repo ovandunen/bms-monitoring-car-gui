@@ -62,6 +62,7 @@ fun BatterySubNav(
     modifier: Modifier = Modifier,
 ) {
     var tab by rememberSaveable { mutableStateOf(0) }
+    val batteryAlerts = rememberMonitorBatteryAlerts()
     val bmsActive = ecoBmsTelemetry != null && ecoBmsTelemetry.timestamp > 0L
     val cellVolts = ecoBmsTelemetry?.cellVolts.orEmpty()
 
@@ -88,7 +89,7 @@ fun BatterySubNav(
                 modifier = Modifier.weight(1f).fillMaxWidth(),
             )
             else -> BatteryAlertsList(
-                alerts = emptyList(),
+                alerts = batteryAlerts,
                 modifier = Modifier.weight(1f).fillMaxWidth(),
             )
         }

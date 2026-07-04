@@ -1,3 +1,10 @@
+# MapLibre Navigation + GraphHopper
+-keep class com.graphhopper.** { *; }
+-dontwarn com.graphhopper.**
+-dontwarn org.codehaus.janino.**
+-dontwarn ch.qos.logback.**
+-dontwarn org.slf4j.**
+
 # MapLibre / native map stack
 -keep class org.maplibre.** { *; }
 -keep class com.mapbox.** { *; }

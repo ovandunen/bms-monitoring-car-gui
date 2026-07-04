@@ -7,12 +7,19 @@ import kotlinx.parcelize.Parcelize
 data class BmsData(
     val timestamp: Long,
     val cellVoltages: FloatArray,
+    /** Pack temperature from CAN — not overwritten by USB ambient sensor. */
     val packTemperature: Float,
     val packHumidity: Float,
     val pm25: Int,
     val pm10: Int,
     val soc: Float,
     val current: Float,
+    /** DS18B20 external (outside) temperature via ESP32 USB sensor hub. */
+    val ambientTemperatureC: Float = 0f,
+    /** SHT31-D relative humidity via ESP32 USB sensor hub. */
+    val humidity: Float = 0f,
+    val sensorNodeId: String = "",
+    val sensorTsMs: Long = 0L,
 ) : Parcelable {
 
     override fun equals(other: Any?): Boolean {
@@ -27,6 +34,10 @@ data class BmsData(
         if (pm10 != other.pm10) return false
         if (soc != other.soc) return false
         if (current != other.current) return false
+        if (ambientTemperatureC != other.ambientTemperatureC) return false
+        if (humidity != other.humidity) return false
+        if (sensorNodeId != other.sensorNodeId) return false
+        if (sensorTsMs != other.sensorTsMs) return false
         return true
     }
 
@@ -39,6 +50,10 @@ data class BmsData(
         result = 31 * result + pm10
         result = 31 * result + soc.hashCode()
         result = 31 * result + current.hashCode()
+        result = 31 * result + ambientTemperatureC.hashCode()
+        result = 31 * result + humidity.hashCode()
+        result = 31 * result + sensorNodeId.hashCode()
+        result = 31 * result + sensorTsMs.hashCode()
         return result
     }
 }

@@ -10,6 +10,7 @@ import android.os.Looper
 import android.util.Log
 import com.bms.monitor.aidl.BmsData
 import com.bms.monitor.aidl.ChargingStationSnapshot
+import com.bms.monitor.aidl.SwapRecommendationSnapshot
 import com.bms.monitor.aidl.IBmsCallback
 import com.bms.monitor.aidl.IBmsService
 import com.fleet.ecocar.map.ChargingStationSnapshotMapper
@@ -25,6 +26,7 @@ class BmsTelemetryBinder(
     private val onTelemetry: (EcoBmsTelemetry) -> Unit,
     private val onChargingStations: (List<EcoChargingStation>) -> Unit,
     private val onAlert: ((Int, String) -> Unit)? = null,
+    private val onSwapRecommendation: ((SwapRecommendationSnapshot) -> Unit)? = null,
 ) {
     private val appContext = context.applicationContext
     private val mainHandler = Handler(Looper.getMainLooper())
@@ -52,7 +54,9 @@ class BmsTelemetryBinder(
                 timestamp = data.timestamp,
                 cellVolts = data.cellVoltages.toList(),
                 packTemperature = data.packTemperature,
+                ambientTemperatureC = data.ambientTemperatureC,
                 packHumidity = data.packHumidity,
+                humidity = data.humidity,
                 pm25 = data.pm25,
                 pm10 = data.pm10,
                 soc = data.soc,
@@ -68,7 +72,14 @@ class BmsTelemetryBinder(
 
         override fun onChargingStationsUpdate(stations: Array<out ChargingStationSnapshot>?) {
             val mapped = stations?.map { it.toEcoChargingStation() }.orEmpty()
+            Log.i(TAG, "onChargingStationsUpdate: ${mapped.size} station(s)")
             mainHandler.post { onChargingStations(mapped) }
+        }
+
+        override fun onSwapRecommendation(recommendation: SwapRecommendationSnapshot?) {
+            if (recommendation == null) return
+            Log.i(TAG, "onSwapRecommendation: station=${recommendation.stationId}")
+            mainHandler.post { onSwapRecommendation?.invoke(recommendation) }
         }
     }
 
@@ -104,6 +115,7 @@ class BmsTelemetryBinder(
     }
 
     fun connect() {
+        bindRetryAttempt = 0
         ensureBound()
     }
 
@@ -245,6 +257,20 @@ class BmsTelemetryBinder(
             svc.refreshChargingStations(null, latitude, longitude, radiusMeters)
         } catch (e: Exception) {
             Log.e(TAG, "requestChargingStationsForDisplay failed", e)
+        }
+    }
+
+    fun publishSwapFeedback(correlationId: String, state: String, stationId: String?) {
+        ensureBound()
+        val svc = binder
+        if (svc == null) {
+            Log.w(TAG, "publishSwapFeedback skipped — BmsService not bound")
+            return
+        }
+        try {
+            svc.publishSwapFeedback(correlationId, state, stationId)
+        } catch (e: Exception) {
+            Log.e(TAG, "publishSwapFeedback failed state=$state", e)
         }
     }
 
