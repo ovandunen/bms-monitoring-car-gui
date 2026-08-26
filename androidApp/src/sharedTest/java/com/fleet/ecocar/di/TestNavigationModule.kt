@@ -21,6 +21,12 @@ object NavigationTestFixtures {
     const val LAT_TURN = 14.7175
     const val LNG_TURN = -17.4660
 
+    /** Fixture CSMS-recommended station (Dakar corridor placeholder). */
+    const val LAT_STATION = 14.7175
+    const val LNG_STATION = -17.4660
+    const val FIXTURE_STATION_ID = "fixture-station-dakar-01"
+    const val STATION_ARRIVAL_RADIUS_M = 15.0
+
     val MOCK_DIRECTIONS_JSON: String = """
         {
           "code": "Ok",
@@ -37,11 +43,11 @@ object NavigationTestFixtures {
               "summary": "",
               "steps": [
                 {
-                  "distance": 100.0,
-                  "duration": 30.0,
+                  "distance": 185.0,
+                  "duration": 55.0,
                   "name": "",
                   "mode": "driving",
-                  "weight": 30.0,
+                  "weight": 55.0,
                   "geometry": "wpfa[frci`@_q@giB",
                   "intersections": [
                     {
@@ -60,11 +66,11 @@ object NavigationTestFixtures {
                   }
                 },
                 {
-                  "distance": 100.0,
-                  "duration": 30.0,
+                  "distance": 15.0,
+                  "duration": 5.0,
                   "name": "",
                   "mode": "driving",
-                  "weight": 30.0,
+                  "weight": 5.0,
                   "geometry": "wbha[~g`i`@?_q@",
                   "intersections": [
                     {

@@ -11,6 +11,7 @@ import android.util.Log
 import com.bms.monitor.aidl.BmsData
 import com.bms.monitor.aidl.ChargingStationSnapshot
 import com.bms.monitor.aidl.SwapRecommendationSnapshot
+import com.bms.monitor.aidl.VehicleLocationSnapshot
 import com.bms.monitor.aidl.IBmsCallback
 import com.bms.monitor.aidl.IBmsService
 import com.fleet.ecocar.map.ChargingStationSnapshotMapper
@@ -27,6 +28,7 @@ class BmsTelemetryBinder(
     private val onChargingStations: (List<EcoChargingStation>) -> Unit,
     private val onAlert: ((Int, String) -> Unit)? = null,
     private val onSwapRecommendation: ((SwapRecommendationSnapshot) -> Unit)? = null,
+    private val onLocationUpdate: ((VehicleLocationSnapshot) -> Unit)? = null,
 ) {
     private val appContext = context.applicationContext
     private val mainHandler = Handler(Looper.getMainLooper())
@@ -81,6 +83,12 @@ class BmsTelemetryBinder(
             Log.i(TAG, "onSwapRecommendation: station=${recommendation.stationId}")
             mainHandler.post { onSwapRecommendation?.invoke(recommendation) }
         }
+
+        override fun onLocationChanged(location: VehicleLocationSnapshot?) {
+            if (location == null) return
+            Log.d(TAG, "onLocationChanged: source=${location.source} lat=${location.latitude} lon=${location.longitude}")
+            mainHandler.post { onLocationUpdate?.invoke(location) }
+        }
     }
 
     private val connection = object : ServiceConnection {
@@ -99,6 +107,7 @@ class BmsTelemetryBinder(
                 svc.registerCallback(callback)
                 val cachedCount = publishCachedChargingStationsInternal(svc)
                 Log.d(TAG, "onServiceConnected: published $cachedCount cached station(s) to GUI")
+                publishCurrentLocationInternal(svc)
                 flushPendingRefresh()
             } catch (e: Exception) {
                 Log.e(TAG, "registerCallback failed", e)
@@ -196,6 +205,13 @@ class BmsTelemetryBinder(
         return publishCachedChargingStationsInternal(svc) > 0
     }
 
+    /** Publishes the last known vehicle location immediately, ahead of the next onLocationChanged callback. */
+    fun publishCurrentLocation(): Boolean {
+        ensureBound()
+        val svc = binder ?: return false
+        return publishCurrentLocationInternal(svc)
+    }
+
     /** EcoCar requests station pins for map display (IBmsService data API — not a map refresh in BMS). */
     fun requestChargingStationsForDisplay(
         latitude: Double,
@@ -232,6 +248,18 @@ class BmsTelemetryBinder(
         } catch (e: Exception) {
             Log.e(TAG, "publishCachedChargingStations failed", e)
             0
+        }
+    }
+
+    private fun publishCurrentLocationInternal(svc: IBmsService): Boolean {
+        return try {
+            val location = svc.currentLocation
+            Log.d(TAG, "publishCurrentLocation: source=${location.source} lat=${location.latitude} lon=${location.longitude}")
+            mainHandler.post { onLocationUpdate?.invoke(location) }
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "publishCurrentLocation failed", e)
+            false
         }
     }
 

@@ -5,6 +5,14 @@
 -dontwarn ch.qos.logback.**
 -dontwarn org.slf4j.**
 
+# xmlgraphics-commons (transitive, likely via GraphHopper/SVG or a report-export path).
+# References java.awt.* for its TIFF/Raster codec, which is desktop-JDK only and does
+# not exist on Android. That code path is unreachable at runtime here; suppress R8's
+# warnings rather than pulling in a fake android.jar shim for AWT.
+-dontwarn java.awt.**
+-dontwarn org.apache.xmlgraphics.**
+
+
 # MapLibre / native map stack
 -keep class org.maplibre.** { *; }
 -keep class com.mapbox.** { *; }

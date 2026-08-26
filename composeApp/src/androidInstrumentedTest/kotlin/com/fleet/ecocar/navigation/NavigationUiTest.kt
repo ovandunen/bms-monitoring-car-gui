@@ -22,8 +22,15 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import com.fleet.ecocar.composeapp.BuildConfig
+import com.fleet.ecocar.navigation.support.NavTestLogger
+import com.fleet.ecocar.navigation.support.NavSimulationSupport
+import com.fleet.ecocar.navigation.support.StationTarget
 import com.fleet.ecocar.di.FakeRouteProvider
 import com.fleet.ecocar.di.NavigationTestFixtures
+import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.maplibre.android.MapLibre
@@ -48,6 +55,11 @@ class NavigationUiTest {
 
     @get:Rule
     val composeTestRule = createNavigationHostComposeRule()
+
+    @After
+    fun tearDownLocationEngine() {
+        runCatching { composeTestRule.activity.testLocationEngine.stop() }
+    }
 
     @Test
     fun turnByTurn_maneuverBanner_updatesWithSimulatedGps() {
@@ -86,6 +98,55 @@ class NavigationUiTest {
         composeTestRule.onNodeWithText("Turn right").assertIsDisplayed()
         composeTestRule.onNodeWithTag(NavigationTestHostActivity.INSTRUCTION_TEST_TAG)
             .assertIsDisplayed()
+        testLocationEngine.stop()
+    }
+
+    /**
+     * Instrumented integration test: timed GPS sequence toward a fixture station coordinate.
+     * Arrival is observed in-process via [TestLocationEngine.stationReached] (logcat also emits NavTest JSON).
+     */
+    @Test
+    fun driveTowardStation_reachesArrivalRadius() {
+        val activity = composeTestRule.activity
+        val testLocationEngine = activity.testLocationEngine
+
+        require(activity.awaitNavigationStarted(timeoutSeconds = 30)) {
+            "MapLibre navigation did not start within 30s"
+        }
+
+        val points = NavSimulationSupport.interpolateStraightLine(
+            startLat = NavigationTestFixtures.LAT_START,
+            startLng = NavigationTestFixtures.LNG_START,
+            endLat = NavigationTestFixtures.LAT_STATION,
+            endLng = NavigationTestFixtures.LNG_STATION,
+            stepCount = 12,
+            intervalMsPerStep = 150L,
+        )
+        val stationTarget = StationTarget(
+            stationId = NavigationTestFixtures.FIXTURE_STATION_ID,
+            latitude = NavigationTestFixtures.LAT_STATION,
+            longitude = NavigationTestFixtures.LNG_STATION,
+            arrivalRadiusMeters = NavigationTestFixtures.STATION_ARRIVAL_RADIUS_M,
+        )
+
+        testLocationEngine.simulateRoute(
+            points = points,
+            intervalMs = 150L,
+            stationTarget = stationTarget,
+        )
+
+        composeTestRule.waitUntil(timeoutMillis = 15_000) {
+            testLocationEngine.stationReached.value != null
+        }
+
+        val reached = testLocationEngine.stationReached.value
+        assertNotNull(reached)
+        assertEquals(NavigationTestFixtures.FIXTURE_STATION_ID, reached!!.stationId)
+        assertTrue(
+            "Expected within ${NavigationTestFixtures.STATION_ARRIVAL_RADIUS_M}m, was ${reached.distanceMeters}m",
+            reached.distanceMeters <= NavigationTestFixtures.STATION_ARRIVAL_RADIUS_M,
+        )
+        testLocationEngine.stop()
     }
 }
 
@@ -107,6 +168,8 @@ class NavigationTestHostActivity :
     private val navigationStartedLatch = CountDownLatch(1)
     private val firstProgressLatch = CountDownLatch(1)
     private var instructionText by mutableStateOf("")
+    private var lastLoggedManeuver: String? = null
+    private var isArrived = false
 
     fun awaitNavigationStarted(timeoutSeconds: Long): Boolean =
         navigationStartedLatch.await(timeoutSeconds, TimeUnit.SECONDS)
@@ -170,6 +233,11 @@ class NavigationTestHostActivity :
             .build()
 
         val progressListener = ProgressChangeListener { _, routeProgress ->
+            if (isArrived || !testLocationEngine.isAcceptingUpdates()) return@ProgressChangeListener
+            if (testLocationEngine.stationReached.value != null) {
+                isArrived = true
+                return@ProgressChangeListener
+            }
             val instruction = routeProgress.currentLegProgress
                 .currentStep
                 .maneuver
@@ -177,6 +245,10 @@ class NavigationTestHostActivity :
                 .orEmpty()
             if (instruction.isNotEmpty()) {
                 runOnUiThread { instructionText = instruction }
+                if (instruction != lastLoggedManeuver) {
+                    lastLoggedManeuver = instruction
+                    NavTestLogger.logManeuver(instruction)
+                }
                 firstProgressLatch.countDown()
             }
         }
@@ -220,6 +292,8 @@ class NavigationTestHostActivity :
     }
 
     override fun onDestroy() {
+        testLocationEngine.stop()
+        testLocationEngine.shutdown()
         mapLibreNavigation?.onDestroy()
         mapLibreNavigation = null
         navigationView?.onDestroy()

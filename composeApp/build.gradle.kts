@@ -93,6 +93,7 @@ kotlin {
                 implementation("androidx.test:core:1.6.1")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
             }
+            kotlin.srcDir("${rootProject.projectDir}/androidApp/src/sharedTest/java/com/fleet/ecocar/navigation/support")
         }
         val androidInstrumentedTest by getting {
             dependencies {
@@ -109,6 +110,7 @@ kotlin {
                 implementation(libs.activity.compose)
                 implementation(libs.appcompat)
                 implementation(compose.material3)
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
             }
         }
     }
