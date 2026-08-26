@@ -7,8 +7,10 @@ internal fun BatterySnapshot.toEcoBmsTelemetry(): EcoBmsTelemetry =
     EcoBmsTelemetry(
         timestamp = timestamp,
         cellVolts = syntheticCellVolts(),
-        packTemperature = batteryTempMax.toFloat(),
+        packTemperature = 0f,
+        ambientTemperatureC = 0f,
         packHumidity = 0f,
+        humidity = 0f,
         pm25 = 0,
         pm10 = 0,
         soc = stateOfChargePercent,

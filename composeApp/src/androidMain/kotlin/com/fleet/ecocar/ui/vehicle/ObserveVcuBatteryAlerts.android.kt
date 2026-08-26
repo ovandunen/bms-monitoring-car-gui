@@ -9,22 +9,28 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import com.fleet.ecocar.EcoCarApplication
-import com.fleet.ecocar.domain.vehicle.LadestationSocPolicy
+import com.fleet.ecocar.domain.vehicle.BatteryAlertEpisodePolicy
 
 @Composable
-actual fun ObserveVcuLowBattery(onLowBattery: () -> Unit) {
+actual fun ObserveVcuBatteryAlerts(
+    onLowBattery: () -> Unit,
+    onLastChance: () -> Unit,
+) {
     val app = LocalContext.current.applicationContext as EcoCarApplication
     val snapshot by app.batteryClient.batteryState.collectAsState()
-    var lowSocEpisodeShown by remember { mutableStateOf(false) }
+    var episodeState by remember { mutableStateOf(BatteryAlertEpisodePolicy.EpisodeState()) }
 
     LaunchedEffect(snapshot?.timestamp, snapshot?.stateOfChargePercent) {
         val snap = snapshot?.takeIf { it.timestamp > 0L } ?: return@LaunchedEffect
-        val soc = snap.stateOfChargePercent
-        if (soc >= LadestationSocPolicy.LOW_BATTERY_PERCENT) {
-            lowSocEpisodeShown = false
-        } else if (!lowSocEpisodeShown) {
-            lowSocEpisodeShown = true
-            onLowBattery()
+        val (nextState, event) = BatteryAlertEpisodePolicy.evaluate(
+            socPercent = snap.stateOfChargePercent,
+            state = episodeState,
+        )
+        episodeState = nextState
+        when (event) {
+            BatteryAlertEpisodePolicy.AlertEvent.ShowStufe2 -> onLowBattery()
+            BatteryAlertEpisodePolicy.AlertEvent.ShowStufe3 -> onLastChance()
+            null -> Unit
         }
     }
 }

@@ -9,5 +9,7 @@ import com.fleet.shared.bms.ipc.domain.BmsCommand
 interface BatteryTelemetryPort {
     fun publishState(snapshot: BatterySnapshot)
 
+    fun publishAlert(level: Int, message: String)
+
     fun registerCommandHandler(handler: (BmsCommand) -> Unit)
 }

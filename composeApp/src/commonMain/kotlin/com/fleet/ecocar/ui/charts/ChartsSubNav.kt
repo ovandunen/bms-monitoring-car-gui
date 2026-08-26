@@ -65,12 +65,14 @@ fun ChartsSubNav(
 
     LaunchedEffect(bmsTelemetry?.timestamp) {
         val t = bmsTelemetry ?: return@LaunchedEffect
-        if (!t.packTemperature.isNaN()) {
-            temperature = (temperature.drop(1) + t.packTemperature).takeLast(HISTORY_LEN)
+        if (!t.ambientTemperatureC.isNaN() && t.ambientTemperatureC != 0f) {
+            temperature = (temperature.drop(1) + t.ambientTemperatureC).takeLast(HISTORY_LEN)
         }
-        dustDensity = (dustDensity.drop(1) + t.pm25.toFloat()).takeLast(HISTORY_LEN)
-        if (!t.packHumidity.isNaN()) {
-            humidity = (humidity.drop(1) + t.packHumidity).takeLast(HISTORY_LEN)
+        if (t.pm25 > 0) {
+            dustDensity = (dustDensity.drop(1) + t.pm25.toFloat()).takeLast(HISTORY_LEN)
+        }
+        if (!t.humidity.isNaN() && t.humidity != 0f) {
+            humidity = (humidity.drop(1) + t.humidity).takeLast(HISTORY_LEN)
         }
     }
 

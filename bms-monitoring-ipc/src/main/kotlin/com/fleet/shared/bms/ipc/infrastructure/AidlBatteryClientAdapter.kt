@@ -13,6 +13,7 @@ import com.fleet.shared.bms.ipc.IBmsService
 import com.fleet.shared.bms.ipc.application.IpcSnapshotAuditFormatter
 import com.fleet.shared.bms.ipc.ParcelableBmsCommand
 import com.fleet.shared.bms.ipc.application.ports.BatteryQueryPort
+import com.fleet.shared.bms.ipc.domain.BatteryAlertNotification
 import com.fleet.shared.bms.ipc.domain.BatterySnapshot
 import com.fleet.shared.bms.ipc.domain.BmsCommand
 import com.fleet.shared.bms.ipc.domain.ConnectionStatus
@@ -42,6 +43,9 @@ class AidlBatteryClientAdapter(
 
     private val _connectionStatus = MutableStateFlow<ConnectionStatus>(ConnectionStatus.Disconnected)
     val connectionStatus: StateFlow<ConnectionStatus> = _connectionStatus.asStateFlow()
+
+    private val _batteryAlerts = MutableStateFlow<List<BatteryAlertNotification>>(emptyList())
+    val batteryAlerts: StateFlow<List<BatteryAlertNotification>> = _batteryAlerts.asStateFlow()
 
     @Volatile
     private var service: IBmsService? = null
@@ -89,6 +93,13 @@ class AidlBatteryClientAdapter(
                 val lastSeen = _batteryState.value?.timestamp
                 _connectionStatus.value =
                     ConnectionStatusMapper.toConnectionStatus(statusCode, lastSeen)
+            }
+
+            override fun onAlert(level: Int, message: String?) {
+                if (message.isNullOrBlank()) return
+                val notification = BatteryAlertNotification(level = level, message = message)
+                _batteryAlerts.value = (_batteryAlerts.value + notification).takeLast(MAX_ALERTS)
+                Log.i(TAG, "onAlert level=$level message=$message")
             }
         }
 
@@ -220,5 +231,6 @@ class AidlBatteryClientAdapter(
         private const val INITIAL_BACKOFF_MS = 2_000L
         private const val MAX_BACKOFF_MS = 30_000L
         private const val MAX_RECONNECT_ATTEMPTS = 10
+        private const val MAX_ALERTS = 50
     }
 }

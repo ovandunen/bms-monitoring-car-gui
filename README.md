@@ -90,6 +90,7 @@ Example CI signing approach (conceptual): decode or generate one `ci-debug.keyst
 |-------------|-------|------------|-----------|------------------|---------------------|
 | **Development** | ✓ | ✓ | ✓ device/emulator | ✓ same debug key | ✓ manual |
 | **Test (CI)** | ✓ | ✓ | optional emulator | ✓ optional, shared CI key + both APKs | ✗ |
+| **Test (CI)** | ✓ | ✓ | optional emulator | ✓ optional, shared CI key + both APKs | navigation location engine (optional emulator) |
 | **Production** | release | as needed | field | ✓ same release key | field only |
 
 ## Java 21
@@ -131,10 +132,98 @@ Artifact: `com.fleet.shared:eco-car-battery-ui:1.0.0`
 - **GPS fallback** — when location is unavailable, requests use Berlin demo coordinates (aligned with BMS CSMS defaults) so offline/dev runs still show cached stations
 - **IPC preload** — on BMS bind, EcoCar publishes Room offline cache to IPC when CSMS is down or SOC is low
 
+### Offline turn-by-turn navigation (Graph depot sync)
+
+- **On-device routing** — GraphHopper 10.2 (`graphhopper-core`) computes routes locally against a bundled/downloaded `.gh` graph (Senegal & Gambia). No server-side routing calls.
+- **Storage budget** — Strict ~1.2 GB on-device budget. `NavigationStorageBudget` enforces the cap; `VehicleNavigationCoordinator` checks `filesDir.freeSpace` before routing.
+- **Depot sync (Wi-Fi only)** — `GraphDepotSyncPolicy` gates downloads to unmetered Wi-Fi. Cellular downloads are intentionally blocked.
+- **Critical implementation constraints for `GraphDepotSyncTrigger`:**
+  1. **Stream unzip to disk:** Do *not* buffer the 400MB+ zip into RAM. Pipe `ZipInputStream` directly to `FileOutputStream`.
+  2. **Atomic download:** Download to a `.tmp` file. Only rename to `.zip` (atomic on ext4) after verifying the file size against the manifest. Protects against corrupted files from flaky depot Wi-Fi.
+  3. **Delete the zip:** Immediately delete the `.zip` file after successful extraction. Leaving it permanently bleeds ~400MB of storage.
+- **Testing the download cycle:** Use OkHttp `MockWebServer` in `testDebugUnitTest` to serve a tiny, valid zip (e.g., 10KB containing a 3-node synthetic graph). Verify the temp file is created, extracted to the correct directory, and the zip is deleted. Do not depend on the CSMS build script for Android unit tests.
+
+### Navigation location engine (instrumented integration test)
+
+Turn-by-turn maneuver updates are validated with a **device/emulator instrumented test** that fakes GPS inside the app process and mocks routing — no GraphHopper, no `adb shell geo fix`, and **no changes to `main` / `release` sources**.
+
+| Piece | Location |
+|-------|----------|
+| `TestLocationEngine` | `androidApp/src/sharedTest/.../navigation/TestLocationEngine.kt` |
+| Hilt test DI (`FakeRouteProvider`, pre-baked Directions JSON) | `androidApp/src/sharedTest/.../di/TestNavigationModule.kt` |
+| UI test + test host activity | `composeApp/src/androidInstrumentedTest/.../navigation/NavigationUiTest.kt` |
+
+**What it does**
+
+1. `FakeRouteProvider` returns pre-baked Mapbox Directions v5 JSON (`Head north` → `Turn right`) — never calls GraphHopper.
+2. `NavigationTestHostActivity` starts MapLibre `NavigationView` with `TestLocationEngine` and off-route detection disabled (manual wiring — KMP androidTest skips Hilt KSP).
+3. The test calls `testLocationEngine.simulateLocation(lat, lng, bearing)` and asserts maneuver text via Compose (`onNodeWithText`).
+
+**Run (requires connected emulator or device; map tiles need network)**
+
+On macOS, if `adb: command not found`, the Android SDK is usually at `~/Library/Android/sdk` (see `sdk.dir` in `local.properties`). Add platform-tools and emulator to your shell **once**:
+
+```bash
+export ANDROID_HOME="$HOME/Library/Android/sdk"
+export PATH="$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$PATH"
+```
+
+Then:
+
+```bash
+# 1. Start an emulator (full boot can take 1–2 minutes with -no-snapshot-load)
+emulator -avd Pixel_Tablet -no-snapshot-load &
+
+# Wait until adb reports "device" (NOT "offline") and boot completes
+adb wait-for-device
+while [ "$(adb get-state 2>/dev/null)" != "device" ]; do
+  echo "waiting for emulator to come online..."
+  sleep 3
+done
+adb shell 'while [ -z "$(getprop sys.boot_completed 2>/dev/null)" ]; do sleep 2; done'
+
+adb devices -l
+# Must show: emulator-5554   device ...   (never "offline" or empty)
+
+# 2. Build test APK (works without a device)
+./gradlew :composeApp:assembleDebugAndroidTest
+
+# 3. Run only the navigation harness
+./gradlew :composeApp:connectedDebugAndroidTest \
+  -Pandroid.testInstrumentationRunnerArguments.class=com.fleet.ecocar.navigation.NavigationUiTest
+```
+
+One-off without changing PATH (SDK path from this repo’s `local.properties`):
+
+```bash
+~/Library/Android/sdk/platform-tools/adb devices -l
+~/Library/Android/sdk/emulator/emulator -list-avds
+```
+
+**Tips**
+
+| Situation | What to do |
+|-----------|------------|
+| `adb: command not found` (macOS) | `export PATH="$HOME/Library/Android/sdk/platform-tools:$HOME/Library/Android/sdk/emulator:$PATH"` or use full paths under `~/Library/Android/sdk/` |
+| `not enough space` / `install-create` fails | androidTest APK is large (~300–700MB with all ABIs). Free emulator storage (`adb shell df -h /data`), wipe AVD data, or create an AVD with ≥8GB internal; rebuild after `:composeApp` ABI filters (`arm64-v8a`, `x86_64` only) |
+| `No connected devices!` | Emulator not running, or still `offline` — wait for `adb get-state` → `device` before Gradle (see boot loop above) |
+| `adb: device offline` during boot | Normal for ~30s after start; re-run the `while [ "$(adb get-state)" != "device" ]` loop — do not run Gradle until `adb devices -l` shows `device` |
+| `MapLibreConfigurationException` / `MapView` inflate fails | Test host must call `MapLibre.getInstance` before `NavigationView`; ensure `maptiler.api_key` is in `local.properties` |
+| `ClassCastException: FragmentActivity` | Test host must extend `AppCompatActivity` (MapLibre `NavigationView` requires `FragmentActivity`) |
+| Test times out on maneuver text | Ensure emulator has network (MapLibre map load); retry with a cold emulator |
+| `ClassNotFoundException: Hilt_*` | Instrumented tests use manual wiring (no Hilt on KMP `:composeApp` androidTest); rebuild with `./gradlew :composeApp:assembleDebugAndroidTest` |
+| Production navigation unchanged | Harness is isolated in `sharedTest` + `androidInstrumentedTest`; `VehicleNavigationCoordinator` still uses fused GPS at runtime |
+
+**JVM-only routing tests** (no location engine, no UI):
+
+```bash
+./gradlew :composeApp:testDebugUnitTest --tests "com.fleet.ecocar.infrastructure.navigation.*"
+```
+
 ### IPC client
 
 - `BmsTelemetryBinder` starts the BMS monitor service and queues map refresh until bind completes
-- `ObserveVcuLowBattery` triggers the low-battery dialog once per low-SOC episode (same threshold as BMS Ladestation preload)
+- `ObserveVcuBatteryAlerts` triggers Stufe 2 (≤ 20 % SOC) or Stufe 3 (≤ 5 % SOC) dialogs once per episode (same 20 % threshold as BMS Ladestation preload)
 
 ## Unit tests (no emulator)
 
@@ -171,4 +260,3 @@ That target runs `build-install` (both APKs), sends test CAN frames (SOC **12%**
 | Stale emulator / ANR | `make shutdown` then rerun `make integration-test-ui` |
 
 See [`bms-monitoring-app/README.md`](../bms-monitoring-app/README.md#integration-testing-makefile) for relay, clean/shutdown, and CSMS targets.
-

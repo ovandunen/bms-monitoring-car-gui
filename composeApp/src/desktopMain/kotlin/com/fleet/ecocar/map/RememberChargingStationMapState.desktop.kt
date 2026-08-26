@@ -4,4 +4,4 @@ import androidx.compose.runtime.Composable
 
 @Composable
 actual fun rememberChargingStationMapState(): ChargingStationMapState =
-    ChargingStationMapState(stations = emptyList(), isRefreshing = false, refresh = {})
+    ChargingStationMapState(stations = emptyList(), isRefreshing = false, highlightStationId = null, refresh = {})

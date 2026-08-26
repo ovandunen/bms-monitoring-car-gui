@@ -8,4 +8,5 @@ data class ChargingStation(
     val name: String,
     val latitude: Double,
     val longitude: Double,
+    val recommended: Boolean = false,
 )

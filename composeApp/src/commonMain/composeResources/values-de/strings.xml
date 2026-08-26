@@ -62,9 +62,9 @@
     <string name="chart_tab_temp">Temperatur</string>
     <string name="chart_tab_dust">Staubdichte</string>
     <string name="chart_tab_humidity">Luftfeuchtigkeit</string>
-    <string name="chart_temp_title">Temperatur (°C)</string>
-    <string name="chart_temp_subtitle_bms">DS18B20 (Pack) — gemischt mit Demo‑Ticker.</string>
-    <string name="chart_temp_subtitle_demo">Innenraum / Zuluft (Demo) — BMS‑Bind für ESP32‑Werte.</string>
+    <string name="chart_temp_title">Außentemperatur (°C)</string>
+    <string name="chart_temp_subtitle_bms">DS18B20 Außenluft (ESP32 USB) — Live-Sensor.</string>
+    <string name="chart_temp_subtitle_demo">Demo-Kurve — BMS-Bind für DS18B20 Außenwerte.</string>
     <string name="chart_dust_title">Staubdichte (µg/m³, PM2.5‑Nähe)</string>
     <string name="chart_dust_subtitle_bms">PMS5003 PM2.5 (als Zeitreihe) — zusätzlicher Demo‑Drift.</string>
     <string name="chart_dust_subtitle_demo">Feinstaub‑Tendenz (Demo) — Live mit BMS (PMS5003).</string>
@@ -75,9 +75,17 @@
     <string name="dialog_low_battery_title">Niedriger Batterieladestand</string>
     <string name="dialog_low_battery_body">Der Ladestand der Hochvoltbatterie ist niedrig.</string>
     <string name="dialog_low_battery_action">Bitte wählen Sie eine nächste Aktion.</string>
-    <string name="dialog_low_battery_charge_cta">Zur nächsten Solar-/Ladestation</string>
+    <string name="dialog_low_battery_charge_cta">Zur nächstgelegenen Station</string>
+    <string name="dialog_last_chance_title">Letzte Tausch-Möglichkeit</string>
+    <string name="dialog_last_chance_body">Der Ladestand der Hochvoltbatterie ist kritisch (≤ 5 %). Fahren Sie umgehend zu einer Tauschstation.</string>
+    <string name="dialog_last_chance_contract">Laut Vertrag können Abschleppen und Mehrkosten anfallen, wenn Sie ohne Batterietausch weiterfahren.</string>
+    <string name="dialog_last_chance_charge_cta">Zur nächstgelegenen Station</string>
     <string name="dialog_technical">Technische Hinweise</string>
     <string name="dialog_close">Schließen</string>
+
+    <string name="dialog_optimal_swap_title">Optimaler Tauschzeitpunkt</string>
+    <string name="dialog_optimal_swap_body">Das CSMS empfiehlt den Tausch an Station %1$s (Konfidenz %2$d %%).</string>
+    <string name="dialog_optimal_swap_cta">Station auf der Karte anzeigen</string>
 
     <string name="sniffer_title">CAN-Sniffer (Demo)</string>
     <string name="sniffer_body">In der BMS-Haupt-App öffnet diese Aktion den CAN-Sniffer. Dieses EcoCar-GUI-Projekt bleibt eigenständig ohne Bus-Anbindung.</string>
@@ -88,6 +96,7 @@
     <string name="language_fr">Français</string>
     <string name="language_wo">Wolof</string>
     <string name="settings_test_low_battery">Low-Battery-Dialog testen</string>
+    <string name="settings_test_last_chance_battery">Letzte-Chance-Dialog testen (≤ 5 %)</string>
     <string name="settings_blurb">System- und Fahrzeugeinstellungen (Tablet, Sounds, VCU, Battery). Nutzen Sie die Schaltfläche unten, um den Low-Battery-Dialog zu testen.</string>
 
     <string name="placeholder_music">Musik: USB/Lokal + Radio (Media3) auf Android.</string>

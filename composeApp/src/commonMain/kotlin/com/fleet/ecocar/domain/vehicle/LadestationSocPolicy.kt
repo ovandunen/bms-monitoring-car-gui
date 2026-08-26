@@ -6,4 +6,7 @@ package com.fleet.ecocar.domain.vehicle
  */
 object LadestationSocPolicy {
     const val LOW_BATTERY_PERCENT = 20f
+
+    /** Stufe 3 — letzte Tausch-Möglichkeit (Vertragsfolge). Must match product spec. */
+    const val LAST_CHANCE_BATTERY_PERCENT = 5f
 }

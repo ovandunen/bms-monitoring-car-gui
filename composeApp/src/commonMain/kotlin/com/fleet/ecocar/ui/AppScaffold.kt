@@ -19,7 +19,9 @@ import com.fleet.ecocar.telemetry.EcoBmsTelemetry
 import com.fleet.ecocar.theme.EcoCarColors
 import com.fleet.ecocar.ui.bottom.BottomTelemetry
 import com.fleet.ecocar.ui.bottom.EcoBottomBar
+import com.fleet.ecocar.ui.dialog.LastChanceBatteryDialog
 import com.fleet.ecocar.ui.dialog.LowBatteryDialog
+import com.fleet.ecocar.ui.dialog.OptimalSwapDialog
 import com.fleet.ecocar.ui.main.MainContentArea
 import com.fleet.ecocar.ui.side.EcoSideNav
 import com.fleet.ecocar.ui.top.EcoTopBar
@@ -39,9 +41,17 @@ fun AppScaffold(
     ecoBmsTelemetry: EcoBmsTelemetry?,
     showLowBattery: Boolean,
     onDismissLowBattery: () -> Unit,
+    showLastChance: Boolean,
+    onDismissLastChance: () -> Unit,
+    showOptimalSwap: Boolean,
+    optimalSwapStationLabel: String,
+    optimalSwapConfidencePercent: Int,
+    onDismissOptimalSwap: () -> Unit,
+    onNavigateToOptimalSwap: () -> Unit,
     onNavigateToCharging: () -> Unit,
     onTechnicalIssues: () -> Unit,
     onSimulateLowBattery: () -> Unit,
+    onSimulateLastChance: () -> Unit = {},
     onBottomSettings: () -> Unit,
     onBottomInfo: () -> Unit,
     onTripLongPress: () -> Unit = {},
@@ -72,6 +82,7 @@ fun AppScaffold(
                         destination = selected,
                         ecoBmsTelemetry = ecoBmsTelemetry,
                         onSimulateLowBattery = onSimulateLowBattery,
+                        onSimulateLastChance = onSimulateLastChance,
                         languageRepository = languageRepository,
                     )
                 }
@@ -95,11 +106,24 @@ fun AppScaffold(
                     .padding(bottom = 72.dp),
             )
         }
-        if (showLowBattery) {
+        if (showLastChance) {
+            LastChanceBatteryDialog(
+                onDismiss = onDismissLastChance,
+                onNavigateToCharging = onNavigateToCharging,
+                onTechnicalIssues = onTechnicalIssues,
+            )
+        } else if (showLowBattery) {
             LowBatteryDialog(
                 onDismiss = onDismissLowBattery,
                 onNavigateToCharging = onNavigateToCharging,
                 onTechnicalIssues = onTechnicalIssues,
+            )
+        } else if (showOptimalSwap) {
+            OptimalSwapDialog(
+                stationLabel = optimalSwapStationLabel,
+                confidencePercent = optimalSwapConfidencePercent,
+                onDismiss = onDismissOptimalSwap,
+                onNavigateToStation = onNavigateToOptimalSwap,
             )
         }
     }

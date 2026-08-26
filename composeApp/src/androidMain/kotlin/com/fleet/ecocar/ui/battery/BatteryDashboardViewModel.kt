@@ -20,6 +20,7 @@ class BatteryDashboardViewModel(application: Application) : AndroidViewModel(app
 
     val batteryState: StateFlow<BatterySnapshot?> = client.batteryState
     val connectionStatus: StateFlow<ConnectionStatus> = client.connectionStatus
+    val batteryAlerts = client.batteryAlerts
 
     fun sendCommand(type: CommandType) {
         client.sendCommand(bmsCommand(type))

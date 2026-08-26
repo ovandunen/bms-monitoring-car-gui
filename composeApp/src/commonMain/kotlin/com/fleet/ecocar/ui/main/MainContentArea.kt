@@ -28,6 +28,7 @@ import com.fleet.ecocar.ui.charts.ChartsSubNav
 import com.fleet.ecocar.theme.EcoCarColors
 import eco_car_gui.composeapp.generated.resources.Res
 import eco_car_gui.composeapp.generated.resources.settings_blurb
+import eco_car_gui.composeapp.generated.resources.settings_test_last_chance_battery
 import eco_car_gui.composeapp.generated.resources.settings_test_low_battery
 import org.jetbrains.compose.resources.stringResource
 
@@ -36,6 +37,7 @@ fun MainContentArea(
     destination: MainDestination,
     ecoBmsTelemetry: EcoBmsTelemetry?,
     onSimulateLowBattery: () -> Unit,
+    onSimulateLastChance: () -> Unit = {},
     languageRepository: LanguageRepository? = null,
     modifier: Modifier = Modifier,
 ) {
@@ -61,6 +63,7 @@ fun MainContentArea(
                         stations = mapState.stations,
                         isRefreshing = mapState.isRefreshing,
                         onRefreshStations = mapState.refresh,
+                        highlightStationId = mapState.highlightStationId,
                     )
                 }
                 MainDestination.Browser ->
@@ -105,6 +108,21 @@ fun MainContentArea(
             ) {
                 Text(
                     text = stringResource(Res.string.settings_test_low_battery),
+                    style = MaterialTheme.typography.labelLarge,
+                )
+            }
+            Button(
+                onClick = onSimulateLastChance,
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(bottom = 8.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = EcoCarColors.LowSocOrange,
+                    contentColor = EcoCarColors.NearBlack,
+                ),
+            ) {
+                Text(
+                    text = stringResource(Res.string.settings_test_last_chance_battery),
                     style = MaterialTheme.typography.labelLarge,
                 )
             }

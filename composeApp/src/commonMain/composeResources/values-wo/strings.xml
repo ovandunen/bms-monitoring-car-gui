@@ -58,7 +58,7 @@
     <string name="chart_tab_dust">Poussière</string>
     <string name="chart_tab_humidity">Humidité</string>
     <string name="chart_temp_title">Température (°C)</string>
-    <string name="chart_temp_subtitle_bms">DS18B20 (pack) — mélangé ak demo.</string>
+    <string name="chart_temp_subtitle_bms">DS18B20 air biti (ESP32 USB) — capteur live.</string>
     <string name="chart_dust_title">Poussière (µg/m³, PM2.5)</string>
     <string name="chart_dust_subtitle_bms">PMS5003 PM2.5 — série bu live.</string>
     <string name="chart_humidity_title">Humidité (%)</string>

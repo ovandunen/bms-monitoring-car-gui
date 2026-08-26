@@ -14,7 +14,7 @@ class GeoJsonStationLayerAdapter {
                 stations.joinToString(",") { station ->
                     val id = escapeJson(station.id)
                     val name = escapeJson(station.name)
-                    """{"type":"Feature","geometry":{"type":"Point","coordinates":[${station.longitude},${station.latitude}]},"properties":{"id":"$id","name":"$name"}}"""
+                    """{"type":"Feature","geometry":{"type":"Point","coordinates":[${station.longitude},${station.latitude}]},"properties":{"id":"$id","name":"$name","recommended":${station.recommended}}}"""
                 },
             )
             append("]}")

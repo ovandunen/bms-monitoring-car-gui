@@ -9,4 +9,5 @@ expect fun EcoMapContent(
     stations: List<EcoChargingStation>,
     isRefreshing: Boolean,
     onRefreshStations: () -> Unit,
+    highlightStationId: String? = null,
 )
