@@ -22,10 +22,12 @@ actual fun rememberLiveMusicTopBarState(): TopBarMusicState {
     }
     return remember(clock) {
         TopBarMusicState(
-            title = "Mama Africa – Chico César",
+            title = "Mama Africa – Chico César TODO",
             duration = "2:13",
             source = "USB 1",
             clock = clock,
+            true,0L
+
         )
     }
 }

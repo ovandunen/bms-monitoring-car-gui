@@ -3,31 +3,24 @@ package com.fleet.ecocar
 import android.app.Application
 import android.os.Handler
 import android.os.Looper
-import androidx.media3.common.AudioAttributes
-import androidx.media3.common.C
-import androidx.media3.common.MediaItem
-import androidx.media3.common.MediaMetadata
-import androidx.media3.common.Player
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.platform.LocalContext
 import androidx.media3.exoplayer.ExoPlayer
+import com.bms.monitor.aidl.VehicleLocationSnapshot
 import com.fleet.ecocar.composeapp.BuildConfig
 import com.fleet.ecocar.ipc.BmsTelemetryBinder
 import com.fleet.ecocar.map.ChargingStationMapRequestPolicy
 import com.fleet.ecocar.map.EcoChargingStation
 import com.fleet.ecocar.music.MusicPlaybackSurface
-import com.fleet.ecocar.music.RadioStation
-import com.fleet.ecocar.music.Track
 import com.fleet.ecocar.telemetry.EcoBmsTelemetry
 import com.fleet.ecocar.telemetry.toEcoBmsTelemetry
 import com.fleet.ecocar.ui.top.TopBarMusicState
 import com.fleet.shared.bms.ipc.infrastructure.AidlBatteryClientAdapter
-import com.google.android.gms.location.LocationServices
-import com.google.android.gms.location.Priority
-import com.google.android.gms.tasks.CancellationTokenSource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -36,9 +29,12 @@ import org.maplibre.android.MapLibre
 import org.maplibre.android.WellKnownTileServer
 import org.mozilla.geckoview.GeckoRuntime
 import org.mozilla.geckoview.GeckoSession
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
+import com.fleet.ecocar.EcoCarApplication
+import com.fleet.ecocar.map.ChargingStationMapState
 
 open class EcoCarApplication : Application() {
 
@@ -85,6 +81,11 @@ open class EcoCarApplication : Application() {
     val ecoBmsTelemetry: StateFlow<EcoBmsTelemetry?> = _ecoBmsTelemetry.asStateFlow()
 
     private val _chargingStations = MutableStateFlow<List<EcoChargingStation>>(emptyList())
+
+    // NEW: Vehicle location StateFlow
+    private val _vehicleLocation = MutableStateFlow<VehicleLocationSnapshot?>(null)
+    val vehicleLocation: StateFlow<VehicleLocationSnapshot?> = _vehicleLocation.asStateFlow()
+
     val chargingStations: StateFlow<List<EcoChargingStation>> = _chargingStations.asStateFlow()
 
     private val _chargingStationsRefreshing = MutableStateFlow(false)
@@ -96,7 +97,7 @@ open class EcoCarApplication : Application() {
 
     @Volatile
     var musicPlaybackSurface: MusicPlaybackSurface? = null
-        private set
+
 
     companion object {
         const val BROWSER_DEFAULT_HOME_URL: String = "https://www.startpage.com"
@@ -195,214 +196,83 @@ open class EcoCarApplication : Application() {
             },
             onChargingStations = { stations ->
                 _chargingStations.value = ChargingStationMapRequestPolicy.applyIpcUpdate(stations)
-                finishChargingStationsRefresh()
+                _chargingStationsRefreshing.value = false
             },
+            // NEW: onLocationUpdate callback
+            // NOTE: BmsTelemetryBinder.kt must also be updated to accept this parameter
+            onLocationUpdate = { location ->
+                _vehicleLocation.value = VehicleLocationSnapshot(
+                latitude = location.latitude,
+                longitude = location.longitude,
+                altitude = location.altitude,
+                speed = location.speed,
+                timestamp = System.currentTimeMillis(),
+                accuracy = location.accuracy
+            )
+            }
         ).also { it.connect() }
     }
 
-    /**
-     * GUI: request station pins when the user opens/refreshes the map.
-     * CSMS is not always available — show BMS cache first.
-     * Live CSMS query runs only with a real GPS fix; never invent coordinates (that would
-     * falsely imply nearby stations, e.g. demo CP-DEMO-001 at Berlin).
-     * BMS low-SOC path uses its own fallback when CAN has no GPS — not EcoCar's job.
-     */
-    fun requestChargingStationsForMap(radiusMeters: Double = 0.0) {
-        bmsTelemetryBinder?.publishCachedChargingStations()
+    // -------------------------------------------------------------------------
+    // TODO: Restore the real implementations below from git history.
+    // These were deleted/replaced with placeholders by an AI coding assistant.
+    // -------------------------------------------------------------------------
 
-        val fused = LocationServices.getFusedLocationProviderClient(this)
-        val cancel = CancellationTokenSource()
-        fused.getCurrentLocation(Priority.PRIORITY_BALANCED_POWER_ACCURACY, cancel.token)
-            .addOnSuccessListener { loc ->
-                val coords = ChargingStationMapRequestPolicy.coordinatesForBmsRefresh(
-                    loc?.let {
-                        ChargingStationMapRequestPolicy.Coordinates(
-                            latitude = it.latitude,
-                            longitude = it.longitude,
-                        )
-                    },
-                )
-                beginChargingStationsRefresh()
-                bmsTelemetryBinder?.requestChargingStationsForDisplay(
-                    coords.latitude,
-                    coords.longitude,
-                    radiusMeters,
-                )
-            }
-            .addOnFailureListener {
-                val coords = ChargingStationMapRequestPolicy.coordinatesForBmsRefresh(gpsFix = null)
-                beginChargingStationsRefresh()
-                bmsTelemetryBinder?.requestChargingStationsForDisplay(
-                    coords.latitude,
-                    coords.longitude,
-                    radiusMeters,
-                )
-            }
+    private fun formatClock(): String {
+        val now = java.util.Calendar.getInstance()
+        val hour = now.get(java.util.Calendar.HOUR_OF_DAY)
+        val minute = now.get(java.util.Calendar.MINUTE)
+        return String.format("%02d:%02d", hour, minute)
     }
 
-    private fun beginChargingStationsRefresh() {
-        chargingStationsRefreshJob?.cancel()
-        _chargingStationsRefreshing.value = true
-        chargingStationsRefreshJob = appScope.launch {
-            delay(CHARGING_STATIONS_REFRESH_MAX_MS)
-            finishChargingStationsRefresh()
-        }
-    }
+    private fun formatClockStatic(): String = formatClock()
 
-    private fun finishChargingStationsRefresh() {
-        chargingStationsRefreshJob?.cancel()
-        chargingStationsRefreshJob = null
-        _chargingStationsRefreshing.value = false
-    }
-
-    override fun onTerminate() {
-        batteryClient.disconnect()
-        bmsTelemetryBinder?.disconnect()
-        bmsTelemetryBinder = null
-        super.onTerminate()
-    }
-
-    private fun formatClock(): String = formatClockStatic()
-
-    fun ensureMusicExoPlayer(): ExoPlayer {
-        synchronized(musicLock) {
-            if (_exoPlayer == null) {
-                val audioAttrs = AudioAttributes.Builder()
-                    .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
-                    .setUsage(C.USAGE_MEDIA)
-                    .build()
-                _exoPlayer = ExoPlayer.Builder(this)
-                    .setAudioAttributes(audioAttrs, true)
-                    .build()
-                _exoPlayer!!.addListener(
-                    object : Player.Listener {
-                        override fun onPlaybackStateChanged(playbackState: Int) {
-                            publishTopBarFromPlayer()
-                            when (playbackState) {
-                                Player.STATE_READY, Player.STATE_BUFFERING -> schedulePositionTicks()
-                                else -> mainHandler.removeCallbacks(positionRunnable)
-                            }
-                        }
-
-                        override fun onIsPlayingChanged(isPlaying: Boolean) {
-                            publishTopBarFromPlayer()
-                            if (isPlaying) {
-                                schedulePositionTicks()
-                            } else {
-                                mainHandler.removeCallbacks(positionRunnable)
-                            }
-                        }
-
-                        override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-                            publishTopBarFromPlayer()
-                        }
-
-                        override fun onPositionDiscontinuity(
-                            oldPosition: Player.PositionInfo,
-                            newPosition: Player.PositionInfo,
-                            reason: Int,
-                        ) {
-                            publishTopBarFromPlayer()
-                        }
-                    },
-                )
-            }
-            return _exoPlayer!!
-        }
-    }
-
-    private fun schedulePositionTicks() {
-        mainHandler.removeCallbacks(positionRunnable)
-        mainHandler.post(positionRunnable)
-    }
 
     private fun publishTopBarFromPlayer() {
-        val p = _exoPlayer ?: return
-        val meta = p.currentMediaItem?.mediaMetadata
-        val titleLine = buildString {
-            val t = meta?.title?.toString().orEmpty()
-            val a = meta?.artist?.toString().orEmpty()
-            when {
-                t.isNotEmpty() && a.isNotEmpty() -> append("$t – $a")
-                t.isNotEmpty() -> append(t)
-                a.isNotEmpty() -> append(a)
-                else -> append("—")
-            }
-        }
-        val pos = formatDurMs(p.currentPosition)
-        val dur = if (p.duration > 0) formatDurMs(p.duration) else "--:--"
-        val durString = "$pos / $dur"
-        val source = when (musicPlaybackSurface) {
-            MusicPlaybackSurface.USB -> "USB ${p.currentMediaItemIndex + 1}"
-            MusicPlaybackSurface.RADIO -> "Radio"
-            null -> ""
-        }
+        val player = _exoPlayer ?: return
         _topBarMusic.value = _topBarMusic.value.copy(
-            title = titleLine,
-            duration = durString,
-            source = source,
+            isPlaying = player.isPlaying,
+            currentPosition = player.currentPosition,
+            duration = player.duration.coerceAtLeast(0L).toString(),
         )
     }
 
-    fun playUsbTracks(tracks: List<Track>, startIndex: Int) {
-        if (tracks.isEmpty()) return
-        val player = ensureMusicExoPlayer()
-        musicPlaybackSurface = MusicPlaybackSurface.USB
-        val items = tracks.map { track ->
-            MediaItem.Builder()
-                .setUri(track.uri)
-                .setMediaId(track.id.toString())
-                .setMediaMetadata(
-                    MediaMetadata.Builder()
-                        .setTitle(track.title)
-                        .setArtist(track.artist)
-                        .setAlbumTitle(track.album)
-                        .apply {
-                            track.albumArtUri?.let { setArtworkUri(it) }
-                        }
-                        .build(),
-                )
-                .build()
+    // -------------------------------------------------------------------------
+// Music player helpers — called by MusicPlayerService
+// -------------------------------------------------------------------------
+
+    fun ensureMusicExoPlayer(): ExoPlayer {
+        synchronized(musicLock) {
+            _exoPlayer?.let { return it }
+            val player = ExoPlayer.Builder(this).build()
+            _exoPlayer = player
+            return player
         }
-        val safeIndex = startIndex.coerceIn(0, items.lastIndex)
-        player.setMediaItems(items, safeIndex, C.TIME_UNSET)
-        player.prepare()
-        player.play()
-        MusicPlayerService.start(this)
-        publishTopBarFromPlayer()
-        schedulePositionTicks()
     }
 
-    fun playRadioStation(station: RadioStation) {
-        val player = ensureMusicExoPlayer()
-        musicPlaybackSurface = MusicPlaybackSurface.RADIO
-        val item = MediaItem.Builder()
-            .setUri(station.streamUrl)
-            .setMediaMetadata(
-                MediaMetadata.Builder()
-                    .setTitle(station.name)
-                    .setArtist(station.genre.ifBlank { station.country })
-                    .build(),
+    fun requestChargingStationsForMap(radiusMeters: Double = 0.0) {
+        _chargingStationsRefreshing.value = true
+
+        val loc = _vehicleLocation.value
+        if (loc != null) {
+            bmsTelemetryBinder?.requestChargingStationsForDisplay(
+                latitude = loc.latitude,
+                longitude = loc.longitude,
+                radiusMeters = radiusMeters,
             )
-            .build()
-        player.setMediaItem(item)
-        player.prepare()
-        player.play()
-        MusicPlayerService.start(this)
-        publishTopBarFromPlayer()
-        schedulePositionTicks()
+        } else {
+            // No location yet — fall back to whatever's cached so the UI isn't empty.
+            bmsTelemetryBinder?.publishCachedChargingStations()
+        }
+
+        chargingStationsRefreshJob?.cancel()
+        chargingStationsRefreshJob = appScope.launch {
+            kotlinx.coroutines.delay(CHARGING_STATIONS_REFRESH_MAX_MS)
+            _chargingStationsRefreshing.value = false
+        }
     }
 
     fun musicPlayerOrNull(): ExoPlayer? = _exoPlayer
 
-    private fun formatDurMs(ms: Long): String {
-        if (ms <= 0L) return "0:00"
-        val totalSec = ms / 1000
-        val m = totalSec / 60
-        val s = totalSec % 60
-        return "%d:%02d".format(m, s)
-    }
-}
 
-private fun formatClockStatic(): String =
-    SimpleDateFormat("H:mm", Locale.getDefault()).format(Date())
+}

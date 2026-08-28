@@ -21,8 +21,11 @@ data class TopBarMusicState(
     val duration: String = "0:00 / --:--",
     val source: String = "",
     val clock: String = "—",
-)
-
+    val isPlaying: Boolean,
+    val currentPosition: Long,
+) {
+    constructor(clock: String) : this("", "0:00 / --:--", "",clock, false, 0)
+}
 @Composable
 fun EcoTopBar(
     music: TopBarMusicState,

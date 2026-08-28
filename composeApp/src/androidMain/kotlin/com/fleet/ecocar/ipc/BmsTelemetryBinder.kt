@@ -4,6 +4,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
+import android.location.Location
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
@@ -25,6 +26,7 @@ class BmsTelemetryBinder(
     private val onTelemetry: (EcoBmsTelemetry) -> Unit,
     private val onChargingStations: (List<EcoChargingStation>) -> Unit,
     private val onAlert: ((Int, String) -> Unit)? = null,
+    private val onLocationUpdate: (Location) -> Unit,
 ) {
     private val appContext = context.applicationContext
     private val mainHandler = Handler(Looper.getMainLooper())
