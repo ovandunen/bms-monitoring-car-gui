@@ -227,7 +227,7 @@ fun MusicScreen(modifier: Modifier = Modifier) {
                         app.musicPlaybackSurface == MusicPlaybackSurface.RADIO,
                     onStationClick = { station ->
                         playbackError = null
-                        app.playRadioStation(station)
+                       // app.playRadioStation(station). TOOO
                     },
                 )
                 TAB_RADIO_PLAYER -> RadioPlayerPlaceholder(Modifier.fillMaxSize())
@@ -236,7 +236,10 @@ fun MusicScreen(modifier: Modifier = Modifier) {
                     playingIndex = if (isUsbMode) currentUsbIndex else -1,
                     onTrackClick = { index ->
                         playbackError = null
-                        app.playUsbTracks(usbTracks, index)
+
+                      //  app.playUsbTracks(usbTracks, index) TODO
+
+                       // throw  new Nouch
                     },
                 )
             }

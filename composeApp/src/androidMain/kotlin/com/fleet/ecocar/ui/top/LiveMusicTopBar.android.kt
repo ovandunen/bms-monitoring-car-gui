@@ -5,10 +5,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import com.fleet.ecocar.EcoCarApplication
+import java.time.Clock
 
 @Composable
 actual fun rememberLiveMusicTopBarState(): TopBarMusicState {
     val app = LocalContext.current.applicationContext as EcoCarApplication
-    val state by app.topBarMusicState.collectAsState(initial = TopBarMusicState())
+    val state by app.topBarMusicState.collectAsState(initial = TopBarMusicState("00.00.00.02"))
     return state
 }

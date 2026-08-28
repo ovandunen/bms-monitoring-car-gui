@@ -12,13 +12,13 @@ import kotlin.math.roundToInt
 actual fun rememberBottomTelemetry(): BottomTelemetry {
     val app = LocalContext.current.applicationContext as EcoCarApplication
     val snapshot by app.batteryClient.batteryState.collectAsState()
-        return remember(snapshot) {
-            val live = snapshot?.takeIf { it.timestamp > 0L }
-            BottomTelemetry(
-                socPercent = live?.stateOfChargePercent?.toInt() ?: 0,
-                tripDistanceKm = live?.tripDistanceKm?.takeIf { it >= 0.5f }?.roundToInt(),
-                rangeKm = live?.estimatedRangeKm?.takeIf { it > 0f }?.toDouble(),
-                co2SavingKg = live?.co2SavingKg?.takeIf { live.tripDistanceKm >= 0.5f }?.toDouble(),
-            )
-        }
+    return remember(snapshot) {
+        val live = snapshot?.takeIf { it.timestamp > 0L }
+        BottomTelemetry(
+            socPercent = live?.stateOfChargePercent?.toInt() ?: 0,
+            tripDistanceKm = live?.tripDistanceKm?.takeIf { it >= 0.5f }?.roundToInt(),
+            rangeKm = live?.estimatedRangeKm?.takeIf { it > 0f }?.toDouble(),
+            co2SavingKg = live?.co2SavingKg?.takeIf { live.tripDistanceKm >= 0.5f }?.toDouble(),
+        )
+    }
 }
