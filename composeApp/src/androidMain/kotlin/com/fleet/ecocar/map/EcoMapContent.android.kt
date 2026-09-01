@@ -47,6 +47,10 @@ actual fun EcoMapContent(
     stations: List<EcoChargingStation>,
     isRefreshing: Boolean,
     onRefreshStations: () -> Unit,
+    // ADDED to match the commonMain expect declaration, now passed
+    // straight through to MapViewWithStationPins below.
+    vehicleLatitude: Double?,
+    vehicleLongitude: Double?,
 ) {
     LaunchedEffect(Unit) {
         onRefreshStations()
@@ -68,6 +72,8 @@ actual fun EcoMapContent(
                 MapViewWithStationPins(
                     styleUri = styleUri,
                     stations = pinStations,
+                    vehicleLatitude = vehicleLatitude,
+                    vehicleLongitude = vehicleLongitude,
                     modifier = Modifier.fillMaxSize(),
                 )
             } else {

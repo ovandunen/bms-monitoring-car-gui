@@ -43,6 +43,18 @@ open class EcoCarApplication : Application() {
     /**
      * Application-scoped driving adapter for BMS monitor IPC ([AidlBatteryClientAdapter]).
      * Survives rotation; connect once in [onCreate], disconnect only on process death.
+     *
+     * TECHNICAL DEBT (see TECHNICAL_DEBT.md #1): this is the Family A
+     * client (com.fleet.shared.bms.ipc). It targets a service class name
+     * ("ch.ecocar.bms.BmsMonitoringService") that does not exist in the
+     * manifest, and even if the name were fixed, IBmsService.Stub.asInterface
+     * would bind against a Family B binder using an incompatible AIDL
+     * descriptor - the two contracts were never designed to talk to each
+     * other. Kept instantiated and connected (harmless: it just retries
+     * with backoff and never succeeds) so nothing else referencing
+     * `batteryClient` breaks, but its state is deliberately NOT consumed
+     * anywhere below anymore. The working path is BmsTelemetryBinder
+     * (Family B) via bmsTelemetryBinder, further down this file.
      */
     lateinit var batteryClient: AidlBatteryClientAdapter
         private set
@@ -82,7 +94,9 @@ open class EcoCarApplication : Application() {
 
     private val _chargingStations = MutableStateFlow<List<EcoChargingStation>>(emptyList())
 
-    // NEW: Vehicle location StateFlow
+    // Vehicle location StateFlow - fed by BmsTelemetryBinder's onLocationUpdate
+    // callback below, which was previously never invoked. See
+    // BmsTelemetryBinder.kt for the fix.
     private val _vehicleLocation = MutableStateFlow<VehicleLocationSnapshot?>(null)
     val vehicleLocation: StateFlow<VehicleLocationSnapshot?> = _vehicleLocation.asStateFlow()
 
@@ -162,53 +176,42 @@ open class EcoCarApplication : Application() {
         batteryClient = AidlBatteryClientAdapter(this, appScope)
         batteryClient.connect()
 
-        appScope.launch {
-            batteryClient.batteryState.collect { snap ->
-                if (snap == null || snap.timestamp == 0L) return@collect
-                val ipc = snap.toEcoBmsTelemetry()
-                _ecoBmsTelemetry.value = _ecoBmsTelemetry.value?.let { existing ->
-                    ipc.copy(
-                        cellVolts = ipc.cellVolts.ifEmpty { existing.cellVolts },
-                        packHumidity = if (ipc.packHumidity == 0f) existing.packHumidity else ipc.packHumidity,
-                        pm25 = if (ipc.pm25 == 0) existing.pm25 else ipc.pm25,
-                        pm10 = if (ipc.pm10 == 0) existing.pm10 else ipc.pm10,
-                    )
-                } ?: ipc
-            }
-        }
+        // REMOVED (see TECHNICAL_DEBT.md #1): this block previously
+        // collected batteryClient.batteryState - a field that does not
+        // exist on AidlBatteryClientAdapter (it exposes batterySnapshot,
+        // of an incompatible domain type), and merged it into
+        // _ecoBmsTelemetry as the presumed-primary source. Family A
+        // (com.fleet.shared.bms.ipc) is a separate, incompatible AIDL
+        // contract from the one actually served by BmsMonitorService
+        // (Family B, com.bms.monitor.aidl) - it cannot successfully bind,
+        // so this collector could never have emitted real data. Deleting
+        // it rather than patching the field name, since patching it would
+        // still leave a broken/never-firing path pretending to be primary.
+        // BmsTelemetryBinder (below) is the confirmed working path.
 
         bmsTelemetryBinder = BmsTelemetryBinder(
             this,
             onTelemetry = { legacy ->
-                val ipcLive = batteryClient.batteryState.value?.timestamp?.let { it > 0L } == true
-                if (!ipcLive) {
-                    _ecoBmsTelemetry.value = legacy
-                } else {
-                    _ecoBmsTelemetry.value = _ecoBmsTelemetry.value?.let { current ->
-                        current.copy(
-                            cellVolts = legacy.cellVolts.ifEmpty { current.cellVolts },
-                            packHumidity = if (current.packHumidity == 0f) legacy.packHumidity else current.packHumidity,
-                            pm25 = if (current.pm25 == 0) legacy.pm25 else current.pm25,
-                            pm10 = if (current.pm10 == 0) legacy.pm10 else current.pm10,
-                        )
-                    } ?: legacy
-                }
+                // BmsTelemetryBinder (Family B) is the sole confirmed
+                // working telemetry source - see TECHNICAL_DEBT.md #1 for
+                // why the previous batteryClient-primary merge logic was
+                // removed rather than fixed in place.
+                _ecoBmsTelemetry.value = legacy
             },
             onChargingStations = { stations ->
                 _chargingStations.value = ChargingStationMapRequestPolicy.applyIpcUpdate(stations)
                 _chargingStationsRefreshing.value = false
             },
-            // NEW: onLocationUpdate callback
-            // NOTE: BmsTelemetryBinder.kt must also be updated to accept this parameter
+            // Now actually invoked - see the fix in BmsTelemetryBinder.onDataUpdate.
             onLocationUpdate = { location ->
                 _vehicleLocation.value = VehicleLocationSnapshot(
-                latitude = location.latitude,
-                longitude = location.longitude,
-                altitude = location.altitude,
-                speed = location.speed,
-                timestamp = System.currentTimeMillis(),
-                accuracy = location.accuracy
-            )
+                    latitude = location.latitude,
+                    longitude = location.longitude,
+                    altitude = location.altitude,
+                    speed = location.speed,
+                    timestamp = System.currentTimeMillis(),
+                    accuracy = location.accuracy
+                )
             }
         ).also { it.connect() }
     }

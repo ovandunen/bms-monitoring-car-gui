@@ -20,6 +20,18 @@ import com.fleet.ecocar.telemetry.EcoBmsTelemetry
 /**
  * Binds EcoCar to BMS [IBmsService] for charging-station **data** (AIDL callbacks).
  * Map layout and when to query stations are owned by EcoCar — not BMS.
+ *
+ * FIX (vehicle-location gap, Family B path): [onDataUpdate] previously built
+ * an [EcoBmsTelemetry] snapshot but never touched [onLocationUpdate] at all
+ * — the parameter was accepted in the constructor and wired all the way
+ * into [ch.fleet.ecocar.EcoCarApplication]'s vehicleLocation state, but
+ * nothing ever called it. [BmsData] already carries optional
+ * latitude/longitude (stamped server-side by
+ * ch.ecocar.bms.vehiclelocation.application.LocationStampingBmsDataFactory),
+ * so no new AIDL method was needed - just extraction, delegated to
+ * [BmsLocationMapper] to keep this class's single responsibility as
+ * "AIDL binding and callback bridging" rather than also owning location
+ * mapping logic.
  */
 class BmsTelemetryBinder(
     private val context: Context,
@@ -52,6 +64,14 @@ class BmsTelemetryBinder(
                 currentA = data.current,
             )
             mainHandler.post { onTelemetry(snap) }
+
+            // FIX: this was previously missing entirely - onLocationUpdate
+            // was dead code. BmsLocationMapper returns null when the
+            // reading carries no fix yet, so no-op in that case rather
+            // than publishing a fabricated (0, 0) location.
+            BmsLocationMapper.toLocation(data)?.let { location ->
+                mainHandler.post { onLocationUpdate(location) }
+            }
         }
 
         override fun onAlert(level: Int, message: String?) {
