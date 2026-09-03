@@ -1,5 +1,6 @@
 package com.fleet.ecocar.ipc
 
+
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -193,12 +194,13 @@ class BmsTelemetryBinder(
     }
 
     private fun serviceIntent(): Intent =
-        Intent(BMS_SERVICE_ACTION).setPackage(BMS_PACKAGE)
+        Intent().setComponent(ComponentName(BMS_PACKAGE, BMS_SERVICE_CLASS))
 
     companion object {
         private const val TAG = "BmsTelemetryBinder"
         const val BMS_PACKAGE = "ch.ecocarsolaire.bms"
-        private const val BMS_SERVICE_ACTION = "com.fleet.bms.action.MONITOR_SERVICE"    }
+        private const val BMS_SERVICE_CLASS = "ch.ecocar.bms.BmsMonitorService"
+    }
 }
 
 private fun ChargingStationSnapshot.toEcoChargingStation() =

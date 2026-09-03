@@ -13,9 +13,13 @@ actual fun rememberChargingStationMapState(): ChargingStationMapState {
     val stations by app.chargingStations.collectAsState(initial = emptyList())
     val isRefreshing by app.chargingStationsRefreshing.collectAsState(initial = false)
     val refresh = remember(app) { { app.requestChargingStationsForMap() } }
+    // ADDED: same collectAsState pattern as stations/isRefreshing above.
+    val vehicleLocation by app.vehicleLocation.collectAsState(initial = null)
     return ChargingStationMapState(
         stations = stations,
         isRefreshing = isRefreshing,
         refresh = refresh,
+        vehicleLatitude = vehicleLocation?.latitude,
+        vehicleLongitude = vehicleLocation?.longitude,
     )
 }
