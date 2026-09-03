@@ -1,14 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- ADDED: required to bind to ch.ecocar.bms.BmsMonitorService, which
+         is gated by this signature-level permission (see
+         MonitorServicePermissions.canBind() in bms-monitoring-app). Without
+         this, bindService() fails with a SecurityException - no crash log
+         beyond a caught exception in BmsTelemetryBinder.connect(), so this
+         was silently killing the whole IPC connection. -->
+    <uses-permission android:name="ch.ecocar.bms.permission.BIND_MONITOR_SERVICE" />
+
     <application>
+
         <service
-            android:name="com.fleet.ecocar.MusicPlayerService"
-            android:exported="false"
-            android:foregroundServiceType="mediaPlayback">
+                android:name="com.fleet.ecocar.MusicPlayerService"
+                android:exported="false"
+                android:foregroundServiceType="mediaPlayback">
             <intent-filter>
                 <action android:name="androidx.media3.session.MediaSessionService" />
             </intent-filter>
         </service>
+
     </application>
 </manifest>

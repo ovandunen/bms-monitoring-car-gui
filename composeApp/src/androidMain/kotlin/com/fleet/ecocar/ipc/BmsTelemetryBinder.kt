@@ -197,9 +197,8 @@ class BmsTelemetryBinder(
 
     companion object {
         private const val TAG = "BmsTelemetryBinder"
-        const val BMS_PACKAGE = "com.fleet.bms"
-        private const val BMS_SERVICE_ACTION = "com.ecocar.bms.action.BMS_SERVICE"
-    }
+        const val BMS_PACKAGE = "ch.ecocarsolaire.bms"
+        private const val BMS_SERVICE_ACTION = "com.fleet.bms.action.MONITOR_SERVICE"    }
 }
 
 private fun ChargingStationSnapshot.toEcoChargingStation() =
