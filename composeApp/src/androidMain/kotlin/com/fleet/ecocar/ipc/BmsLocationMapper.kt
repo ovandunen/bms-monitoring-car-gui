@@ -2,23 +2,13 @@ package com.fleet.ecocar.ipc
 
 import android.location.Location
 import com.bms.monitor.aidl.BmsData
+import com.bms.monitor.aidl.BmsVehicleLocation
 
-/**
- * Single responsibility: decide whether a [BmsData] reading carries a usable
- * GPS fix and, if so, convert it into an [android.location.Location] -
- * the type [ch.fleet.ecocar.EcoCarApplication.onLocationUpdate] already
- * expects, via [BmsTelemetryBinder].
- *
- * BmsData does not carry altitude/speed/accuracy (BmsService's
- * LocationStampingBmsDataFactory only stamps latitude/longitude onto a
- * reading) - those fields are deliberately left at Location's own defaults
- * (0.0 / not-set) rather than fabricated, per the no-invented-data
- * constraint used throughout this fix.
- */
 object BmsLocationMapper {
 
     private const val LOCATION_PROVIDER = "bms_ipc"
 
+    /** From the legacy path: BmsData's optional lat/lon fields. */
     fun toLocation(data: BmsData): Location? {
         val latitude = data.latitude ?: return null
         val longitude = data.longitude ?: return null
@@ -28,4 +18,14 @@ object BmsLocationMapper {
             time = data.timestamp
         }
     }
+
+    /** From the dedicated onLocationChanged callback - always has a fix,
+     * so unlike the BmsData overload above, this never returns null. */
+    fun toLocation(location: BmsVehicleLocation): Location =
+        Location(LOCATION_PROVIDER).apply {
+            latitude = location.latitude
+            longitude = location.longitude
+            time = location.timestampMillis
+            location.accuracyMeters?.let { accuracy = it }
+        }
 }

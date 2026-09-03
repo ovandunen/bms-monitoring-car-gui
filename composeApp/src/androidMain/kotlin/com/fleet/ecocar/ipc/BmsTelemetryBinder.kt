@@ -13,9 +13,11 @@ import com.bms.monitor.aidl.BmsData
 import com.bms.monitor.aidl.ChargingStationSnapshot
 import com.bms.monitor.aidl.IBmsCallback
 import com.bms.monitor.aidl.IBmsService
+import com.bms.monitor.aidl.BmsVehicleLocation
 import com.fleet.ecocar.map.ChargingStationSnapshotMapper
 import com.fleet.ecocar.map.EcoChargingStation
 import com.fleet.ecocar.telemetry.EcoBmsTelemetry
+
 
 /**
  * Binds EcoCar to BMS [IBmsService] for charging-station **data** (AIDL callbacks).
@@ -51,6 +53,7 @@ class BmsTelemetryBinder(
 
     private data class RefreshRequest(val latitude: Double, val longitude: Double, val radiusMeters: Double)
 
+
     private val callback = object : IBmsCallback.Stub() {
         override fun onDataUpdate(data: BmsData) {
             val snap = EcoBmsTelemetry(
@@ -65,13 +68,13 @@ class BmsTelemetryBinder(
             )
             mainHandler.post { onTelemetry(snap) }
 
-            // FIX: this was previously missing entirely - onLocationUpdate
-            // was dead code. BmsLocationMapper returns null when the
-            // reading carries no fix yet, so no-op in that case rather
-            // than publishing a fabricated (0, 0) location.
             BmsLocationMapper.toLocation(data)?.let { location ->
                 mainHandler.post { onLocationUpdate(location) }
             }
+        }
+
+        override fun onLocationChanged(location: BmsVehicleLocation) {
+            mainHandler.post { onLocationUpdate(BmsLocationMapper.toLocation(location)) }
         }
 
         override fun onAlert(level: Int, message: String?) {
