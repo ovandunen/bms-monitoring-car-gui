@@ -24,12 +24,12 @@ class IpcSnapshotAuditFormatterTest {
     @Test
     fun formatServiceConnected_matchesIntegrationLogcatGrep() {
         val line = IpcSnapshotAuditFormatter.formatServiceConnectedAuditLine(
-            componentName = "ComponentInfo{com.fleet.bms/com.fleet.bms.infrastructure.android.service.BmsMonitorService}",
+            componentName = "ComponentInfo{ch.ecocarsolaire.bms/ch.ecocarsolaire.bms.infrastructure.android.service.BmsMonitorService}",
             binder = "android.os.BinderProxy@476f1d9",
         )
 
         assertEquals(
-            "onServiceConnected: ComponentInfo{com.fleet.bms/com.fleet.bms.infrastructure.android.service.BmsMonitorService} binder=android.os.BinderProxy@476f1d9",
+            "onServiceConnected: ComponentInfo{ch.ecocarsolaire.bms/ch.ecocarsolaire.bms.infrastructure.android.service.BmsMonitorService} binder=android.os.BinderProxy@476f1d9",
             line,
         )
         assertTrue(line.contains("onServiceConnected"))

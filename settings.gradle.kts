@@ -21,4 +21,11 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "bms-monitoring-car-gui"
-include(":eco-car-battery-ui", ":bms-monitoring-ipc", ":composeApp", ":androidApp")
+include(":composeApp")
+include(":androidApp")
+include(":eco-car-battery-ui")
+include(":bms-monitoring-ipc")          // standalone project
+project(":bms-monitoring-ipc").projectDir = file("../bms-monitoring-ipc")
+
+include(":bms-monitoring-ipc-nested") // nested copy inside car-gui
+project(":bms-monitoring-ipc-nested").projectDir = file("bms-monitoring-ipc-nested")
