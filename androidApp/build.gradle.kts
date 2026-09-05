@@ -8,12 +8,21 @@ plugins {
 }
 
 kotlin {
-    jvmToolchain(21)
+    jvmToolchain(17)
 }
 
 android {
     namespace = "com.fleet.ecocar"
     compileSdk = 36
+
+    signingConfigs {
+        getByName("debug") {
+            storeFile = file(System.getProperty("user.home") + "/ecocar-shared-debug.keystore")
+            storePassword = "android"
+            keyAlias = "ecocar-debug"
+            keyPassword = "android"
+        }
+    }
 
     defaultConfig {
         applicationId = "com.fleet.ecocar"
@@ -47,12 +56,12 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     kotlinOptions {
-        jvmTarget = "21"
+        jvmTarget = "17"
     }
 
     buildFeatures {

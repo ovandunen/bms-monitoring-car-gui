@@ -1,5 +1,6 @@
 package com.fleet.ecocar.ipc
 
+
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -13,13 +14,27 @@ import com.bms.monitor.aidl.BmsData
 import com.bms.monitor.aidl.ChargingStationSnapshot
 import com.bms.monitor.aidl.IBmsCallback
 import com.bms.monitor.aidl.IBmsService
+import com.bms.monitor.aidl.BmsVehicleLocation
 import com.fleet.ecocar.map.ChargingStationSnapshotMapper
 import com.fleet.ecocar.map.EcoChargingStation
 import com.fleet.ecocar.telemetry.EcoBmsTelemetry
 
+
 /**
  * Binds EcoCar to BMS [IBmsService] for charging-station **data** (AIDL callbacks).
  * Map layout and when to query stations are owned by EcoCar — not BMS.
+ *
+ * FIX (vehicle-location gap, Family B path): [onDataUpdate] previously built
+ * an [EcoBmsTelemetry] snapshot but never touched [onLocationUpdate] at all
+ * — the parameter was accepted in the constructor and wired all the way
+ * into [ch.fleet.ecocar.EcoCarApplication]'s vehicleLocation state, but
+ * nothing ever called it. [BmsData] already carries optional
+ * latitude/longitude (stamped server-side by
+ * ch.ecocar.bms.vehiclelocation.application.LocationStampingBmsDataFactory),
+ * so no new AIDL method was needed - just extraction, delegated to
+ * [BmsLocationMapper] to keep this class's single responsibility as
+ * "AIDL binding and callback bridging" rather than also owning location
+ * mapping logic.
  */
 class BmsTelemetryBinder(
     private val context: Context,
@@ -48,6 +63,7 @@ class BmsTelemetryBinder(
 
     private data class RefreshRequest(val latitude: Double, val longitude: Double, val radiusMeters: Double)
 
+
     private val callback = object : IBmsCallback.Stub() {
         override fun onDataUpdate(data: BmsData) {
             val snap = EcoBmsTelemetry(
@@ -61,6 +77,14 @@ class BmsTelemetryBinder(
                 currentA = data.current,
             )
             mainHandler.post { onTelemetry(snap) }
+
+            BmsLocationMapper.toLocation(data)?.let { location ->
+                mainHandler.post { onLocationUpdate(location) }
+            }
+        }
+
+        override fun onLocationChanged(location: BmsVehicleLocation) {
+            mainHandler.post { onLocationUpdate(BmsLocationMapper.toLocation(location)) }
         }
 
         override fun onAlert(level: Int, message: String?) {
@@ -251,10 +275,12 @@ class BmsTelemetryBinder(
     }
 
     private fun serviceIntent(): Intent =
-        Intent(BMS_SERVICE_ACTION).setPackage(BMS_PACKAGE)
+        Intent().setComponent(ComponentName(BMS_PACKAGE, BMS_SERVICE_CLASS))
 
     companion object {
         private const val TAG = "BmsTelemetryBinder"
+        const val BMS_PACKAGE = "ch.ecocarsolaire.bms"
+        private const val BMS_SERVICE_CLASS = "ch.ecocar.bms.BmsMonitorService"
         private const val BIND_BMS_PERMISSION = "com.ecocar.bms.BIND_BMS_SERVICE"
         const val BMS_PACKAGE = "com.fleet.bms"
         private const val BMS_SERVICE_ACTION = "com.ecocar.bms.action.BMS_SERVICE"

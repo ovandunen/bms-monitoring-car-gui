@@ -18,7 +18,7 @@ fun String.escapeForBuildConfig(): String =
     replace("\\", "\\\\").replace("\"", "\\\"")
 
 kotlin {
-    jvmToolchain(21)
+    jvmToolchain(17)
 
     androidTarget()
 
@@ -37,7 +37,7 @@ kotlin {
             implementation("androidx.datastore:datastore-preferences-core:1.1.1")
         }
         androidMain.dependencies {
-            implementation(project(":bms-monitoring-ipc"))
+            implementation(project(":bms-monitoring-ipc-nested"))
             implementation(project(":eco-car-battery-ui"))
             implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
             implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7")
@@ -95,8 +95,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     buildFeatures {

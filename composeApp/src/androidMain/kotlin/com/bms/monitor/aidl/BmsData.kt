@@ -4,7 +4,7 @@ import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
-data class BmsData(
+data class                                                                                                                                                                                       BmsData(
     val timestamp: Long,
     val cellVoltages: FloatArray,
     val packTemperature: Float,
@@ -13,6 +13,9 @@ data class BmsData(
     val pm10: Int,
     val soc: Float,
     val current: Float,
+    val longitude: Double?,
+    val latitude: Double?
+
 ) : Parcelable {
 
     override fun equals(other: Any?): Boolean {

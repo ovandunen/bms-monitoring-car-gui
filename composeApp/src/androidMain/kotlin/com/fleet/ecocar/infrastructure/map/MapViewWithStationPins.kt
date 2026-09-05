@@ -23,6 +23,8 @@ import org.maplibre.android.maps.Style
 fun MapViewWithStationPins(
     styleUri: String,
     stations: List<ChargingStation>,
+    vehicleLatitude: Double? = null, 
+    vehicleLongitude: Double? = null,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -40,6 +42,8 @@ fun MapViewWithStationPins(
                 styleReady = true
                 StationPinLayerController(context, style)
                     .addOrUpdateLayer(geoJsonAdapter.toGeoJson(stations))
+                VehicleLocationLayerController(context, style)
+                    .setLocation(vehicleLatitude, vehicleLongitude)
             }
         }
         onDispose {
@@ -54,6 +58,25 @@ fun MapViewWithStationPins(
         map.getStyle { style ->
             StationPinLayerController(context, style)
                 .addOrUpdateLayer(geoJsonAdapter.toGeoJson(stations))
+        }
+    }
+
+    LaunchedEffect(vehicleLatitude, vehicleLongitude, styleReady, mapRef) {
+        if (!styleReady) return@LaunchedEffect
+        val map = mapRef ?: return@LaunchedEffect
+        map.getStyle { style ->
+            VehicleLocationLayerController(context, style)
+                .setLocation(vehicleLatitude, vehicleLongitude)
+        }
+        // ← CAMERA TRACKING GOES HERE, inside the same LaunchedEffect
+        if (vehicleLatitude != null && vehicleLongitude != null) {
+            map.animateCamera(
+                org.maplibre.android.camera.CameraUpdateFactory.newLatLngZoom(
+                    org.maplibre.android.geometry.LatLng(vehicleLatitude, vehicleLongitude),
+                    15.0  // or keep current zoom: map.cameraPosition.zoom
+                ),
+                300   // duration ms
+            )
         }
     }
 

@@ -61,6 +61,12 @@ fun MainContentArea(
                         stations = mapState.stations,
                         isRefreshing = mapState.isRefreshing,
                         onRefreshStations = mapState.refresh,
+                        // ADDED: mapState already carries these
+                        // Android/desktop-agnostic - no new
+                        // EcoCarApplication/LocalContext reference needed
+                        // here, same as stations/isRefreshing above.
+                        vehicleLatitude = mapState.vehicleLatitude,
+                        vehicleLongitude = mapState.vehicleLongitude,
                     )
                 }
                 MainDestination.Browser ->

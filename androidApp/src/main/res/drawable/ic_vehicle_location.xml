@@ -1,0 +1,49 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="24dp"
+    android:viewportWidth="960"
+    android:viewportHeight="480">
+  
+  <!-- Outer Body Shape -->
+  <path
+      android:fillColor="#112233"
+      android:pathData="M160,330 C150,330 142,322 142,312 L142,280 C142,250 160,220 200,205 L230,195 C300,175 480,165 740,175 C800,178 840,210 840,270 L840,312 C840,322 832,330 822,330 L780,330 C760,300 710,300 690,330 L350,330 C330,300 280,300 260,330 Z"/>
+
+  <!-- Color Panels (Senegalese Flag Motif) -->
+  <path
+      android:fillColor="#E31B23"
+      android:pathData="M240,185 L420,185 L390,320 L220,320 Z"/>
+  <path
+      android:fillColor="#FCD116"
+      android:pathData="M420,185 L600,185 L560,320 L390,320 Z"/>
+  <path
+      android:fillColor="#00853F"
+      android:pathData="M600,185 L760,190 L730,320 L560,320 Z"/>
+
+  <!-- Windows -->
+  <path
+      android:fillColor="#FFFFFF"
+      android:pathData="M240,205 L390,205 L380,275 L230,275 Z"/>
+  <path
+      android:fillColor="#FFFFFF"
+      android:pathData="M420,205 L520,205 L515,275 L415,275 Z"/>
+  <path
+      android:fillColor="#FFFFFF"
+      android:pathData="M550,205 L735,210 L730,275 L545,275 Z"/>
+
+  <!-- Wheels -->
+  <path
+      android:fillColor="#112233"
+      android:pathData="M240,330 m-45,0 a45,45 0,1 1,90 0 a45,45 0,1 1,-90 0"/>
+  <path
+      android:fillColor="#FFFFFF"
+      android:pathData="M240,330 m-18,0 a18,18 0,1 1,36 0 a18,18 0,1 1,-36 0"/>
+  
+  <path
+      android:fillColor="#112233"
+      android:pathData="M710,330 m-45,0 a45,45 0,1 1,90 0 a45,45 0,1 1,-90 0"/>
+  <path
+      android:fillColor="#FFFFFF"
+      android:pathData="M710,330 m-18,0 a18,18 0,1 1,36 0 a18,18 0,1 1,-36 0"/>
+
+</vector>
