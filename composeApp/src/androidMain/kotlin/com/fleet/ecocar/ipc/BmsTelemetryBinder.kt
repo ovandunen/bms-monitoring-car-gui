@@ -282,7 +282,7 @@ class BmsTelemetryBinder(
         const val BMS_PACKAGE = "ch.ecocarsolaire.bms"
         private const val BMS_SERVICE_CLASS = "ch.ecocar.bms.BmsMonitorService"
         private const val BIND_BMS_PERMISSION = "com.ecocar.bms.BIND_BMS_SERVICE"
-        const val BMS_PACKAGE = "com.fleet.bms"
+
         private const val BMS_SERVICE_ACTION = "com.ecocar.bms.action.BMS_SERVICE"
         private const val MAX_BIND_RETRIES = 5
         private val BIND_RETRY_DELAYS_MS = longArrayOf(500L, 1_000L, 2_000L, 3_000L, 5_000L)
