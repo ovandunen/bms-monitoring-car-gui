@@ -1,6 +1,8 @@
 package com.fleet.ecocar.infrastructure.map
 
 import android.content.Context
+import android.util.Log
+import com.fleet.ecocar.composeapp.BuildConfig
 import org.maplibre.android.maps.Style
 import org.maplibre.android.style.layers.PropertyFactory
 import org.maplibre.android.style.layers.SymbolLayer
@@ -24,6 +26,9 @@ class VehicleLocationLayerController(
         val existing = style.getSourceAs<GeoJsonSource>(SOURCE_ID)
         if (existing != null) {
             existing.setGeoJson(geoJson)
+            if (BuildConfig.DEBUG) {
+                Log.d("BmsAcceptanceGps", "marker_rendered lat=$latitude lon=$longitude")
+            }
             return
         }
 
@@ -36,6 +41,9 @@ class VehicleLocationLayerController(
                 PropertyFactory.iconAnchor("center"),
             ),
         )
+        if (BuildConfig.DEBUG) {
+            Log.d("BmsAcceptanceGps", "marker_rendered lat=$latitude lon=$longitude")
+        }
     }
 
     private fun registerIconIfNeeded() {
