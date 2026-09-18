@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
-import android.os.RemoteException
 import android.util.Log
 import androidx.core.content.ContextCompat
 import com.fleet.shared.bms.ipc.IBmsCallback
@@ -61,8 +60,10 @@ class AidlBatteryClientAdapter(
                 service = IBmsService.Stub.asInterface(binder)
                 reconnectAttempt = 0
                 bound = true
+                if (!registerCallback()) {
+                    return
+                }
                 _connectionStatus.value = ConnectionStatus.Connected
-                registerCallback()
                 refreshSnapshotFromService()
             }
 
@@ -110,7 +111,7 @@ class AidlBatteryClientAdapter(
         if (bound || bindRequested) {
             try {
                 service?.unregisterCallback(callback)
-            } catch (_: RemoteException) {
+            } catch (_: Exception) {
             }
             if (bindRequested) {
                 context.unbindService(connection)
@@ -126,8 +127,8 @@ class AidlBatteryClientAdapter(
         val remote = service ?: return
         try {
             remote.sendCommand(BmsCommandMapper.toParcelable(command))
-        } catch (_: RemoteException) {
-            _connectionStatus.value = ConnectionStatus.Error("sendCommand failed: service unreachable")
+        } catch (e: Exception) {
+            onFamilyAIpcFailed("sendCommand", e)
         }
     }
 
@@ -135,8 +136,8 @@ class AidlBatteryClientAdapter(
         try {
             service?.resetTrip()
                 ?: Log.w(TAG, "AidlBatteryClient: resetTrip() called but service not bound")
-        } catch (e: RemoteException) {
-            Log.e(TAG, "AidlBatteryClient: resetTrip() RemoteException", e)
+        } catch (e: Exception) {
+            onFamilyAIpcFailed("resetTrip", e)
         }
     }
 
@@ -166,11 +167,13 @@ class AidlBatteryClientAdapter(
         return service != null && bound
     }
 
-    private fun registerCallback() {
-        try {
+    private fun registerCallback(): Boolean {
+        return try {
             service?.registerCallback(callback)
-        } catch (_: RemoteException) {
-            _connectionStatus.value = ConnectionStatus.Error("registerCallback failed")
+            true
+        } catch (e: Exception) {
+            onFamilyAIpcFailed("registerCallback", e)
+            false
         }
     }
 
@@ -181,9 +184,14 @@ class AidlBatteryClientAdapter(
             val domain = BatterySnapshotMapper.toDomain(parcel)
             _batteryState.value = domain
             Log.i(TAG, IpcSnapshotAuditFormatter.formatStateChangedAuditLine(domain))
-        } catch (_: RemoteException) {
-            // Ignore; stream callbacks may still deliver updates.
+        } catch (e: Exception) {
+            onFamilyAIpcFailed("getCurrentSnapshot", e)
         }
+    }
+
+    private fun onFamilyAIpcFailed(action: String, error: Exception) {
+        Log.w(TAG, "AidlBatteryClient: $action failed (incompatible IBmsService binder)", error)
+        _connectionStatus.value = ConnectionStatus.Error("$action failed")
     }
 
     private fun scheduleReconnect() {
