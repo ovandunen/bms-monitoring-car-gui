@@ -146,6 +146,12 @@ fun MusicScreen(modifier: Modifier = Modifier) {
     }
 
     LaunchedEffect(mainTab) {
+        if (mainTab == TAB_USB) {
+            runCatching {
+                usbTracks = MusicRepository.loadLocalTracks(app)
+            }
+            return@LaunchedEffect
+        }
         if (mainTab != TAB_INTERNET || stations.isNotEmpty() || radioLoading) return@LaunchedEffect
         radioLoading = true
         radioError = null
@@ -227,7 +233,7 @@ fun MusicScreen(modifier: Modifier = Modifier) {
                         app.musicPlaybackSurface == MusicPlaybackSurface.RADIO,
                     onStationClick = { station ->
                         playbackError = null
-                       // app.playRadioStation(station). TOOO
+                        app.playRadioStation(station)
                     },
                 )
                 TAB_RADIO_PLAYER -> RadioPlayerPlaceholder(Modifier.fillMaxSize())
@@ -236,10 +242,7 @@ fun MusicScreen(modifier: Modifier = Modifier) {
                     playingIndex = if (isUsbMode) currentUsbIndex else -1,
                     onTrackClick = { index ->
                         playbackError = null
-
-                      //  app.playUsbTracks(usbTracks, index) TODO
-
-                       // throw  new Nouch
+                        app.playUsbTracks(usbTracks, index)
                     },
                 )
             }
