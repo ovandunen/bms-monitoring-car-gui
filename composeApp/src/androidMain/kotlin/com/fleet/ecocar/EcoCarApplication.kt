@@ -6,6 +6,11 @@ import android.os.Looper
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.platform.LocalContext
+import androidx.media3.common.AudioAttributes
+import androidx.media3.common.C
+import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
+import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import com.bms.monitor.aidl.VehicleLocationSnapshot
 import com.fleet.ecocar.composeapp.BuildConfig
@@ -13,6 +18,8 @@ import com.fleet.ecocar.ipc.BmsTelemetryBinder
 import com.fleet.ecocar.map.ChargingStationMapRequestPolicy
 import com.fleet.ecocar.map.EcoChargingStation
 import com.fleet.ecocar.music.MusicPlaybackSurface
+import com.fleet.ecocar.music.RadioStation
+import com.fleet.ecocar.music.Track
 import com.fleet.ecocar.telemetry.EcoBmsTelemetry
 import com.fleet.ecocar.telemetry.toEcoBmsTelemetry
 import com.fleet.ecocar.ui.top.TopBarMusicState
@@ -111,6 +118,7 @@ open class EcoCarApplication : Application() {
 
     @Volatile
     var musicPlaybackSurface: MusicPlaybackSurface? = null
+        private set
 
 
     companion object {
@@ -216,11 +224,6 @@ open class EcoCarApplication : Application() {
         ).also { it.connect() }
     }
 
-    // -------------------------------------------------------------------------
-    // TODO: Restore the real implementations below from git history.
-    // These were deleted/replaced with placeholders by an AI coding assistant.
-    // -------------------------------------------------------------------------
-
     private fun formatClock(): String {
         val now = java.util.Calendar.getInstance()
         val hour = now.get(java.util.Calendar.HOUR_OF_DAY)
@@ -230,27 +233,133 @@ open class EcoCarApplication : Application() {
 
     private fun formatClockStatic(): String = formatClock()
 
+    fun ensureMusicExoPlayer(): ExoPlayer {
+        synchronized(musicLock) {
+            if (_exoPlayer == null) {
+                val audioAttrs = AudioAttributes.Builder()
+                    .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
+                    .setUsage(C.USAGE_MEDIA)
+                    .build()
+                _exoPlayer = ExoPlayer.Builder(this)
+                    .setAudioAttributes(audioAttrs, true)
+                    .build()
+                _exoPlayer!!.addListener(
+                    object : Player.Listener {
+                        override fun onPlaybackStateChanged(playbackState: Int) {
+                            publishTopBarFromPlayer()
+                            when (playbackState) {
+                                Player.STATE_READY, Player.STATE_BUFFERING -> schedulePositionTicks()
+                                else -> mainHandler.removeCallbacks(positionRunnable)
+                            }
+                        }
+
+                        override fun onIsPlayingChanged(isPlaying: Boolean) {
+                            publishTopBarFromPlayer()
+                            if (isPlaying) {
+                                schedulePositionTicks()
+                            } else {
+                                mainHandler.removeCallbacks(positionRunnable)
+                            }
+                        }
+
+                        override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                            publishTopBarFromPlayer()
+                        }
+
+                        override fun onPositionDiscontinuity(
+                            oldPosition: Player.PositionInfo,
+                            newPosition: Player.PositionInfo,
+                            reason: Int,
+                        ) {
+                            publishTopBarFromPlayer()
+                        }
+                    },
+                )
+            }
+            return _exoPlayer!!
+        }
+    }
+
+    private fun schedulePositionTicks() {
+        mainHandler.removeCallbacks(positionRunnable)
+        mainHandler.post(positionRunnable)
+    }
 
     private fun publishTopBarFromPlayer() {
-        val player = _exoPlayer ?: return
+        val p = _exoPlayer ?: return
+        val meta = p.currentMediaItem?.mediaMetadata
+        val titleLine = buildString {
+            val t = meta?.title?.toString().orEmpty()
+            val a = meta?.artist?.toString().orEmpty()
+            when {
+                t.isNotEmpty() && a.isNotEmpty() -> append("$t – $a")
+                t.isNotEmpty() -> append(t)
+                a.isNotEmpty() -> append(a)
+                else -> append("—")
+            }
+        }
+        val pos = formatDurMs(p.currentPosition)
+        val dur = if (p.duration > 0) formatDurMs(p.duration) else "--:--"
+        val durString = "$pos / $dur"
+        val source = when (musicPlaybackSurface) {
+            MusicPlaybackSurface.USB -> "USB ${p.currentMediaItemIndex + 1}"
+            MusicPlaybackSurface.RADIO -> "Radio"
+            null -> ""
+        }
         _topBarMusic.value = _topBarMusic.value.copy(
-            isPlaying = player.isPlaying,
-            currentPosition = player.currentPosition,
-            duration = player.duration.coerceAtLeast(0L).toString(),
+            title = titleLine,
+            duration = durString,
+            source = source,
         )
     }
 
-    // -------------------------------------------------------------------------
-// Music player helpers — called by MusicPlayerService
-// -------------------------------------------------------------------------
-
-    fun ensureMusicExoPlayer(): ExoPlayer {
-        synchronized(musicLock) {
-            _exoPlayer?.let { return it }
-            val player = ExoPlayer.Builder(this).build()
-            _exoPlayer = player
-            return player
+    fun playUsbTracks(tracks: List<Track>, startIndex: Int) {
+        if (tracks.isEmpty()) return
+        val player = ensureMusicExoPlayer()
+        musicPlaybackSurface = MusicPlaybackSurface.USB
+        val items = tracks.map { track ->
+            MediaItem.Builder()
+                .setUri(track.uri)
+                .setMediaId(track.id.toString())
+                .setMediaMetadata(
+                    MediaMetadata.Builder()
+                        .setTitle(track.title)
+                        .setArtist(track.artist)
+                        .setAlbumTitle(track.album)
+                        .apply {
+                            track.albumArtUri?.let { setArtworkUri(it) }
+                        }
+                        .build(),
+                )
+                .build()
         }
+        val safeIndex = startIndex.coerceIn(0, items.lastIndex)
+        player.setMediaItems(items, safeIndex, C.TIME_UNSET)
+        player.prepare()
+        player.play()
+        MusicPlayerService.start(this)
+        publishTopBarFromPlayer()
+        schedulePositionTicks()
+    }
+
+    fun playRadioStation(station: RadioStation) {
+        val player = ensureMusicExoPlayer()
+        musicPlaybackSurface = MusicPlaybackSurface.RADIO
+        val item = MediaItem.Builder()
+            .setUri(station.streamUrl)
+            .setMediaMetadata(
+                MediaMetadata.Builder()
+                    .setTitle(station.name)
+                    .setArtist(station.genre.ifBlank { station.country })
+                    .build(),
+            )
+            .build()
+        player.setMediaItem(item)
+        player.prepare()
+        player.play()
+        MusicPlayerService.start(this)
+        publishTopBarFromPlayer()
+        schedulePositionTicks()
     }
 
     fun requestChargingStationsForMap(radiusMeters: Double = 0.0) {
@@ -277,5 +386,11 @@ open class EcoCarApplication : Application() {
 
     fun musicPlayerOrNull(): ExoPlayer? = _exoPlayer
 
-
+    private fun formatDurMs(ms: Long): String {
+        if (ms <= 0L) return "0:00"
+        val totalSec = ms / 1000
+        val m = totalSec / 60
+        val s = totalSec % 60
+        return "%d:%02d".format(m, s)
+    }
 }
