@@ -220,7 +220,7 @@ class AidlBatteryClientAdapter(
 
     companion object {
         private const val TAG = "AidlBatteryClient"
-        const val BMS_MONITOR_ACTION = "ch.ecocarsolaire.bms.action.MONITOR_SERVICE"
+        const val BMS_MONITOR_ACTION = "ch.ecocarsolaire.bms.action.DASHBOARD_SERVICE"
         const val BMS_PACKAGE = "ch.ecocarsolaire.bms"
 
         private const val BIND_RETRY_DELAY_MS = 500L
