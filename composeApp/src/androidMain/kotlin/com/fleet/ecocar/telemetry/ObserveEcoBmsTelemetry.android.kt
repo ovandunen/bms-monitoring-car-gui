@@ -12,3 +12,10 @@ actual fun rememberEcoBmsTelemetry(): EcoBmsTelemetry? {
     val v by app.ecoBmsTelemetry.collectAsState(initial = null)
     return v
 }
+
+@Composable
+actual fun rememberBmsAlerts(): List<EcoBmsAlert> {
+    val app = LocalContext.current.applicationContext as EcoCarApplication
+    val v by app.bmsAlerts.collectAsState(initial = emptyList())
+    return v
+}

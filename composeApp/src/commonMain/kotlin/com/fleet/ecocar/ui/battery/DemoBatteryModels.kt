@@ -1,5 +1,6 @@
 package com.fleet.ecocar.ui.battery
 
+import com.fleet.ecocar.telemetry.EcoBmsAlert
 import com.fleet.ecocar.telemetry.EcoBmsTelemetry
 import kotlin.math.sin
 import kotlin.random.Random
@@ -66,6 +67,15 @@ internal data class DemoBatterySnapshot(
 }
 
 internal const val CELL_COUNT = 96
+
+internal fun EcoBmsAlert.toUiAlert(): DemoBatteryAlert = DemoBatteryAlert(
+    severity = when (level) {
+        3 -> DemoAlertSeverity.CRITICAL
+        2 -> DemoAlertSeverity.WARNING
+        else -> DemoAlertSeverity.INFO
+    },
+    message = message,
+)
 
 /** Blendet Live-Zellspannungen / SOC / Strom vom BMS-IPC in den Demo-Snapshot ein. */
 internal fun EcoBmsTelemetry.overlayOn(demo: DemoBatterySnapshot): DemoBatterySnapshot {

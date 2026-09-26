@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.ecocar.gui.i18n.LanguageRepository
 import com.fleet.ecocar.nav.MainDestination
+import com.fleet.ecocar.telemetry.EcoBmsAlert
 import com.fleet.ecocar.telemetry.EcoBmsTelemetry
 import com.fleet.ecocar.theme.EcoCarColors
 import com.fleet.ecocar.ui.bottom.BottomTelemetry
@@ -37,6 +38,7 @@ fun AppScaffold(
     music: TopBarMusicState,
     telemetry: BottomTelemetry,
     ecoBmsTelemetry: EcoBmsTelemetry?,
+    bmsAlerts: List<EcoBmsAlert> = emptyList(),
     showLowBattery: Boolean,
     onDismissLowBattery: () -> Unit,
     onNavigateToCharging: () -> Unit,
@@ -71,6 +73,7 @@ fun AppScaffold(
                     MainContentArea(
                         destination = selected,
                         ecoBmsTelemetry = ecoBmsTelemetry,
+                        bmsAlerts = bmsAlerts,
                         onSimulateLowBattery = onSimulateLowBattery,
                         languageRepository = languageRepository,
                     )

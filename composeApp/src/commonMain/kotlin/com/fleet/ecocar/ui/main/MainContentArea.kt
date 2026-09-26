@@ -22,6 +22,7 @@ import com.fleet.ecocar.music.EcoMusicContent
 import com.fleet.ecocar.map.EcoMapContent
 import com.fleet.ecocar.map.rememberChargingStationMapState
 import com.fleet.ecocar.nav.MainDestination
+import com.fleet.ecocar.telemetry.EcoBmsAlert
 import com.fleet.ecocar.telemetry.EcoBmsTelemetry
 import com.fleet.ecocar.ui.battery.BatterySubNav
 import com.fleet.ecocar.ui.charts.ChartsSubNav
@@ -37,6 +38,7 @@ fun MainContentArea(
     ecoBmsTelemetry: EcoBmsTelemetry?,
     onSimulateLowBattery: () -> Unit,
     languageRepository: LanguageRepository? = null,
+    bmsAlerts: List<EcoBmsAlert> = emptyList(),
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -52,6 +54,7 @@ fun MainContentArea(
                 MainDestination.Battery ->
                     BatterySubNav(
                         ecoBmsTelemetry = ecoBmsTelemetry,
+                        alerts = bmsAlerts,
                         modifier = Modifier.fillMaxSize(),
                     )
                 MainDestination.Map -> {

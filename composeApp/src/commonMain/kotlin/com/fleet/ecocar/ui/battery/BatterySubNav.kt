@@ -30,6 +30,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.fleet.ecocar.domain.vehicle.LadestationSocPolicy
+import com.fleet.ecocar.telemetry.EcoBmsAlert
 import com.fleet.ecocar.telemetry.EcoBmsTelemetry
 import com.fleet.ecocar.theme.EcoCarColors
 import com.fleet.ecocar.theme.socDisplayColor
@@ -59,6 +60,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun BatterySubNav(
     ecoBmsTelemetry: EcoBmsTelemetry? = null,
+    alerts: List<EcoBmsAlert> = emptyList(),
     modifier: Modifier = Modifier,
 ) {
     var tab by rememberSaveable { mutableStateOf(0) }
@@ -88,7 +90,7 @@ fun BatterySubNav(
                 modifier = Modifier.weight(1f).fillMaxWidth(),
             )
             else -> BatteryAlertsList(
-                alerts = emptyList(),
+                alerts = alerts.map { it.toUiAlert() },
                 modifier = Modifier.weight(1f).fillMaxWidth(),
             )
         }
@@ -301,7 +303,7 @@ private fun BatteryAlertsList(
                 )
             }
         } else {
-            items(alerts, key = { it.message }) { alert ->
+            items(alerts, key = { "${it.severity}-${it.message}" }) { alert ->
                 Card(
                     colors = CardDefaults.cardColors(containerColor = EcoCarColors.SurfaceElevated),
                 ) {
