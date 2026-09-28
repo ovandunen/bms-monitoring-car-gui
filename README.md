@@ -7,19 +7,15 @@ EcoCar driver GUI and shared battery UI for the BMS monitoring stack.
 | Module | Role |
 |--------|------|
 | `:eco-car-battery-ui` | Shared Compose UI — `BatteryOverviewScreen` / `BatteryOverviewUiModel` |
-| `:bms-monitoring-ipc` | AIDL client/server library (`AidlBatteryClientAdapter`, `BatterySnapshot`, `ConnectionStatus`) |
+| `bms-monitoring-ipc` (sibling, `includeBuild`) | AIDL client/server library (`AidlBatteryClientAdapter`, `BatterySnapshot`, `ConnectionStatus`) |
 | `:composeApp` | KMP library (`androidTarget` + JVM desktop), namespace `com.fleet.ecocar` |
 | `:androidApp` | Android application (`applicationId` `com.fleet.ecocar`), Hilt, depends on `:composeApp` |
 
 ## IPC setup
 
-Publish the IPC library to Maven local (once per machine or after IPC changes):
+The IPC library is the sibling repo `bms-monitoring-ipc`, consumed via `includeBuild` as `com.fleet.shared:bms-monitoring-ipc:1.1.0-SNAPSHOT`.
 
-```bash
-./gradlew :bms-monitoring-ipc:publishReleasePublicationToMavenLocal
-```
-
-`:composeApp` depends on `project(":bms-monitoring-ipc")` (same artifact as `com.fleet.shared:bms-monitoring-ipc:1.0.0-SNAPSHOT`).
+`:composeApp` depends on those coordinates (same artifact Gradle substitutes from the included build).
 
 `EcoCarApplication` creates `AidlBatteryClientAdapter` and calls `connect()` in `onCreate()`. Battery overview uses `BatteryDashboardViewModel` + `BatteryOverviewScreen` from `:eco-car-battery-ui`.
 
@@ -37,7 +33,7 @@ Live battery telemetry requires the separate **BMS APK** (`com.fleet.bms` from `
 | **Signing** | Use the **same debug keystore** for both APKs. With default Gradle signing, builds on **one machine** already share `~/.android/debug.keystore`. Different laptops → different debug certs → bind fails unless you share a keystore file. |
 | **Install** | Build and install both apps on the target device: BMS (`bms-monitoring-app` → `:app:installDebug`), then EcoCar (`:androidApp:installDebug`). |
 | **Start order** | Either order is supported; the IPC client binds to `com.fleet.bms.action.MONITOR_SERVICE`, can start the foreground service, and retries with backoff. Use **Wake BMS** in the battery UI only if the screen stays offline. |
-| **IPC library** | After changing `:bms-monitoring-ipc`, publish to Maven local or rely on `project(":bms-monitoring-ipc")` in this repo. |
+| **IPC library** | After changing the sibling `bms-monitoring-ipc` library, rebuild this project — Gradle resolves it via `includeBuild`. |
 | **Desktop** | `:composeApp:run` exercises UI without BMS IPC (battery uses demo data). |
 
 ```bash
@@ -45,7 +41,6 @@ Live battery telemetry requires the separate **BMS APK** (`com.fleet.bms` from `
 ./gradlew :app:installDebug
 
 # From bms-monitoring-car-gui
-./gradlew :bms-monitoring-ipc:publishReleasePublicationToMavenLocal   # if using Maven coord elsewhere
 ./gradlew :androidApp:installDebug
 ```
 
@@ -62,8 +57,8 @@ adb shell dumpsys package com.fleet.ecocar | grep -A2 "signatures"
 
 | Topic | Recommendation |
 |--------|----------------|
-| **Every PR (this repo)** | `assembleDebug`, unit tests, lint — no emulator required. Publish `:bms-monitoring-ipc` when it changes. |
-| **Unit / module tests** | Test `bms-monitoring-ipc`, mappers, and ViewModels with fakes; no second APK needed. |
+| **Every PR (this repo)** | `assembleDebug`, unit tests, lint — no emulator required. Rebuild after IPC library changes (resolved via `includeBuild`). |
+| **Unit / module tests** | Test mappers and ViewModels with fakes; library tests run in `bms-monitoring-ipc` (`cd ../bms-monitoring-ipc && ./gradlew test`). |
 | **Single-app instrumented tests** | EcoCar-only or BMS-only on an emulator — UI and service lifecycle, not full IPC. |
 | **Two-app IPC on CI** | Use **one workflow job**, **one emulator**, and **one shared keystore** for both APKs. Do not build BMS in one job and EcoCar in another with default debug keys — GitHub creates a **new debug cert per job** unless you configure a shared keystore. |
 | **Suggested split** | Fast checks on every PR; heavier “install BMS + EcoCar + smoke bind” on `main`, nightly, or `workflow_dispatch`. |

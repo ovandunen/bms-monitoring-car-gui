@@ -24,5 +24,4 @@ rootProject.name = "bms-monitoring-car-gui"
 include(":composeApp")
 include(":androidApp")
 include(":eco-car-battery-ui")
-include(":bms-monitoring-ipc")          // standalone project
-project(":bms-monitoring-ipc").projectDir = file("../bms-monitoring-ipc")
+includeBuild("../bms-monitoring-ipc")
