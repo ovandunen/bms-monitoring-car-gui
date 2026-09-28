@@ -108,6 +108,14 @@ android {
         buildConfig = true
         aidl = true
     }
+
+    // KMP androidTarget + AGP lintVital looks for classes under
+    // build/tmp/kotlin-classes/release (they live under kotlin-classes from
+    // compileReleaseKotlinAndroid). Skip vital-lint on this library; androidApp
+    // still runs lintVital on the APK.
+    lint {
+        checkReleaseBuilds = false
+    }
 }
 
 compose.resources {
