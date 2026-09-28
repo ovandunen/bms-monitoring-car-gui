@@ -46,6 +46,7 @@
     <string name="metric_pack_voltage">Tension pack</string>
     <string name="metric_pack_current">Courant pack</string>
     <string name="metric_power">Puissance</string>
+    <string name="metric_battery_temp_avg">Temp. moyenne</string>
     <string name="battery_sniffer_btn">Ouvrir le sniffer CAN (démo)</string>
     <string name="cells_bms_title">Tensions cellules (BMS, %1$d valeurs)</string>
     <string name="cells_demo_title">Tensions cellules (démo, %1$d cellules)</string>

@@ -42,6 +42,7 @@
     <string name="metric_pack_voltage">Woltage pack</string>
     <string name="metric_pack_current">Courant pack</string>
     <string name="metric_power">Puissance</string>
+    <string name="metric_battery_temp_avg">Temp. moyenne</string>
     <string name="battery_sniffer_btn">Ubbi CAN sniffer (demo)</string>
     <string name="cells_bms_title">Woltage sell (BMS, %1$d)</string>
     <string name="cells_demo_title">Woltage sell (demo, %1$d sell)</string>

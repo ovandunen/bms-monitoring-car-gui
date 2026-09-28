@@ -45,6 +45,7 @@
     <string name="metric_pack_voltage">Pack-Spannung</string>
     <string name="metric_pack_current">Pack-Strom</string>
     <string name="metric_power">Leistung</string>
+    <string name="metric_battery_temp_avg">Mittlere Temp.</string>
     <string name="battery_sniffer_btn">CAN-Sniffer öffnen (Demo)</string>
     <string name="cells_bms_title">Zellspannungen (BMS, %1$d Werte)</string>
     <string name="cells_demo_title">Zellspannungen (Demo, %1$d Zellen)</string>

@@ -90,5 +90,16 @@ fun BatteryOverviewScreen(
                 automationDescriptor = automation.power,
             )
         }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            MetricCard(
+                title = model.temperatureLabel,
+                value = formatMetric(model.batteryTempAvgC, 1),
+                unit = "°C",
+                modifier = Modifier.weight(1f),
+            )
+        }
     }
 }

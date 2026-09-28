@@ -20,6 +20,7 @@ class BatteryOverviewViewModelTest {
             voltageLabel = "Voltage",
             currentLabel = "Current",
             powerLabel = "Power",
+            temperatureLabel = "Avg. temp",
             liveHint = "Live",
             demoHint = "Demo",
             connectingHint = "Connecting",
@@ -31,6 +32,7 @@ class BatteryOverviewViewModelTest {
         assertEquals(12f, model.socPercent)
         assertEquals(310f, model.packVoltageV)
         assertEquals(-9.8f, model.packCurrentA)
+        assertEquals(26.5f, model.batteryTempAvgC)
 
         val descriptors = BatteryOverviewAutomationDescriptors.fromMetrics(
             socPercent = model.socPercent,
@@ -54,6 +56,7 @@ class BatteryOverviewViewModelTest {
             voltageLabel = "Voltage",
             currentLabel = "Current",
             powerLabel = "Power",
+            temperatureLabel = "Avg. temp",
             liveHint = "Live",
             demoHint = "Demo",
             connectingHint = "Connecting",
@@ -63,6 +66,7 @@ class BatteryOverviewViewModelTest {
         val model = snapshot.toOverviewUiModel(ConnectionStatus.Connected, labels)
 
         assertEquals(null, model.socPercent)
+        assertEquals(null, model.batteryTempAvgC)
 
         val descriptors = BatteryOverviewAutomationDescriptors.fromMetrics(
             socPercent = model.socPercent,
@@ -88,5 +92,6 @@ class BatteryOverviewViewModelTest {
             motorTemp = 0,
             motorRpm = 0,
             vehicleSpeed = 0f,
+            batteryTempAvg = 26.5f,
         )
 }

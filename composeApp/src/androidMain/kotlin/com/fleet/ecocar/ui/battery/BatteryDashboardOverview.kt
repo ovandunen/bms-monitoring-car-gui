@@ -35,6 +35,7 @@ import eco_car_gui.composeapp.generated.resources.battery_wake_bms
 import eco_car_gui.composeapp.generated.resources.metric_pack_current
 import eco_car_gui.composeapp.generated.resources.metric_pack_voltage
 import eco_car_gui.composeapp.generated.resources.metric_power
+import eco_car_gui.composeapp.generated.resources.metric_battery_temp_avg
 import eco_car_gui.composeapp.generated.resources.metric_soc
 import org.jetbrains.compose.resources.stringResource
 
@@ -56,6 +57,7 @@ internal fun BatteryDashboardOverview(
         voltageLabel = stringResource(Res.string.metric_pack_voltage),
         currentLabel = stringResource(Res.string.metric_pack_current),
         powerLabel = stringResource(Res.string.metric_power),
+        temperatureLabel = stringResource(Res.string.metric_battery_temp_avg),
         liveHint = stringResource(Res.string.battery_live_hint),
         demoHint = stringResource(Res.string.battery_demo_hint),
         connectingHint = stringResource(Res.string.battery_connecting),

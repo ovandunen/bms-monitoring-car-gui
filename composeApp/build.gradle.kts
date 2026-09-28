@@ -41,7 +41,7 @@ kotlin {
             implementation("androidx.datastore:datastore-preferences-core:1.1.1")
         }
         androidMain.dependencies {
-            implementation(project(":bms-monitoring-ipc-nested"))
+            implementation(project(":bms-monitoring-ipc"))
             implementation(project(":eco-car-battery-ui"))
             implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
             implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7")

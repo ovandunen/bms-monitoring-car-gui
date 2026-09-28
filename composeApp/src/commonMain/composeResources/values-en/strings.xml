@@ -45,6 +45,7 @@
     <string name="metric_pack_voltage">Pack voltage</string>
     <string name="metric_pack_current">Pack current</string>
     <string name="metric_power">Power</string>
+    <string name="metric_battery_temp_avg">Avg. temperature</string>
     <string name="battery_sniffer_btn">Open CAN sniffer (demo)</string>
     <string name="cells_bms_title">Cell voltages (BMS, %1$d values)</string>
     <string name="cells_demo_title">Cell voltages (demo, %1$d cells)</string>
