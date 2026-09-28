@@ -13,6 +13,10 @@ val localProperties = Properties().apply {
     rootProject.file("local.properties").takeIf { it.exists() }?.reader(Charsets.UTF_8)?.use { load(it) }
 }
 val mapTilerKey: String = localProperties.getProperty("maptiler.api_key") ?: ""
+val lowBatteryPercent: String =
+    (findProperty("low.battery.percent") as? String)?.takeIf { it.isNotBlank() }
+        ?: localProperties.getProperty("low.battery.percent")
+        ?: "20"
 
 fun String.escapeForBuildConfig(): String =
     replace("\\", "\\\\").replace("\"", "\\\"")
@@ -92,6 +96,7 @@ android {
         minSdk = 26
         consumerProguardFiles("src/androidMain/consumer-rules.pro")
         buildConfigField("String", "MAPTILER_API_KEY", "\"${mapTilerKey.escapeForBuildConfig()}\"")
+        buildConfigField("float", "LOW_BATTERY_PERCENT", "${lowBatteryPercent}f")
     }
 
     compileOptions {
