@@ -43,6 +43,7 @@ import eco_car_gui.composeapp.generated.resources.battery_live_hint
 import eco_car_gui.composeapp.generated.resources.battery_tab_alerts
 import eco_car_gui.composeapp.generated.resources.battery_tab_cells
 import eco_car_gui.composeapp.generated.resources.battery_tab_overview
+import eco_car_gui.composeapp.generated.resources.battery_tab_trips
 import eco_car_gui.composeapp.generated.resources.battery_title
 import eco_car_gui.composeapp.generated.resources.cells_bms_title
 import eco_car_gui.composeapp.generated.resources.cells_demo_hint
@@ -71,6 +72,7 @@ fun BatterySubNav(
         stringResource(Res.string.battery_tab_overview),
         stringResource(Res.string.battery_tab_cells),
         stringResource(Res.string.battery_tab_alerts),
+        stringResource(Res.string.battery_tab_trips),
     )
 
     Column(modifier = modifier.fillMaxSize()) {
@@ -89,8 +91,11 @@ fun BatterySubNav(
                 bmsActive = bmsActive,
                 modifier = Modifier.weight(1f).fillMaxWidth(),
             )
-            else -> BatteryAlertsList(
+            2 -> BatteryAlertsList(
                 alerts = alerts.map { it.toUiAlert() },
+                modifier = Modifier.weight(1f).fillMaxWidth(),
+            )
+            else -> BatteryTripsContent(
                 modifier = Modifier.weight(1f).fillMaxWidth(),
             )
         }

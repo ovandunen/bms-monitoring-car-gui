@@ -27,6 +27,16 @@
     <string name="battery_tab_overview">Xët</string>
     <string name="battery_tab_cells">Sell</string>
     <string name="battery_tab_alerts">Alarm</string>
+    <string name="battery_tab_trips">Yoon</string>
+    <string name="battery_status_title">Estatu</string>
+    <string name="battery_status_driving">Dox</string>
+    <string name="battery_status_standby">Taxaw</string>
+    <string name="battery_status_charging">Charge</string>
+    <string name="battery_no_data">Amul données batterie</string>
+    <string name="battery_cloud_online">Online</string>
+    <string name="battery_cloud_offline">Offline</string>
+    <string name="battery_ipc_version_mismatch">Version BMS ak EcoCar dëppul — dugal ñaari appli yi</string>
+    <string name="battery_trip_running">dox na</string>
     <string name="battery_title">Batterie woltage bu kawe</string>
     <string name="battery_live_hint">Données bu live (BMS IPC) : SOC/courant/sell.</string>
     <string name="battery_demo_hint">Demo ngir layout — du live bu amul BMS.</string>

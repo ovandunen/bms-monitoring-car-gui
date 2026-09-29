@@ -30,6 +30,16 @@
     <string name="battery_tab_overview">Übersicht</string>
     <string name="battery_tab_cells">Zellen</string>
     <string name="battery_tab_alerts">Alarme</string>
+    <string name="battery_tab_trips">Fahrten</string>
+    <string name="battery_status_title">Status</string>
+    <string name="battery_status_driving">Fahren</string>
+    <string name="battery_status_standby">Bereitschaft</string>
+    <string name="battery_status_charging">Laden</string>
+    <string name="battery_no_data">Keine Batteriedaten</string>
+    <string name="battery_cloud_online">Online</string>
+    <string name="battery_cloud_offline">Offline</string>
+    <string name="battery_ipc_version_mismatch">BMS- und EcoCar-Versionen stimmen nicht überein — beide Apps gemeinsam installieren</string>
+    <string name="battery_trip_running">läuft</string>
     <string name="battery_title">Hochvolt-Batterie</string>
     <string name="battery_live_hint">Live-Daten (BMS‑IPC): SOC/Strom/Zellen — zusätzliche Demo‑Drift möglich.</string>
     <string name="battery_demo_hint">Demo-Telemetrie für Layout — ohne BMS-Bind nicht live.</string>

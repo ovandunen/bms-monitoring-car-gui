@@ -49,7 +49,13 @@ fun BatteryOverviewScreen(
             packCurrentA = model.packCurrentA,
             powerKw = model.powerKw,
         )
-        val socColor = if (model.socIsLow) BatteryTheme.LowSocOrange else BatteryTheme.GoldenYellow
+        val socColor = when {
+            model.metricsStale -> BatteryTheme.OnDarkSecondary
+            model.socIsLow -> BatteryTheme.LowSocOrange
+            else -> BatteryTheme.GoldenYellow
+        }
+        val metricColor = if (model.metricsStale) BatteryTheme.OnDarkSecondary else BatteryTheme.GoldenYellow
+        val unitColor = if (model.metricsStale) BatteryTheme.OnDarkSecondary else BatteryTheme.OnDark
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -60,7 +66,7 @@ fun BatteryOverviewScreen(
                 unit = "%",
                 modifier = Modifier.weight(1f),
                 valueColor = socColor,
-                unitColor = if (model.socIsLow) socColor else BatteryTheme.OnDark,
+                unitColor = if (model.socIsLow && !model.metricsStale) socColor else unitColor,
                 automationDescriptor = automation.soc,
             )
             MetricCard(
@@ -68,6 +74,8 @@ fun BatteryOverviewScreen(
                 value = formatMetric(model.packVoltageV, 1),
                 unit = "V",
                 modifier = Modifier.weight(1f),
+                valueColor = metricColor,
+                unitColor = unitColor,
                 automationDescriptor = automation.voltage,
             )
         }
@@ -80,6 +88,8 @@ fun BatteryOverviewScreen(
                 value = formatMetric(model.packCurrentA, 1),
                 unit = "A",
                 modifier = Modifier.weight(1f),
+                valueColor = metricColor,
+                unitColor = unitColor,
                 automationDescriptor = automation.current,
             )
             MetricCard(
@@ -87,6 +97,8 @@ fun BatteryOverviewScreen(
                 value = formatMetric(model.powerKw, 2),
                 unit = "kW",
                 modifier = Modifier.weight(1f),
+                valueColor = metricColor,
+                unitColor = unitColor,
                 automationDescriptor = automation.power,
             )
         }
@@ -99,6 +111,25 @@ fun BatteryOverviewScreen(
                 value = formatMetric(model.batteryTempAvgC, 1),
                 unit = "°C",
                 modifier = Modifier.weight(1f),
+                valueColor = metricColor,
+                unitColor = unitColor,
+            )
+            if (model.vehicleStatusTitle.isNotEmpty()) {
+                MetricCard(
+                    title = model.vehicleStatusTitle,
+                    value = model.vehicleStatusLabel,
+                    unit = "",
+                    modifier = Modifier.weight(1f),
+                    valueColor = metricColor,
+                    unitColor = unitColor,
+                )
+            }
+        }
+        if (model.cloudStatusLabel.isNotEmpty()) {
+            Text(
+                text = model.cloudStatusLabel,
+                style = MaterialTheme.typography.labelSmall,
+                color = BatteryTheme.OnDarkSecondary,
             )
         }
     }

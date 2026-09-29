@@ -20,4 +20,8 @@ data class BatteryOverviewUiModel(
     val showProgress: Boolean = false,
     val progress: Float? = null,
     val socIsLow: Boolean = false,
+    val vehicleStatusLabel: String = "",
+    val vehicleStatusTitle: String = "",
+    val cloudStatusLabel: String = "",
+    val metricsStale: Boolean = false,
 )

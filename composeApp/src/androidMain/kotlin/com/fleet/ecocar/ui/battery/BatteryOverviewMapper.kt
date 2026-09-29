@@ -15,12 +15,15 @@ internal fun BatterySnapshot.toOverviewUiModel(
     } else {
         null
     }
-    val hint = when (connection) {
-        is ConnectionStatus.Connected -> labels.liveHint
-        is ConnectionStatus.Connecting -> labels.connectingHint
-        is ConnectionStatus.BmsOffline -> labels.offlineHint
-        is ConnectionStatus.Error -> connection.reason
-        ConnectionStatus.Disconnected -> labels.offlineHint
+    val hint = when {
+        batteryDataStale -> labels.noBatteryData
+        else -> when (connection) {
+            is ConnectionStatus.Connected -> labels.liveHint
+            is ConnectionStatus.Connecting -> labels.connectingHint
+            is ConnectionStatus.BmsOffline -> labels.offlineHint
+            is ConnectionStatus.Error -> connection.reason
+            ConnectionStatus.Disconnected -> labels.offlineHint
+        }
     }
     return BatteryOverviewUiModel(
         socPercent = stateOfChargePercent.takeIf { hasLiveData },
@@ -35,10 +38,19 @@ internal fun BatterySnapshot.toOverviewUiModel(
         powerLabel = labels.powerLabel,
         temperatureLabel = labels.temperatureLabel,
         statusHint = hint,
-        showProgress = hasLiveData && stateOfChargePercent in 1f..99f,
+        showProgress = hasLiveData && !batteryDataStale && stateOfChargePercent in 1f..99f,
         progress = stateOfChargePercent.takeIf { hasLiveData },
         socIsLow = hasLiveData &&
             stateOfChargePercent in 0.01f..<LadestationSocPolicy.LOW_BATTERY_PERCENT,
+        vehicleStatusLabel = vehicleStatusText(
+            vehicleStatus,
+            labels.driving,
+            labels.standby,
+            labels.charging,
+        ),
+        vehicleStatusTitle = labels.vehicleStatusTitle,
+        cloudStatusLabel = if (cloudConnected) labels.cloudOnline else labels.cloudOffline,
+        metricsStale = batteryDataStale,
     )
 }
 
@@ -53,4 +65,11 @@ internal data class BatteryOverviewLabels(
     val demoHint: String,
     val connectingHint: String,
     val offlineHint: String,
+    val driving: String,
+    val standby: String,
+    val charging: String,
+    val vehicleStatusTitle: String,
+    val cloudOnline: String,
+    val cloudOffline: String,
+    val noBatteryData: String,
 )

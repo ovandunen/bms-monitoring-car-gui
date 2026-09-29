@@ -20,6 +20,11 @@ class BatteryDashboardViewModel(application: Application) : AndroidViewModel(app
 
     val batteryState: StateFlow<BatterySnapshot?> = client.batteryState
     val connectionStatus: StateFlow<ConnectionStatus> = client.connectionStatus
+    val tripSessions: StateFlow<List<com.fleet.shared.bms.ipc.domain.TripSession>> = client.tripSessions
+
+    fun reloadTripSessions() {
+        client.getTripSessions(50)
+    }
 
     fun sendCommand(type: CommandType) {
         client.sendCommand(bmsCommand(type))
