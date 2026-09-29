@@ -13,3 +13,8 @@ data class EcoBmsTelemetry(
     val soc: Float,
     val currentA: Float,
 )
+
+data class EcoBmsAlert(
+    val level: Int,
+    val message: String,
+)

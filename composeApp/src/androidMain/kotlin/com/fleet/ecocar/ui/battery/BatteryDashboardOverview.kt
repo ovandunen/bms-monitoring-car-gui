@@ -35,6 +35,15 @@ import eco_car_gui.composeapp.generated.resources.battery_wake_bms
 import eco_car_gui.composeapp.generated.resources.metric_pack_current
 import eco_car_gui.composeapp.generated.resources.metric_pack_voltage
 import eco_car_gui.composeapp.generated.resources.metric_power
+import eco_car_gui.composeapp.generated.resources.battery_cloud_offline
+import eco_car_gui.composeapp.generated.resources.battery_cloud_online
+import eco_car_gui.composeapp.generated.resources.battery_ipc_version_mismatch
+import eco_car_gui.composeapp.generated.resources.battery_no_data
+import eco_car_gui.composeapp.generated.resources.battery_status_charging
+import eco_car_gui.composeapp.generated.resources.battery_status_driving
+import eco_car_gui.composeapp.generated.resources.battery_status_standby
+import eco_car_gui.composeapp.generated.resources.battery_status_title
+import eco_car_gui.composeapp.generated.resources.metric_battery_temp_avg
 import eco_car_gui.composeapp.generated.resources.metric_soc
 import org.jetbrains.compose.resources.stringResource
 
@@ -56,10 +65,18 @@ internal fun BatteryDashboardOverview(
         voltageLabel = stringResource(Res.string.metric_pack_voltage),
         currentLabel = stringResource(Res.string.metric_pack_current),
         powerLabel = stringResource(Res.string.metric_power),
+        temperatureLabel = stringResource(Res.string.metric_battery_temp_avg),
         liveHint = stringResource(Res.string.battery_live_hint),
         demoHint = stringResource(Res.string.battery_demo_hint),
         connectingHint = stringResource(Res.string.battery_connecting),
         offlineHint = stringResource(Res.string.battery_bms_offline),
+        driving = stringResource(Res.string.battery_status_driving),
+        standby = stringResource(Res.string.battery_status_standby),
+        charging = stringResource(Res.string.battery_status_charging),
+        vehicleStatusTitle = stringResource(Res.string.battery_status_title),
+        cloudOnline = stringResource(Res.string.battery_cloud_online),
+        cloudOffline = stringResource(Res.string.battery_cloud_offline),
+        noBatteryData = stringResource(Res.string.battery_no_data),
     )
 
     Box(modifier = modifier.fillMaxSize()) {
@@ -82,7 +99,13 @@ internal fun BatteryDashboardOverview(
                 )
             }
             is ConnectionStatus.Error -> {
-                ErrorPanel(s.reason, onRetry = { viewModel.wakeBms() })
+                ErrorPanel(
+                    reason = ipcErrorPanelMessage(
+                        s.reason,
+                        stringResource(Res.string.battery_ipc_version_mismatch),
+                    ),
+                    onRetry = { viewModel.wakeBms() },
+                )
             }
             ConnectionStatus.Disconnected -> {
                 OfflinePanel(lastSeen = null, onWakeBms = { viewModel.wakeBms() })
@@ -153,7 +176,7 @@ private fun ErrorPanel(reason: String, onRetry: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
-            text = "Error: $reason",
+            text = reason,
             color = Color(0xFFFF6B6B),
             style = MaterialTheme.typography.bodyMedium,
         )

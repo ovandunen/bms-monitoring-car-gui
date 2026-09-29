@@ -13,6 +13,10 @@ val localProperties = Properties().apply {
     rootProject.file("local.properties").takeIf { it.exists() }?.reader(Charsets.UTF_8)?.use { load(it) }
 }
 val mapTilerKey: String = localProperties.getProperty("maptiler.api_key") ?: ""
+val lowBatteryPercent: String =
+    (findProperty("low.battery.percent") as? String)?.takeIf { it.isNotBlank() }
+        ?: localProperties.getProperty("low.battery.percent")
+        ?: "20"
 
 fun String.escapeForBuildConfig(): String =
     replace("\\", "\\\\").replace("\"", "\\\"")
@@ -37,7 +41,7 @@ kotlin {
             implementation("androidx.datastore:datastore-preferences-core:1.1.1")
         }
         androidMain.dependencies {
-            implementation(project(":bms-monitoring-ipc-nested"))
+            implementation("com.fleet.shared:bms-monitoring-ipc:1.2.0-SNAPSHOT")
             implementation(project(":eco-car-battery-ui"))
             implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
             implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7")
@@ -92,6 +96,7 @@ android {
         minSdk = 26
         consumerProguardFiles("src/androidMain/consumer-rules.pro")
         buildConfigField("String", "MAPTILER_API_KEY", "\"${mapTilerKey.escapeForBuildConfig()}\"")
+        buildConfigField("float", "LOW_BATTERY_PERCENT", "${lowBatteryPercent}f")
     }
 
     compileOptions {
@@ -102,6 +107,14 @@ android {
     buildFeatures {
         buildConfig = true
         aidl = true
+    }
+
+    // KMP androidTarget + AGP lintVital looks for classes under
+    // build/tmp/kotlin-classes/release (they live under kotlin-classes from
+    // compileReleaseKotlinAndroid). Skip vital-lint on this library; androidApp
+    // still runs lintVital on the APK.
+    lint {
+        checkReleaseBuilds = false
     }
 }
 

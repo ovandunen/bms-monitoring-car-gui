@@ -20,6 +20,7 @@ import com.fleet.ecocar.map.EcoChargingStation
 import com.fleet.ecocar.music.MusicPlaybackSurface
 import com.fleet.ecocar.music.RadioStation
 import com.fleet.ecocar.music.Track
+import com.fleet.ecocar.telemetry.EcoBmsAlert
 import com.fleet.ecocar.telemetry.EcoBmsTelemetry
 import com.fleet.ecocar.telemetry.toEcoBmsTelemetry
 import com.fleet.ecocar.ui.top.TopBarMusicState
@@ -98,6 +99,9 @@ open class EcoCarApplication : Application() {
     private val _ecoBmsTelemetry = MutableStateFlow<EcoBmsTelemetry?>(null)
 
     val ecoBmsTelemetry: StateFlow<EcoBmsTelemetry?> = _ecoBmsTelemetry.asStateFlow()
+
+    private val _bmsAlerts = MutableStateFlow<List<EcoBmsAlert>>(emptyList())
+    val bmsAlerts: StateFlow<List<EcoBmsAlert>> = _bmsAlerts.asStateFlow()
 
     private val _chargingStations = MutableStateFlow<List<EcoChargingStation>>(emptyList())
 
@@ -209,6 +213,9 @@ open class EcoCarApplication : Application() {
             onChargingStations = { stations ->
                 _chargingStations.value = ChargingStationMapRequestPolicy.applyIpcUpdate(stations)
                 _chargingStationsRefreshing.value = false
+            },
+            onAlert = { level, message ->
+                _bmsAlerts.value = _bmsAlerts.value + EcoBmsAlert(level, message)
             },
             // Now actually invoked - see the fix in BmsTelemetryBinder.onDataUpdate.
             onLocationUpdate = { location ->

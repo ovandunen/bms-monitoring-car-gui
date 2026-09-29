@@ -17,6 +17,7 @@ import com.ecocar.gui.i18n.AppLocaleEnvironment
 import com.ecocar.gui.i18n.LanguageRepository
 import com.ecocar.gui.i18n.collectLanguageAsState
 import com.fleet.ecocar.nav.MainDestination
+import com.fleet.ecocar.telemetry.rememberBmsAlerts
 import com.fleet.ecocar.telemetry.rememberEcoBmsTelemetry
 import com.fleet.ecocar.ui.bottom.rememberBottomBarIntegration
 import com.fleet.ecocar.ui.vehicle.ObserveVcuLowBattery
@@ -41,6 +42,7 @@ fun EcoCarApp(
             val music = rememberLiveMusicTopBarState()
             val bottomBar = rememberBottomBarIntegration()
             val ecoBmsTelemetry = rememberEcoBmsTelemetry()
+            val bmsAlerts = rememberBmsAlerts()
 
             ObserveVcuLowBattery { showLowBattery = true }
 
@@ -65,6 +67,7 @@ fun EcoCarApp(
                     music = music,
                     telemetry = bottomBar.telemetry,
                     ecoBmsTelemetry = ecoBmsTelemetry,
+                    bmsAlerts = bmsAlerts,
                     showLowBattery = showLowBattery,
                     onDismissLowBattery = { showLowBattery = false },
                     onNavigateToCharging = { selected = MainDestination.Map },

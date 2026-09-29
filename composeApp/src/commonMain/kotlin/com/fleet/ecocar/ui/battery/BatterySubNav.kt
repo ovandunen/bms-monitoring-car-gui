@@ -30,6 +30,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.fleet.ecocar.domain.vehicle.LadestationSocPolicy
+import com.fleet.ecocar.telemetry.EcoBmsAlert
 import com.fleet.ecocar.telemetry.EcoBmsTelemetry
 import com.fleet.ecocar.theme.EcoCarColors
 import com.fleet.ecocar.theme.socDisplayColor
@@ -42,6 +43,7 @@ import eco_car_gui.composeapp.generated.resources.battery_live_hint
 import eco_car_gui.composeapp.generated.resources.battery_tab_alerts
 import eco_car_gui.composeapp.generated.resources.battery_tab_cells
 import eco_car_gui.composeapp.generated.resources.battery_tab_overview
+import eco_car_gui.composeapp.generated.resources.battery_tab_trips
 import eco_car_gui.composeapp.generated.resources.battery_title
 import eco_car_gui.composeapp.generated.resources.cells_bms_title
 import eco_car_gui.composeapp.generated.resources.cells_demo_hint
@@ -59,6 +61,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 fun BatterySubNav(
     ecoBmsTelemetry: EcoBmsTelemetry? = null,
+    alerts: List<EcoBmsAlert> = emptyList(),
     modifier: Modifier = Modifier,
 ) {
     var tab by rememberSaveable { mutableStateOf(0) }
@@ -69,6 +72,7 @@ fun BatterySubNav(
         stringResource(Res.string.battery_tab_overview),
         stringResource(Res.string.battery_tab_cells),
         stringResource(Res.string.battery_tab_alerts),
+        stringResource(Res.string.battery_tab_trips),
     )
 
     Column(modifier = modifier.fillMaxSize()) {
@@ -87,8 +91,11 @@ fun BatterySubNav(
                 bmsActive = bmsActive,
                 modifier = Modifier.weight(1f).fillMaxWidth(),
             )
-            else -> BatteryAlertsList(
-                alerts = emptyList(),
+            2 -> BatteryAlertsList(
+                alerts = alerts.map { it.toUiAlert() },
+                modifier = Modifier.weight(1f).fillMaxWidth(),
+            )
+            else -> BatteryTripsContent(
                 modifier = Modifier.weight(1f).fillMaxWidth(),
             )
         }
@@ -301,7 +308,7 @@ private fun BatteryAlertsList(
                 )
             }
         } else {
-            items(alerts, key = { it.message }) { alert ->
+            items(alerts, key = { "${it.severity}-${it.message}" }) { alert ->
                 Card(
                     colors = CardDefaults.cardColors(containerColor = EcoCarColors.SurfaceElevated),
                 ) {

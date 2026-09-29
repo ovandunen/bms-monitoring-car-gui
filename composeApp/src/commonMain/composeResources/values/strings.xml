@@ -31,6 +31,16 @@
     <string name="battery_tab_overview">Aperçu</string>
     <string name="battery_tab_cells">Cellules</string>
     <string name="battery_tab_alerts">Alarmes</string>
+    <string name="battery_tab_trips">Trajets</string>
+    <string name="battery_status_title">État</string>
+    <string name="battery_status_driving">Conduite</string>
+    <string name="battery_status_standby">Veille</string>
+    <string name="battery_status_charging">Charge</string>
+    <string name="battery_no_data">Pas de données batterie</string>
+    <string name="battery_cloud_online">En ligne</string>
+    <string name="battery_cloud_offline">Hors ligne</string>
+    <string name="battery_ipc_version_mismatch">Les versions BMS et EcoCar ne correspondent pas — installez les deux applications ensemble</string>
+    <string name="battery_trip_running">en cours</string>
     <string name="battery_title">Batterie haute tension</string>
     <string name="battery_live_hint">Données en direct (IPC BMS) : SOC/courant/cellules — dérive démo possible.</string>
     <string name="battery_demo_hint">Télémétrie démo pour la mise en page — pas en direct sans liaison BMS.</string>
@@ -46,6 +56,7 @@
     <string name="metric_pack_voltage">Tension pack</string>
     <string name="metric_pack_current">Courant pack</string>
     <string name="metric_power">Puissance</string>
+    <string name="metric_battery_temp_avg">Temp. moyenne</string>
     <string name="battery_sniffer_btn">Ouvrir le sniffer CAN (démo)</string>
     <string name="cells_bms_title">Tensions cellules (BMS, %1$d valeurs)</string>
     <string name="cells_demo_title">Tensions cellules (démo, %1$d cellules)</string>

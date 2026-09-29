@@ -24,4 +24,13 @@ subprojects {
             systemProperty("integration.contract.file", integrationContract.absolutePath)
         }
     }
+    // includeBuild IPC: AGP lintVitalAnalyzeRelease reads
+    // bms-monitoring-ipc/build/intermediates/lint_model_metadata/... which is not
+    // a declared dependency unless we wire it.
+    tasks.configureEach {
+        if (name.startsWith("lint")) {
+            dependsOn(gradle.includedBuild("bms-monitoring-ipc").task(":writeReleaseLintModelMetadata"))
+            dependsOn(gradle.includedBuild("bms-monitoring-ipc").task(":writeDebugLintModelMetadata"))
+        }
+    }
 }

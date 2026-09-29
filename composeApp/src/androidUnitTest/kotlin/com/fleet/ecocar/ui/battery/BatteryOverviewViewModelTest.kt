@@ -14,23 +14,16 @@ class BatteryOverviewViewModelTest {
     @Test
     fun connectedSnapshot_producesIntegrationTestDescriptors() {
         val snapshot = integrationTestSnapshot()
-        val labels = BatteryOverviewLabels(
-            screenTitle = "Battery",
-            socLabel = "SOC",
-            voltageLabel = "Voltage",
-            currentLabel = "Current",
-            powerLabel = "Power",
-            liveHint = "Live",
-            demoHint = "Demo",
-            connectingHint = "Connecting",
-            offlineHint = "Offline",
-        )
+        val labels = overviewLabels()
 
         val model = snapshot.toOverviewUiModel(ConnectionStatus.Connected, labels)
 
         assertEquals(12f, model.socPercent)
         assertEquals(310f, model.packVoltageV)
         assertEquals(-9.8f, model.packCurrentA)
+        assertEquals(26.5f, model.batteryTempAvgC)
+        assertEquals("Standby", model.vehicleStatusLabel)
+        assertEquals("Offline", model.cloudStatusLabel)
 
         val descriptors = BatteryOverviewAutomationDescriptors.fromMetrics(
             socPercent = model.socPercent,
@@ -48,21 +41,12 @@ class BatteryOverviewViewModelTest {
     @Test
     fun snapshotWithoutTimestamp_yieldsPlaceholderDescriptors() {
         val snapshot = integrationTestSnapshot().copy(timestamp = 0L)
-        val labels = BatteryOverviewLabels(
-            screenTitle = "Battery",
-            socLabel = "SOC",
-            voltageLabel = "Voltage",
-            currentLabel = "Current",
-            powerLabel = "Power",
-            liveHint = "Live",
-            demoHint = "Demo",
-            connectingHint = "Connecting",
-            offlineHint = "Offline",
-        )
+        val labels = overviewLabels()
 
         val model = snapshot.toOverviewUiModel(ConnectionStatus.Connected, labels)
 
         assertEquals(null, model.socPercent)
+        assertEquals(null, model.batteryTempAvgC)
 
         val descriptors = BatteryOverviewAutomationDescriptors.fromMetrics(
             socPercent = model.socPercent,
@@ -73,6 +57,48 @@ class BatteryOverviewViewModelTest {
 
         assertEquals("battery-soc=–", descriptors.soc)
     }
+
+    @Test
+    fun staleSnapshot_showsNoBatteryDataHint() {
+        val snapshot = integrationTestSnapshot().copy(batteryDataStale = true)
+        val model = snapshot.toOverviewUiModel(ConnectionStatus.Connected, overviewLabels())
+        assertEquals("No battery data", model.statusHint)
+        assertEquals(true, model.metricsStale)
+        assertEquals("Driving", vehicleStatusText(1, "Driving", "Standby", "Charging"))
+        assertEquals("Standby", vehicleStatusText(0, "Driving", "Standby", "Charging"))
+        assertEquals("Charging", vehicleStatusText(2, "Driving", "Standby", "Charging"))
+    }
+
+    @Test
+    fun versionMismatch_usesLocalizedErrorPanelMessage() {
+        assertEquals(
+            "BMS and EcoCar versions do not match — install both apps together",
+            ipcErrorPanelMessage(
+                com.fleet.shared.bms.ipc.IpcContract.VERSION_MISMATCH_REASON,
+                "BMS and EcoCar versions do not match — install both apps together",
+            ),
+        )
+    }
+
+    private fun overviewLabels() = BatteryOverviewLabels(
+        screenTitle = "Battery",
+        socLabel = "SOC",
+        voltageLabel = "Voltage",
+        currentLabel = "Current",
+        powerLabel = "Power",
+        temperatureLabel = "Avg. temp",
+        liveHint = "Live",
+        demoHint = "Demo",
+        connectingHint = "Connecting",
+        offlineHint = "Offline",
+        driving = "Driving",
+        standby = "Standby",
+        charging = "Charging",
+        vehicleStatusTitle = "Status",
+        cloudOnline = "Online",
+        cloudOffline = "Offline",
+        noBatteryData = "No battery data",
+    )
 
     private fun integrationTestSnapshot(): BatterySnapshot =
         BatterySnapshot(
@@ -88,5 +114,6 @@ class BatteryOverviewViewModelTest {
             motorTemp = 0,
             motorRpm = 0,
             vehicleSpeed = 0f,
+            batteryTempAvg = 26.5f,
         )
 }
