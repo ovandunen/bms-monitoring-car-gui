@@ -11,10 +11,11 @@ import android.os.IBinder
 import android.os.Looper
 import android.util.Log
 import com.bms.monitor.aidl.BmsData
+import com.bms.monitor.aidl.BmsVehicleLocation
 import com.bms.monitor.aidl.ChargingStationSnapshot
 import com.bms.monitor.aidl.IBmsCallback
 import com.bms.monitor.aidl.IBmsService
-import com.bms.monitor.aidl.BmsVehicleLocation
+import com.bms.monitor.aidl.SwapRecommendationSnapshot
 import com.fleet.ecocar.map.ChargingStationSnapshotMapper
 import com.fleet.ecocar.map.EcoChargingStation
 import com.fleet.ecocar.telemetry.EcoBmsTelemetry
@@ -97,6 +98,10 @@ class BmsTelemetryBinder(
             Log.i(TAG, "chargingStations IPC update")
             val mapped = stations?.map { it.toEcoChargingStation() }.orEmpty()
             mainHandler.post { onChargingStations(mapped) }
+        }
+
+        override fun onSwapRecommendation(recommendation: SwapRecommendationSnapshot?) {
+            Log.d(TAG, "onSwapRecommendation ignored (swap/CSMS outside Milestone 2)")
         }
     }
 

@@ -83,6 +83,7 @@ kotlin {
                 implementation(kotlin("test-junit5"))
                 implementation("junit:junit:4.13.2")
                 implementation("androidx.arch.core:core-testing:2.2.0")
+                implementation("org.robolectric:robolectric:4.14.1")
             }
         }
     }
