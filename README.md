@@ -8,18 +8,18 @@ EcoCar driver GUI and shared battery UI for the BMS monitoring stack.
 |--------|------|
 | `:eco-car-battery-ui` | Shared Compose UI — `BatteryOverviewScreen` / `BatteryOverviewUiModel` |
 | `bms-monitoring-ipc` (sibling, `includeBuild`) | AIDL client/server library (`AidlBatteryClientAdapter`, `BatterySnapshot`, `ConnectionStatus`) |
-| `:composeApp` | KMP library (`androidTarget` + JVM desktop), namespace `com.fleet.ecocar` |
-| `:androidApp` | Android application (`applicationId` `com.fleet.ecocar`), Hilt, depends on `:composeApp` |
+| `:composeApp` | KMP library (`androidTarget` + JVM desktop). Android `namespace` `com.fleet.ecocar.composeapp`; Kotlin sources `com.fleet.ecocar` |
+| `:androidApp` | Android application (`applicationId` / `namespace` `com.fleet.ecocar`), Hilt, depends on `:composeApp` |
 
 ## IPC setup
 
-The IPC library is the sibling repo `bms-monitoring-ipc`, consumed via `includeBuild` as `com.fleet.shared:bms-monitoring-ipc:1.1.0-SNAPSHOT`.
+The IPC library is the sibling repo `bms-monitoring-ipc`, consumed via `includeBuild("../bms-monitoring-ipc")` as `com.fleet.shared:bms-monitoring-ipc:1.2.0-SNAPSHOT` (same version as `bms-monitoring-ipc/build.gradle.kts`). `IpcContract.IPC_VERSION` is **2**.
 
-`:composeApp` depends on those coordinates (same artifact Gradle substitutes from the included build).
+`:composeApp` androidMain depends on those coordinates (Gradle substitutes the included build).
 
-`EcoCarApplication` creates `AidlBatteryClientAdapter` and calls `connect()` in `onCreate()`. Battery overview uses `BatteryDashboardViewModel` + `BatteryOverviewScreen` from `:eco-car-battery-ui`.
+`EcoCarApplication` constructs `AidlBatteryClientAdapter` and calls `connect()` in `onCreate()`. Battery overview (`BatteryDashboardViewModel` + `BatteryOverviewScreen`) reads that client. The client binds package `ch.ecocarsolaire.bms` with action `ch.ecocarsolaire.bms.action.DASHBOARD_SERVICE` (`AidlBatteryClientAdapter`). EcoCar declares `uses-permission` `ch.ecocar.bms.permission.BIND_MONITOR_SERVICE` (signature on the BMS APK). Both apps must be signed with the **same certificate**.
 
-Live battery telemetry requires the separate **BMS APK** (`com.fleet.bms` from `bms-monitoring-app`) on the **same Android device or emulator** as EcoCar GUI (`com.fleet.ecocar`). IPC uses signature permission `com.fleet.bms.permission.BIND_MONITOR_SERVICE` — both apps must be signed with the **same certificate**.
+A second binder, `BmsTelemetryBinder`, uses `ComponentName(ch.ecocarsolaire.bms, ch.ecocar.bms.BmsMonitorService)` for Family B (`com.bms.monitor.aidl`) charging-station callbacks and map location. BMS `applicationId` is `ch.ecocarsolaire.bms`.
 
 ## Environments: development, test, and production
 
@@ -30,9 +30,9 @@ Live battery telemetry requires the separate **BMS APK** (`com.fleet.bms` from `
 | Topic | Recommendation |
 |--------|----------------|
 | **Where apps run** | Physical tablet/head unit or Android emulator — IPC happens on the device, not on your Mac/PC. |
-| **Signing** | Use the **same debug keystore** for both APKs. With default Gradle signing, builds on **one machine** already share `~/.android/debug.keystore`. Different laptops → different debug certs → bind fails unless you share a keystore file. |
+| **Signing** | Use the **same debug keystore** for both APKs. This repo’s `:androidApp` debug signing uses `~/ecocar-shared-debug.keystore` (alias `ecocar-debug`). Different laptops → different certs → bind fails unless you share a keystore file. |
 | **Install** | Build and install both apps on the target device: BMS (`bms-monitoring-app` → `:app:installDebug`), then EcoCar (`:androidApp:installDebug`). |
-| **Start order** | Either order is supported; the IPC client binds to `com.fleet.bms.action.MONITOR_SERVICE`, can start the foreground service, and retries with backoff. Use **Wake BMS** in the battery UI only if the screen stays offline. |
+| **Start order** | Either order is supported. Family A (`AidlBatteryClientAdapter`) binds `ch.ecocarsolaire.bms.action.DASHBOARD_SERVICE`, can `startForegroundService`, and retries with backoff. Use **Wake BMS** on the battery offline/error panels if the screen stays offline. |
 | **IPC library** | After changing the sibling `bms-monitoring-ipc` library, rebuild this project — Gradle resolves it via `includeBuild`. |
 | **Desktop** | `:composeApp:run` exercises UI without BMS IPC (battery uses demo data). |
 
@@ -47,7 +47,7 @@ Live battery telemetry requires the separate **BMS APK** (`com.fleet.bms` from `
 Verify matching signatures if bind fails:
 
 ```bash
-adb shell dumpsys package com.fleet.bms | grep -A2 "signatures"
+adb shell dumpsys package ch.ecocarsolaire.bms | grep -A2 "signatures"
 adb shell dumpsys package com.fleet.ecocar | grep -A2 "signatures"
 ```
 
@@ -73,9 +73,9 @@ Example CI signing approach (conceptual): decode or generate one `ci-debug.keyst
 
 | Topic | Recommendation |
 |--------|----------------|
-| **Signing** | Ship **both** `com.fleet.bms` and `com.fleet.ecocar` with the **same platform release key** (e.g. fleet/head-unit keystore). Signature permission is enforced at runtime. |
+| **Signing** | Ship **both** `ch.ecocarsolaire.bms` and `com.fleet.ecocar` with the **same platform release key** (e.g. fleet/head-unit keystore). Signature permission is enforced at runtime. |
 | **Distribution** | Install/update both APKs (or system image) per release process; document version pairs that are known compatible. |
-| **IPC artifact** | Pin `com.fleet.shared:bms-monitoring-ipc` to a **release version** (not `-SNAPSHOT`) aligned with the BMS app release. |
+| **IPC artifact** | Pin `com.fleet.shared:bms-monitoring-ipc` to a **release version** (not `-SNAPSHOT`) aligned with the BMS app release. Current library version in source is `1.2.0-SNAPSHOT`. |
 | **Start order** | Same as development — order-agnostic bind + reconnect; no manual “install BMS first” rule for operators unless your OTA process requires it. |
 | **Monitoring** | Use on-device logs (`AidlBatteryClient` tag) for bind denials (wrong signature, BMS not installed, service killed). |
 
@@ -95,7 +95,7 @@ If Gradle fails with `IllegalArgumentException: 25.0.2`, install JDK 21 and unco
 org.gradle.java.home=/path/from/usr/libexec/java_home -v 21
 ```
 
-Modules use `jvmToolchain(21)`.
+Gradle wrapper is **9.3.1**. `:androidApp`, `:composeApp`, and `:eco-car-battery-ui` use `jvmToolchain(17)` and Java 17 compile options.
 
 ## Build & run
 
@@ -117,19 +117,29 @@ Artifact: `com.fleet.shared:eco-car-battery-ui:1.0.0`
 ### Battery overview (live IPC)
 
 - **`:eco-car-battery-ui`** — shared `BatteryOverviewScreen` fed by `BatteryDashboardViewModel` + `AidlBatteryClientAdapter`
-- **Automation descriptors** — metric cards expose uiautomator `contentDescription` values such as `battery-soc=12.0`, `battery-voltage=310.0` (used by `make verify-ui-metrics` in `bms-monitoring-app`)
-- **Low SOC styling** — orange SOC progress/text below 20%; **Low battery dialog** when HV SOC drops under 20% (copy is HV-only, no 12 V Bordnetz wording)
+- **Automation descriptors** — metric cards expose uiautomator `contentDescription` values such as `battery-soc=50.0` when the BMS Makefile sends the integration contract pack frame (`can.pack.data` byte 3 = `0x32` → SOC **50%**; `TEST_SOC := 50` in `bms-monitoring-app`)
+- **Low SOC styling** — orange SOC progress/text when SOC is in `0.01f` until `LadestationSocPolicy.LOW_BATTERY_PERCENT` (**20f** companion constant). **Low battery dialog** (`ObserveVcuLowBattery`) uses `BuildConfig.LOW_BATTERY_PERCENT` (name `LOW_BATTERY_PERCENT`; default **20** from `low.battery.percent` / `"20"` in `composeApp/build.gradle.kts`). Dialog copy is HV-only (`dialog_low_battery_body`)
 
 ### Map & charging stations
 
 - **MapLibre map** with station pins (`MapViewWithStationPins`) and a scrollable **Ladestationen** list
-- **GPS fallback** — when location is unavailable, requests use Berlin demo coordinates (aligned with BMS CSMS defaults) so offline/dev runs still show cached stations
-- **IPC preload** — on BMS bind, EcoCar publishes Room offline cache to IPC when CSMS is down or SOC is low
+- **GPS fallback for station refresh** — when a GPS fix is missing, `ChargingStationMapRequestPolicy` uses 52.52 / 13.405 so `refreshChargingStations` can still be called
+- **IPC preload** — on Family B bind, EcoCar calls `getCachedChargingStations()` (`BmsTelemetryBinder`)
+
+Charging-station **live CSMS data is outside Milestone 2**: BMS `CsmsMqttClient` / `ChargingStationCoordinator` methods that would fill stations are stubs (`TODO` / no-op connect). EcoCar map/list/AIDL client code above still exists.
 
 ### IPC client
 
-- `BmsTelemetryBinder` starts the BMS monitor service and queues map refresh until bind completes
-- `ObserveVcuLowBattery` triggers the low-battery dialog once per low-SOC episode (same threshold as BMS Ladestation preload)
+- `BmsTelemetryBinder` starts `BmsMonitorService` via explicit `ComponentName` and queues map refresh until bind completes
+- `ObserveVcuLowBattery` triggers the low-battery dialog once per low-SOC episode using `BuildConfig.LOW_BATTERY_PERCENT`
+
+### Milestone 2 driver UI
+
+Battery **Trips** tab lists sessions from `AidlBatteryClientAdapter.getTripSessions` (`BatteryTripsContent`). Trip **reset** is a long-press on the bottom-bar trip chip (`resetTrip()` AIDL), not a button on the trip list. Vehicle status tile uses IPC `VehicleStatus` (`Driving` if the BMS snapshot was computed with speed &gt; 1 km/h; otherwise `Standby` (`Charging` is reserved in VehicleStatus and not produced by the BMS app yet)). Stale pack data shows the **No battery data** hint; cloud flag shows Online/Offline. Family A `IPC_VERSION` mismatch sets `ConnectionStatus.Error(IPC_VERSION_MISMATCH)` and the dashboard error panel uses `battery_ipc_version_mismatch`. String resources: `composeResources/values`, `values-de`, `values-en`, `values-wo`.
+
+### Location on map
+
+Map vehicle position is `EcoCarApplication.vehicleLocation`, filled from Family B AIDL (`BmsTelemetryBinder.onLocationChanged` / stamped `BmsData`). Known limitation (SEEN 2026-09-30): the Pixel_Tablet emulator delivers no GPS fixes, so the location part of `make acceptance-test` fails on the emulator; location acceptance happens on the tablet with the G-Mouse USB GPS.
 
 ## Unit tests (no emulator)
 
@@ -140,7 +150,7 @@ Artifact: `com.fleet.shared:eco-car-battery-ui:1.0.0`
 # Snapshot → UI model → descriptor strings
 ./gradlew :composeApp:testDebugUnitTest --tests "com.fleet.ecocar.ui.battery.BatteryOverviewViewModelTest"
 
-# Map / charging-station logic
+# Map / charging-station logic (commonTest: EcoMapStationPresenterTest, ChargingStationMapLoadUseCaseTest, …)
 ./gradlew :composeApp:desktopTest --tests "com.fleet.ecocar.map.*"
 ```
 
@@ -153,17 +163,16 @@ cd ../bms-monitoring-app
 make integration-test-ui
 ```
 
-That target runs `build-install` (both APKs), sends test CAN frames (SOC **12%**), verifies IPC in logcat, then **`verify-ui-metrics`** on the emulator.
+That target runs `build-install` (both APKs), sends test CAN frames (SOC **50%**), verifies IPC in logcat, then **`verify-ui-metrics`** on the emulator.
 
 **Tips**
 
 | Situation | What to do |
 |-----------|------------|
-| `battery-soc=12.0 not in UI dump` | Run `make build-install` in `bms-monitoring-app` so the emulator gets the latest EcoCar APK with automation descriptors |
-| Low-battery dialog blocks the test | Expected at 12% SOC — Makefile dismisses it; ensure EcoCar opens on **Battery** (default start destination) |
-| `relay port 9999 not open` | First Lima run is slow (`apt-get` in Docker); retry `make relay` or wait up to 180 s |
+| `battery-soc=50.0 not in UI dump` | Run `make build-install` in `bms-monitoring-app` so the emulator gets the latest EcoCar APK with automation descriptors |
+| Low-battery dialog during `integration-test-ui` | Pack SOC is **50%** (above 20); low-SOC / dialog is `make test-low-soc` (`TEST_SOC_LOW := 10`) |
+| `relay port 9999 not open` | First Lima run can be slow; retry `make relay` or wait up to **120 s** (`RELAY_READY_SECS`) |
 | IPC bind fails | Same debug keystore on both APKs — see [Development](#development-local-machine--deviceemulator) |
 | Stale emulator / ANR | `make shutdown` then rerun `make integration-test-ui` |
 
 See [`bms-monitoring-app/README.md`](../bms-monitoring-app/README.md#integration-testing-makefile) for relay, clean/shutdown, and CSMS targets.
-
