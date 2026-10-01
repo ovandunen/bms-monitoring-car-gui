@@ -176,13 +176,16 @@ open class EcoCarApplication : Application() {
     }
 
     override fun onCreate() {
+        super.onCreate()
+        instance = this
+        if (!EcoCarProcessIdentity.isMainProcess(packageName, currentProcessName())) {
+            return
+        }
         MapLibre.getInstance(
             this,
             BuildConfig.MAPTILER_API_KEY,
             WellKnownTileServer.MapTiler,
         )
-        super.onCreate()
-        instance = this
         mainHandler.post(clockRunnable)
 
         batteryClient = AidlBatteryClientAdapter(this, appScope)
@@ -230,6 +233,9 @@ open class EcoCarApplication : Application() {
             }
         ).also { it.connect() }
     }
+
+    protected open fun currentProcessName(): String =
+        EcoCarProcessIdentity.currentProcessName(this)
 
     private fun formatClock(): String {
         val now = java.util.Calendar.getInstance()
