@@ -20,9 +20,15 @@ actual fun ObserveVcuLowBattery(onLowBattery: () -> Unit) {
     var lowSocEpisodeShown by remember { mutableStateOf(false) }
 
     LaunchedEffect(snapshot?.timestamp, snapshot?.stateOfChargePercent) {
-        val snap = snapshot?.takeIf { it.timestamp > 0L } ?: return@LaunchedEffect
-        val soc = snap.stateOfChargePercent
-        if (soc >= policy.lowBatteryPercent) {
+        val snap = snapshot ?: return@LaunchedEffect
+        val hasLiveData = snap.timestamp > 0L
+        val low = LadestationSocPolicy.isLowSoc(
+            socPercent = snap.stateOfChargePercent,
+            hasLiveData = hasLiveData,
+            lowBatteryPercent = policy.lowBatteryPercent,
+        )
+        if (!hasLiveData) return@LaunchedEffect
+        if (!low) {
             lowSocEpisodeShown = false
         } else if (!lowSocEpisodeShown) {
             lowSocEpisodeShown = true

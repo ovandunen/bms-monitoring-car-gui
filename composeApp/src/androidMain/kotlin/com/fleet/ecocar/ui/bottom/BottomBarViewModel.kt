@@ -66,6 +66,7 @@ class BottomBarViewModel(
             co2SavingKg = live?.co2SavingKg?.takeIf { live.tripDistanceKm >= 0.5f }?.toDouble(),
             batteryDataStale = live?.batteryDataStale == true,
             cloudConnected = live?.cloudConnected == true,
+            hasLiveData = live != null,
         )
     }
 }

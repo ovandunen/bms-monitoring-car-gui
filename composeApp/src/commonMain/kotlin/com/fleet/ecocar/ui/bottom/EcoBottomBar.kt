@@ -55,6 +55,7 @@ data class BottomTelemetry(
     val co2SavingKg: Double? = null,
     val batteryDataStale: Boolean = false,
     val cloudConnected: Boolean = true,
+    val hasLiveData: Boolean = false,
 )
 
 @Composable
@@ -69,7 +70,10 @@ fun EcoBottomBar(
     val tripText = formatKmChip(telemetry.tripDistanceKm)
     val rangeText = formatKmChip(telemetry.rangeKm?.let { kotlin.math.round(it).toInt() })
     val co2Text = formatCo2Chip(telemetry.co2SavingKg)
-    val socColor = telemetry.socPercent.socDisplayColor(configuredLowBatteryPercent())
+    val socColor = telemetry.socPercent.socDisplayColor(
+        configuredLowBatteryPercent(),
+        telemetry.hasLiveData,
+    )
     val rangeDescriptor = telemetry.rangeKm?.let { formatRangeDescriptor(it) }
 
     Surface(

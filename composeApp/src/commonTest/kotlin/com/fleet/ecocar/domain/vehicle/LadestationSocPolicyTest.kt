@@ -21,4 +21,13 @@ class LadestationSocPolicyTest {
         assertTrue(policy.isLowBattery(14.9f))
         assertFalse(policy.isLowBattery(15f))
     }
+
+    @Test
+    fun isLowSoc_requiresLiveDataAndStrictlyBelowThreshold() {
+        val threshold = 20f
+        assertFalse(LadestationSocPolicy.isLowSoc(0f, hasLiveData = false, threshold))
+        assertTrue(LadestationSocPolicy.isLowSoc(0f, hasLiveData = true, threshold))
+        assertTrue(LadestationSocPolicy.isLowSoc(19.9f, hasLiveData = true, threshold))
+        assertFalse(LadestationSocPolicy.isLowSoc(20f, hasLiveData = true, threshold))
+    }
 }

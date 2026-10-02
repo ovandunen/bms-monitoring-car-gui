@@ -1,5 +1,6 @@
 package com.fleet.ecocar.ui.battery
 
+import com.fleet.ecocar.domain.vehicle.LadestationSocPolicy
 import com.fleet.shared.battery.ui.BatteryOverviewUiModel
 import com.fleet.shared.bms.ipc.domain.BatterySnapshot
 import com.fleet.shared.bms.ipc.domain.ConnectionStatus
@@ -40,8 +41,11 @@ internal fun BatterySnapshot.toOverviewUiModel(
         statusHint = hint,
         showProgress = hasLiveData && !batteryDataStale && stateOfChargePercent in 1f..99f,
         progress = stateOfChargePercent.takeIf { hasLiveData },
-        socIsLow = hasLiveData &&
-            stateOfChargePercent in 0.01f..<lowBatteryPercent,
+        socIsLow = LadestationSocPolicy.isLowSoc(
+            stateOfChargePercent,
+            hasLiveData,
+            lowBatteryPercent,
+        ),
         vehicleStatusLabel = vehicleStatusText(
             vehicleStatus,
             labels.driving,

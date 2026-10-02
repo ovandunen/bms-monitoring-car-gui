@@ -11,5 +11,8 @@ class LadestationSocPolicy(
     companion object {
         const val DEFAULT_LOW_BATTERY_PERCENT = 20f
         const val LOW_BATTERY_PERCENT = DEFAULT_LOW_BATTERY_PERCENT
+
+        fun isLowSoc(socPercent: Float, hasLiveData: Boolean, lowBatteryPercent: Float): Boolean =
+            hasLiveData && socPercent < lowBatteryPercent
     }
 }
