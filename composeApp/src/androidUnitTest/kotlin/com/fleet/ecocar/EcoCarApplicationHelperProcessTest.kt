@@ -38,6 +38,7 @@ class EcoCarApplicationHelperProcessTest {
         binderField.isAccessible = true
         assertNull(batteryField.get(app))
         assertNull(binderField.get(app))
+        assertNull(app.usbVolumeWatcher)
     }
 }
 
