@@ -2,24 +2,43 @@ package com.fleet.ecocar.ui.bottom
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.fleet.shared.bms.ipc.domain.BatterySnapshot
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.setMain
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class TripResetViewModelTest {
+
+    private val mainDispatcher = StandardTestDispatcher()
 
     @get:Rule
     val instantTaskExecutorRule = InstantTaskExecutorRule()
+
+    @Before
+    fun setUp() {
+        Dispatchers.setMain(mainDispatcher)
+    }
+
+    @After
+    fun tearDown() {
+        Dispatchers.resetMain()
+    }
 
     @Test
     fun resetTripDistance_dispatchesToBatteryPort() {
         val port = FakeBottomBarBatteryPort(sampleSnapshot(tripDistanceKm = 71f))
         val viewModel = BottomBarViewModel(port, FakeHintRepository(shown = true))
-        awaitTelemetry(viewModel)
+        awaitTelemetry()
 
         viewModel.resetTripDistance()
 
@@ -30,7 +49,7 @@ class TripResetViewModelTest {
     fun resetTripDistance_doesNotMutateLocalTelemetryBeforeNextIpcUpdate() {
         val port = FakeBottomBarBatteryPort(sampleSnapshot(tripDistanceKm = 71f))
         val viewModel = BottomBarViewModel(port, FakeHintRepository(shown = true))
-        awaitTelemetry(viewModel)
+        awaitTelemetry()
 
         viewModel.resetTripDistance()
 
@@ -41,11 +60,11 @@ class TripResetViewModelTest {
     fun ipcUpdateWithZeroTripDistance_updatesDisplayedValue() {
         val port = FakeBottomBarBatteryPort(sampleSnapshot(tripDistanceKm = 71f))
         val viewModel = BottomBarViewModel(port, FakeHintRepository(shown = true))
-        awaitTelemetry(viewModel)
+        awaitTelemetry()
         assertEquals(71, viewModel.telemetry.value.tripDistanceKm)
 
         port.emit(sampleSnapshot(tripDistanceKm = 0f))
-        awaitTelemetry(viewModel)
+        awaitTelemetry()
 
         assertNull(viewModel.telemetry.value.tripDistanceKm)
     }
@@ -54,7 +73,7 @@ class TripResetViewModelTest {
     fun subHalfKmTrip_showsNullUntilHalfKm() {
         val port = FakeBottomBarBatteryPort(sampleSnapshot(tripDistanceKm = 0.3f))
         val viewModel = BottomBarViewModel(port, FakeHintRepository(shown = true))
-        awaitTelemetry(viewModel)
+        awaitTelemetry()
 
         assertNull(viewModel.telemetry.value.tripDistanceKm)
     }
@@ -63,14 +82,12 @@ class TripResetViewModelTest {
     fun noLiveSnapshot_showsNullTrip() {
         val port = FakeBottomBarBatteryPort(sampleSnapshot(tripDistanceKm = 71f).copy(timestamp = 0L))
         val viewModel = BottomBarViewModel(port, FakeHintRepository(shown = true))
-        awaitTelemetry(viewModel)
+        awaitTelemetry()
         assertNull(viewModel.telemetry.value.tripDistanceKm)
     }
 
-    private fun awaitTelemetry(viewModel: BottomBarViewModel) {
-        runBlocking {
-            kotlinx.coroutines.delay(50)
-        }
+    private fun awaitTelemetry() {
+        mainDispatcher.scheduler.advanceUntilIdle()
     }
 
     @Test
@@ -79,7 +96,7 @@ class TripResetViewModelTest {
             sampleSnapshot(tripDistanceKm = 2f, co2SavingKg = 512f),
         )
         val viewModel = BottomBarViewModel(port, FakeHintRepository(shown = true))
-        awaitTelemetry(viewModel)
+        awaitTelemetry()
 
         assertEquals(512.0, viewModel.telemetry.value.co2SavingKg!!, 0.001)
     }
@@ -90,7 +107,7 @@ class TripResetViewModelTest {
             sampleSnapshot(tripDistanceKm = 0.3f, co2SavingKg = 500f),
         )
         val viewModel = BottomBarViewModel(port, FakeHintRepository(shown = true))
-        awaitTelemetry(viewModel)
+        awaitTelemetry()
 
         assertNull(viewModel.telemetry.value.co2SavingKg)
     }
