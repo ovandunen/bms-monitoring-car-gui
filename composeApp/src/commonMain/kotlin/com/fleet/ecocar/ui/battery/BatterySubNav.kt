@@ -29,7 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.fleet.ecocar.domain.vehicle.LadestationSocPolicy
+import com.fleet.ecocar.domain.vehicle.configuredLowBatteryPercent
 import com.fleet.ecocar.telemetry.EcoBmsAlert
 import com.fleet.ecocar.telemetry.EcoBmsTelemetry
 import com.fleet.ecocar.theme.EcoCarColors
@@ -118,10 +118,12 @@ internal fun BatteryOverviewTab(
     metrics: BatteryOverviewMetrics,
     bmsActive: Boolean,
     modifier: Modifier = Modifier,
+    lowBatteryPercent: Float = configuredLowBatteryPercent(),
 ) {
     val socIsLow = metrics.socPercent != null &&
-        metrics.socPercent < LadestationSocPolicy.LOW_BATTERY_PERCENT
-    val socColor = metrics.socPercent?.socDisplayColor() ?: EcoCarColors.OnDarkSecondary
+        metrics.socPercent < lowBatteryPercent
+    val socColor = metrics.socPercent?.socDisplayColor(lowBatteryPercent)
+        ?: EcoCarColors.OnDarkSecondary
     Column(
         modifier = modifier
             .verticalScroll(rememberScrollState())

@@ -8,15 +8,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
-import com.fleet.ecocar.composeapp.BuildConfig
 import com.fleet.ecocar.EcoCarApplication
 import com.fleet.ecocar.domain.vehicle.LadestationSocPolicy
+import com.fleet.ecocar.domain.vehicle.configuredLowBatteryPercent
 
 @Composable
 actual fun ObserveVcuLowBattery(onLowBattery: () -> Unit) {
     val app = LocalContext.current.applicationContext as EcoCarApplication
     val snapshot by app.batteryClient.batteryState.collectAsState()
-    val policy = remember { LadestationSocPolicy(BuildConfig.LOW_BATTERY_PERCENT) }
+    val policy = remember { LadestationSocPolicy(configuredLowBatteryPercent()) }
     var lowSocEpisodeShown by remember { mutableStateOf(false) }
 
     LaunchedEffect(snapshot?.timestamp, snapshot?.stateOfChargePercent) {

@@ -1,15 +1,12 @@
-@file:OptIn(ExperimentalFoundationApi::class)
-
 package com.fleet.ecocar.ui.bottom
 
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -23,20 +20,18 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import com.fleet.ecocar.domain.vehicle.configuredLowBatteryPercent
 import com.fleet.ecocar.theme.EcoCarColors
 import com.fleet.ecocar.theme.socDisplayColor
 import eco_car_gui.composeapp.generated.resources.Res
+import eco_car_gui.composeapp.generated.resources.battery_cloud_offline
+import eco_car_gui.composeapp.generated.resources.battery_no_data
 import eco_car_gui.composeapp.generated.resources.bottom_collapse
 import eco_car_gui.composeapp.generated.resources.bottom_co2
 import eco_car_gui.composeapp.generated.resources.bottom_co2_kg
@@ -50,17 +45,16 @@ import eco_car_gui.composeapp.generated.resources.bottom_soc
 import eco_car_gui.composeapp.generated.resources.bottom_tons
 import eco_car_gui.composeapp.generated.resources.bottom_tons_dash
 import eco_car_gui.composeapp.generated.resources.bottom_trip
-import eco_car_gui.composeapp.generated.resources.bottom_trip_reset_hint
 import java.util.Locale
-import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.stringResource
-import androidx.compose.foundation.ExperimentalFoundationApi
 
 data class BottomTelemetry(
     val socPercent: Int = 0,
     val tripDistanceKm: Int? = null,
     val rangeKm: Double? = null,
     val co2SavingKg: Double? = null,
+    val batteryDataStale: Boolean = false,
+    val cloudConnected: Boolean = true,
 )
 
 @Composable
@@ -70,31 +64,13 @@ fun EcoBottomBar(
     telemetry: BottomTelemetry,
     onSettingsClick: () -> Unit,
     onInfoClick: () -> Unit,
-    onTripLongPress: () -> Unit = {},
-    showTripResetHint: Boolean = false,
-    onTripResetHintDismissed: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val tripText = formatKmChip(telemetry.tripDistanceKm)
     val rangeText = formatKmChip(telemetry.rangeKm?.let { kotlin.math.round(it).toInt() })
     val co2Text = formatCo2Chip(telemetry.co2SavingKg)
-    val socColor = telemetry.socPercent.socDisplayColor()
+    val socColor = telemetry.socPercent.socDisplayColor(configuredLowBatteryPercent())
     val rangeDescriptor = telemetry.rangeKm?.let { formatRangeDescriptor(it) }
-    val tripResetHint = stringResource(Res.string.bottom_trip_reset_hint)
-    val haptic = LocalHapticFeedback.current
-    val tripInteractionSource = remember { MutableInteractionSource() }
-
-    LaunchedEffect(showTripResetHint) {
-        if (showTripResetHint) {
-            delay(3_000L)
-            onTripResetHintDismissed()
-        }
-    }
-
-    val hintAlpha by animateFloatAsState(
-        targetValue = if (showTripResetHint) 1f else 0f,
-        label = "tripResetHintAlpha",
-    )
 
     Surface(
         modifier = modifier.fillMaxWidth(),
@@ -103,6 +79,19 @@ fun EcoBottomBar(
     ) {
         Column {
             HorizontalDivider(color = EcoCarColors.Divider, thickness = 1.dp)
+            if (telemetry.batteryDataStale || !telemetry.cloudConnected) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    if (telemetry.batteryDataStale) {
+                        BottomStatusChip(stringResource(Res.string.battery_no_data))
+                    }
+                    if (!telemetry.cloudConnected) {
+                        BottomStatusChip(stringResource(Res.string.battery_cloud_offline))
+                    }
+                }
+            }
             if (expanded) {
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp),
@@ -114,41 +103,10 @@ fun EcoBottomBar(
                         value = "${telemetry.socPercent} %",
                         valueColor = socColor,
                     )
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Column(
-                            modifier = Modifier
-                                .combinedClickable(
-                                    interactionSource = tripInteractionSource,
-                                    indication = null,
-                                    onClick = {},
-                                    onLongClick = {
-                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                        onTripLongPress()
-                                    },
-                                )
-                                .padding(horizontal = 8.dp, vertical = 4.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                        ) {
-                            Text(
-                                text = stringResource(Res.string.bottom_trip),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = EcoCarColors.OnDarkSecondary,
-                            )
-                            Text(
-                                text = tripText,
-                                style = MaterialTheme.typography.titleSmall,
-                                color = EcoCarColors.OnDark,
-                            )
-                        }
-                        if (hintAlpha > 0.01f) {
-                            Text(
-                                text = tripResetHint,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = EcoCarColors.GoldenYellow.copy(alpha = hintAlpha),
-                                modifier = Modifier.padding(top = 2.dp),
-                            )
-                        }
-                    }
+                    TelemetryChip(
+                        label = stringResource(Res.string.bottom_trip),
+                        value = tripText,
+                    )
                     TelemetryChip(
                         label = stringResource(Res.string.bottom_range),
                         value = rangeText,
@@ -213,6 +171,24 @@ fun EcoBottomBar(
                 }
             }
         }
+    }
+}
+
+internal val BottomStatusChipColor = EcoCarColors.LowSocOrange
+
+@Composable
+private fun BottomStatusChip(text: String) {
+    Surface(
+        shape = RoundedCornerShape(8.dp),
+        color = Color.Transparent,
+        border = BorderStroke(2.dp, BottomStatusChipColor),
+    ) {
+        Text(
+            text = text,
+            color = BottomStatusChipColor,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+            style = MaterialTheme.typography.labelLarge,
+        )
     }
 }
 

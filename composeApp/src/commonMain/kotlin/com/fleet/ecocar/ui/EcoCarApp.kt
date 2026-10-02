@@ -75,9 +75,6 @@ fun EcoCarApp(
                     onSimulateLowBattery = { showLowBattery = true },
                     onBottomSettings = { selected = MainDestination.Settings },
                     onBottomInfo = { /* v1: Info-Panel */ },
-                    onTripLongPress = bottomBar.onTripLongPress,
-                    showTripResetHint = bottomBar.showTripResetHint,
-                    onTripResetHintDismissed = bottomBar.onTripResetHintDismissed,
                     snackbarHostState = bottomBar.snackbarHostState,
                     languageRepository = languageRepository,
                 )

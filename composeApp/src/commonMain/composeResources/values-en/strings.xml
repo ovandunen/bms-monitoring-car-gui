@@ -40,6 +40,11 @@
     <string name="battery_cloud_offline">Offline</string>
     <string name="battery_ipc_version_mismatch">BMS and EcoCar versions do not match — install both apps together</string>
     <string name="battery_trip_running">running</string>
+    <string name="trip_reset_button">Reset trip</string>
+    <string name="trip_reset_confirm_title">Reset trip?</string>
+    <string name="trip_reset_confirm_body">The current trip distance will be set to zero.</string>
+    <string name="trip_reset_yes">Yes</string>
+    <string name="trip_reset_no">No</string>
     <string name="battery_title">High-voltage battery</string>
     <string name="battery_live_hint">Live data (BMS IPC): SOC/current/cells — demo drift may still apply.</string>
     <string name="battery_demo_hint">Demo telemetry for layout — not live without BMS bind.</string>

@@ -34,4 +34,8 @@ class BatteryDashboardViewModel(application: Application) : AndroidViewModel(app
         sendCommand(CommandType.START_MONITORING)
         client.connect()
     }
+
+    fun resetTrip() {
+        client.resetTrip()
+    }
 }

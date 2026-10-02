@@ -24,4 +24,8 @@ data class BatteryOverviewUiModel(
     val vehicleStatusTitle: String = "",
     val cloudStatusLabel: String = "",
     val metricsStale: Boolean = false,
+    val showNoBatteryDataChip: Boolean = false,
+    val showOfflineChip: Boolean = false,
+    val noBatteryDataLabel: String = "",
+    val offlineLabel: String = "",
 )
