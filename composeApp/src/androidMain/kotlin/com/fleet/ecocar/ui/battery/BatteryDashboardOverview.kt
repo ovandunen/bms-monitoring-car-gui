@@ -23,6 +23,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.platform.LocalContext
 import android.app.Application
 import com.fleet.ecocar.theme.EcoCarColors
+import com.fleet.ecocar.domain.vehicle.configuredLowBatteryPercent
 import com.fleet.shared.battery.ui.BatteryOverviewScreen
 import com.fleet.shared.bms.ipc.domain.ConnectionStatus
 import eco_car_gui.composeapp.generated.resources.Res
@@ -84,7 +85,11 @@ internal fun BatteryDashboardOverview(
             is ConnectionStatus.Connected -> {
                 batteryState?.let { snap ->
                     BatteryOverviewScreen(
-                        model = snap.toOverviewUiModel(s, labels),
+                        model = snap.toOverviewUiModel(
+                            s,
+                            labels,
+                            configuredLowBatteryPercent(),
+                        ),
                         modifier = Modifier.fillMaxSize(),
                     )
                 } ?: ConnectingPanel(stringResource(Res.string.battery_connecting))

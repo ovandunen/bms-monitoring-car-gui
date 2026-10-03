@@ -8,6 +8,7 @@ import com.fleet.shared.bms.ipc.domain.ConnectionStatus
 internal fun BatterySnapshot.toOverviewUiModel(
     connection: ConnectionStatus,
     labels: BatteryOverviewLabels,
+    lowBatteryPercent: Float,
 ): BatteryOverviewUiModel {
     val hasLiveData = timestamp > 0L
     val powerKw = if (hasLiveData && (totalVoltage > 0f || current != 0f)) {
@@ -16,7 +17,7 @@ internal fun BatterySnapshot.toOverviewUiModel(
         null
     }
     val hint = when {
-        batteryDataStale -> labels.noBatteryData
+        batteryDataStale -> ""
         else -> when (connection) {
             is ConnectionStatus.Connected -> labels.liveHint
             is ConnectionStatus.Connecting -> labels.connectingHint
@@ -40,8 +41,11 @@ internal fun BatterySnapshot.toOverviewUiModel(
         statusHint = hint,
         showProgress = hasLiveData && !batteryDataStale && stateOfChargePercent in 1f..99f,
         progress = stateOfChargePercent.takeIf { hasLiveData },
-        socIsLow = hasLiveData &&
-            stateOfChargePercent in 0.01f..<LadestationSocPolicy.LOW_BATTERY_PERCENT,
+        socIsLow = LadestationSocPolicy.isLowSoc(
+            stateOfChargePercent,
+            hasLiveData,
+            lowBatteryPercent,
+        ),
         vehicleStatusLabel = vehicleStatusText(
             vehicleStatus,
             labels.driving,
@@ -51,6 +55,10 @@ internal fun BatterySnapshot.toOverviewUiModel(
         vehicleStatusTitle = labels.vehicleStatusTitle,
         cloudStatusLabel = if (cloudConnected) labels.cloudOnline else labels.cloudOffline,
         metricsStale = batteryDataStale,
+        showNoBatteryDataChip = batteryDataStale,
+        showOfflineChip = !cloudConnected,
+        noBatteryDataLabel = labels.noBatteryData,
+        offlineLabel = labels.cloudOffline,
     )
 }
 

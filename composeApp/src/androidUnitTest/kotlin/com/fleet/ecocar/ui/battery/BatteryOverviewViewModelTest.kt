@@ -16,7 +16,7 @@ class BatteryOverviewViewModelTest {
         val snapshot = integrationTestSnapshot()
         val labels = overviewLabels()
 
-        val model = snapshot.toOverviewUiModel(ConnectionStatus.Connected, labels)
+        val model = snapshot.toOverviewUiModel(ConnectionStatus.Connected, labels, 20f)
 
         assertEquals(12f, model.socPercent)
         assertEquals(310f, model.packVoltageV)
@@ -24,6 +24,7 @@ class BatteryOverviewViewModelTest {
         assertEquals(26.5f, model.batteryTempAvgC)
         assertEquals("Standby", model.vehicleStatusLabel)
         assertEquals("Offline", model.cloudStatusLabel)
+        assertEquals(true, model.showOfflineChip)
 
         val descriptors = BatteryOverviewAutomationDescriptors.fromMetrics(
             socPercent = model.socPercent,
@@ -43,7 +44,7 @@ class BatteryOverviewViewModelTest {
         val snapshot = integrationTestSnapshot().copy(timestamp = 0L)
         val labels = overviewLabels()
 
-        val model = snapshot.toOverviewUiModel(ConnectionStatus.Connected, labels)
+        val model = snapshot.toOverviewUiModel(ConnectionStatus.Connected, labels, 20f)
 
         assertEquals(null, model.socPercent)
         assertEquals(null, model.batteryTempAvgC)
@@ -55,18 +56,31 @@ class BatteryOverviewViewModelTest {
             powerKw = model.powerKw,
         )
 
-        assertEquals("battery-soc=–", descriptors.soc)
+        assertEquals("battery-soc=–", descriptors.soc        )
     }
 
     @Test
-    fun staleSnapshot_showsNoBatteryDataHint() {
+    fun staleSnapshot_showsNoBatteryDataChip() {
         val snapshot = integrationTestSnapshot().copy(batteryDataStale = true)
-        val model = snapshot.toOverviewUiModel(ConnectionStatus.Connected, overviewLabels())
-        assertEquals("No battery data", model.statusHint)
+        val model = snapshot.toOverviewUiModel(ConnectionStatus.Connected, overviewLabels(), 20f)
+        assertEquals(true, model.showNoBatteryDataChip)
+        assertEquals("No battery data", model.noBatteryDataLabel)
+        assertEquals("", model.statusHint)
         assertEquals(true, model.metricsStale)
         assertEquals("Driving", vehicleStatusText(1, "Driving", "Standby", "Charging"))
         assertEquals("Standby", vehicleStatusText(0, "Driving", "Standby", "Charging"))
         assertEquals("Charging", vehicleStatusText(2, "Driving", "Standby", "Charging"))
+    }
+
+    @Test
+    fun offlineChip_hiddenWhenCloudConnectedAndFresh() {
+        val snapshot = integrationTestSnapshot().copy(
+            batteryDataStale = false,
+            cloudConnected = true,
+        )
+        val model = snapshot.toOverviewUiModel(ConnectionStatus.Connected, overviewLabels(), 20f)
+        assertEquals(false, model.showNoBatteryDataChip)
+        assertEquals(false, model.showOfflineChip)
     }
 
     @Test
@@ -78,6 +92,21 @@ class BatteryOverviewViewModelTest {
                 "BMS and EcoCar versions do not match — install both apps together",
             ),
         )
+    }
+
+    @Test
+    fun socIsLow_usesPassedThreshold() {
+        val labels = overviewLabels()
+        val at17 = integrationTestSnapshot().copy(
+            stateOfChargePercent = 17f,
+            cloudConnected = true,
+        ).toOverviewUiModel(ConnectionStatus.Connected, labels, 15f)
+        val at14 = integrationTestSnapshot().copy(
+            stateOfChargePercent = 14f,
+            cloudConnected = true,
+        ).toOverviewUiModel(ConnectionStatus.Connected, labels, 15f)
+        assertEquals(false, at17.socIsLow)
+        assertEquals(true, at14.socIsLow)
     }
 
     private fun overviewLabels() = BatteryOverviewLabels(

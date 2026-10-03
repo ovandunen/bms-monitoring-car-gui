@@ -12,7 +12,7 @@ object EcoCarColors {
     val DarkGreenTilePressed = Color(0xFF153D32)
     val GoldenYellow = Color(0xFFE6C229)
     val GoldenYellowMuted = Color(0xFF4D4420)
-    /** SOC below [com.fleet.ecocar.domain.vehicle.LadestationSocPolicy.LOW_BATTERY_PERCENT]. */
+    /** SOC below the configured low-battery percent (same value as the low-battery dialog). */
     val LowSocOrange = Color(0xFFFF4500)
     val OnDark = Color(0xFFE8E8E8)
     val OnDarkSecondary = Color(0xFFB0B0B0)

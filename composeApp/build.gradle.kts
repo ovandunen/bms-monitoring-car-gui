@@ -82,7 +82,9 @@ kotlin {
                 implementation(kotlin("test"))
                 implementation(kotlin("test-junit5"))
                 implementation("junit:junit:4.13.2")
+                runtimeOnly("org.junit.vintage:junit-vintage-engine:5.10.1")
                 implementation("androidx.arch.core:core-testing:2.2.0")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
                 implementation("org.robolectric:robolectric:4.14.1")
             }
         }

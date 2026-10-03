@@ -1,11 +1,15 @@
 package com.fleet.ecocar.music
 
 import android.Manifest
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Build
 import android.widget.ImageView
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -51,6 +55,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -100,6 +105,15 @@ private const val TAB_INTERNET = 0
 private const val TAB_RADIO_PLAYER = 1
 private const val TAB_USB = 2
 
+private fun hasAudioPermission(context: android.content.Context): Boolean {
+    val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        Manifest.permission.READ_MEDIA_AUDIO
+    } else {
+        Manifest.permission.READ_EXTERNAL_STORAGE
+    }
+    return context.checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED
+}
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MusicScreen(modifier: Modifier = Modifier) {
@@ -131,13 +145,28 @@ fun MusicScreen(modifier: Modifier = Modifier) {
         }
     }
 
+    fun loadUsbAndStopIfGone() {
+        scope.launch {
+            val tracks = runCatching { MusicRepository.loadLocalTracks(app) }.getOrNull() ?: return@launch
+            usbTracks = tracks
+            val playingUri = app.musicPlayerOrNull()?.currentMediaItem?.localConfiguration?.uri
+            if (shouldStopUsbAfterRescan(app.musicPlaybackSurface, playingUri, tracks)) {
+                app.stopUsbPlayback()
+            }
+        }
+    }
+
+    val scanUsbIfAllowed by rememberUpdatedState {
+        if (shouldScanUsb(hasAudioPermission(context), mainTab == TAB_USB)) {
+            loadUsbAndStopIfGone()
+        }
+    }
+
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions(),
     ) { granted ->
         if (granted.values.all { it }) {
-            scope.launch {
-                usbTracks = MusicRepository.loadLocalTracks(app)
-            }
+            loadUsbAndStopIfGone()
         }
     }
 
@@ -147,9 +176,7 @@ fun MusicScreen(modifier: Modifier = Modifier) {
 
     LaunchedEffect(mainTab) {
         if (mainTab == TAB_USB) {
-            runCatching {
-                usbTracks = MusicRepository.loadLocalTracks(app)
-            }
+            scanUsbIfAllowed()
             return@LaunchedEffect
         }
         if (mainTab != TAB_INTERNET || stations.isNotEmpty() || radioLoading) return@LaunchedEffect
@@ -161,6 +188,23 @@ fun MusicScreen(modifier: Modifier = Modifier) {
             radioError = e.message ?: "Radio laden fehlgeschlagen"
         }
         radioLoading = false
+    }
+
+    LaunchedEffect(app.usbVolumeWatcher) {
+        app.usbVolumeWatcher?.changes?.collect {
+            scanUsbIfAllowed()
+        }
+    }
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                scanUsbIfAllowed()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
     LaunchedEffect(player) {

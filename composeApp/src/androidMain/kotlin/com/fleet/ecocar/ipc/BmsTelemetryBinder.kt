@@ -150,6 +150,14 @@ class BmsTelemetryBinder(
         bindRequested = true
         try {
             appContext.startService(intent)
+        } catch (e: IllegalStateException) {
+            Log.w(
+                TAG,
+                "startService skipped (not allowed from background); binding with BIND_AUTO_CREATE",
+                e,
+            )
+        }
+        try {
             val ok = appContext.bindService(intent, connection, Context.BIND_AUTO_CREATE)
             if (!ok) {
                 bindRequested = false

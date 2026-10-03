@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import com.fleet.shared.battery.ui.internal.DriverStatusChip
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
@@ -17,6 +18,8 @@ import com.fleet.shared.battery.ui.internal.BatteryTheme
 import com.fleet.shared.battery.ui.internal.MetricCard
 import com.fleet.shared.battery.ui.internal.StatusHintRow
 import com.fleet.shared.battery.ui.internal.formatMetric
+
+internal val OverviewDriverStatusChipColor = BatteryTheme.LowSocOrange
 
 /**
  * Shared driver-facing battery overview (port). Stateless — callers supply [BatteryOverviewUiModel].
@@ -37,12 +40,33 @@ fun BatteryOverviewScreen(
             style = MaterialTheme.typography.titleLarge,
             color = BatteryTheme.OnDark,
         )
-        StatusHintRow(
-            statusHint = model.statusHint,
-            showProgress = model.showProgress,
-            progress = model.progress,
-            progressColor = if (model.socIsLow) BatteryTheme.LowSocOrange else BatteryTheme.GoldenYellow,
-        )
+        if (model.showNoBatteryDataChip || model.showOfflineChip) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                if (model.showNoBatteryDataChip) {
+                    DriverStatusChip(
+                        text = model.noBatteryDataLabel,
+                        color = OverviewDriverStatusChipColor,
+                    )
+                }
+                if (model.showOfflineChip) {
+                    DriverStatusChip(
+                        text = model.offlineLabel,
+                        color = OverviewDriverStatusChipColor,
+                    )
+                }
+            }
+        }
+        if (model.statusHint.isNotEmpty()) {
+            StatusHintRow(
+                statusHint = model.statusHint,
+                showProgress = model.showProgress,
+                progress = model.progress,
+                progressColor = if (model.socIsLow) BatteryTheme.LowSocOrange else BatteryTheme.GoldenYellow,
+            )
+        }
         val automation = BatteryOverviewAutomationDescriptors.fromMetrics(
             socPercent = model.socPercent,
             packVoltageV = model.packVoltageV,
@@ -124,13 +148,6 @@ fun BatteryOverviewScreen(
                     unitColor = unitColor,
                 )
             }
-        }
-        if (model.cloudStatusLabel.isNotEmpty()) {
-            Text(
-                text = model.cloudStatusLabel,
-                style = MaterialTheme.typography.labelSmall,
-                color = BatteryTheme.OnDarkSecondary,
-            )
         }
     }
 }

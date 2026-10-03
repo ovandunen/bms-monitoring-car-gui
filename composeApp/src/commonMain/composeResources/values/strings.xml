@@ -41,6 +41,11 @@
     <string name="battery_cloud_offline">Hors ligne</string>
     <string name="battery_ipc_version_mismatch">Les versions BMS et EcoCar ne correspondent pas — installez les deux applications ensemble</string>
     <string name="battery_trip_running">en cours</string>
+    <string name="trip_reset_button">Réinitialiser le trajet</string>
+    <string name="trip_reset_confirm_title">Réinitialiser le trajet ?</string>
+    <string name="trip_reset_confirm_body">La distance du trajet en cours sera remise à zéro.</string>
+    <string name="trip_reset_yes">Oui</string>
+    <string name="trip_reset_no">Non</string>
     <string name="battery_title">Batterie haute tension</string>
     <string name="battery_live_hint">Données en direct (IPC BMS) : SOC/courant/cellules — dérive démo possible.</string>
     <string name="battery_demo_hint">Télémétrie démo pour la mise en page — pas en direct sans liaison BMS.</string>

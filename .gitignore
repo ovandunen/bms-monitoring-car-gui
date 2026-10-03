@@ -11,3 +11,4 @@ androidApp/build/
 .DS_Store
 bms-monitoring-ipc/build/
 local.properties
+.kotlin

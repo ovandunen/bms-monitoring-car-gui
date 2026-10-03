@@ -46,9 +46,6 @@ fun AppScaffold(
     onSimulateLowBattery: () -> Unit,
     onBottomSettings: () -> Unit,
     onBottomInfo: () -> Unit,
-    onTripLongPress: () -> Unit = {},
-    showTripResetHint: Boolean = false,
-    onTripResetHintDismissed: () -> Unit = {},
     snackbarHostState: SnackbarHostState? = null,
     languageRepository: LanguageRepository? = null,
 ) {
@@ -84,9 +81,6 @@ fun AppScaffold(
                     telemetry = telemetry,
                     onSettingsClick = onBottomSettings,
                     onInfoClick = onBottomInfo,
-                    onTripLongPress = onTripLongPress,
-                    showTripResetHint = showTripResetHint,
-                    onTripResetHintDismissed = onTripResetHintDismissed,
                 )
             }
         }

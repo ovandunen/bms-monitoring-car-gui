@@ -20,6 +20,7 @@ import com.fleet.ecocar.map.EcoChargingStation
 import com.fleet.ecocar.music.MusicPlaybackSurface
 import com.fleet.ecocar.music.RadioStation
 import com.fleet.ecocar.music.Track
+import com.fleet.ecocar.music.UsbVolumeWatcher
 import com.fleet.ecocar.telemetry.EcoBmsAlert
 import com.fleet.ecocar.telemetry.EcoBmsTelemetry
 import com.fleet.ecocar.telemetry.toEcoBmsTelemetry
@@ -124,6 +125,10 @@ open class EcoCarApplication : Application() {
     var musicPlaybackSurface: MusicPlaybackSurface? = null
         private set
 
+    /** Null in a helper process: [onCreate] returns before the watcher is started. */
+    internal var usbVolumeWatcher: UsbVolumeWatcher? = null
+        private set
+
 
     companion object {
         const val BROWSER_DEFAULT_HOME_URL: String = "https://www.startpage.com"
@@ -176,13 +181,17 @@ open class EcoCarApplication : Application() {
     }
 
     override fun onCreate() {
+        super.onCreate()
+        instance = this
+        if (!EcoCarProcessIdentity.isMainProcess(packageName, currentProcessName())) {
+            return
+        }
+        usbVolumeWatcher = UsbVolumeWatcher(this, appScope).also { it.start() }
         MapLibre.getInstance(
             this,
             BuildConfig.MAPTILER_API_KEY,
             WellKnownTileServer.MapTiler,
         )
-        super.onCreate()
-        instance = this
         mainHandler.post(clockRunnable)
 
         batteryClient = AidlBatteryClientAdapter(this, appScope)
@@ -230,6 +239,9 @@ open class EcoCarApplication : Application() {
             }
         ).also { it.connect() }
     }
+
+    protected open fun currentProcessName(): String =
+        EcoCarProcessIdentity.currentProcessName(this)
 
     private fun formatClock(): String {
         val now = java.util.Calendar.getInstance()
@@ -367,6 +379,30 @@ open class EcoCarApplication : Application() {
         MusicPlayerService.start(this)
         publishTopBarFromPlayer()
         schedulePositionTicks()
+    }
+
+    /**
+     * Stops USB playback after the current item disappeared from a rescan.
+     * Radio uses the same player and is left running.
+     */
+    fun stopUsbPlayback() {
+        if (musicPlaybackSurface != MusicPlaybackSurface.USB) return
+        musicPlaybackSurface = null
+        mainHandler.removeCallbacks(positionRunnable)
+        val player = _exoPlayer
+        if (player != null) {
+            runCatching {
+                player.stop()
+                player.clearMediaItems()
+            }
+        }
+        _topBarMusic.value = _topBarMusic.value.copy(
+            title = "—",
+            duration = "0:00 / --:--",
+            source = "",
+            isPlaying = false,
+            currentPosition = 0L,
+        )
     }
 
     fun requestChargingStationsForMap(radiusMeters: Double = 0.0) {

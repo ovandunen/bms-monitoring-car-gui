@@ -8,7 +8,7 @@ import androidx.appcompat.content.res.AppCompatResources
 import com.fleet.ecocar.composeapp.R
 
 internal object VehicleLocationBitmapFactory {
-    /** Pixel size of the MapLibre vehicle bitmap width. doubled on user request 2026-09-30 */
+    /** Longest side of the MapLibre vehicle bitmap, in pixels. Doubled on user request 2026-09-30. */
     const val VEHICLE_ICON_SIZE_PX = 96
 
     fun createBitmap(context: Context): Bitmap {
@@ -27,13 +27,19 @@ internal object VehicleLocationBitmapFactory {
     }
 
     internal fun bitmapSizePx(intrinsicWidth: Int, intrinsicHeight: Int): Pair<Int, Int> {
-        val width = VEHICLE_ICON_SIZE_PX
-        val height =
-            if (intrinsicWidth <= 0) {
-                width
-            } else {
-                (width * intrinsicHeight / intrinsicWidth).coerceAtLeast(1)
-            }
-        return width to height
+        if (intrinsicWidth <= 0 || intrinsicHeight <= 0) {
+            return VEHICLE_ICON_SIZE_PX to VEHICLE_ICON_SIZE_PX
+        }
+        return if (intrinsicWidth >= intrinsicHeight) {
+            val height = (VEHICLE_ICON_SIZE_PX.toLong() * intrinsicHeight / intrinsicWidth)
+                .toInt()
+                .coerceAtLeast(1)
+            VEHICLE_ICON_SIZE_PX to height
+        } else {
+            val width = (VEHICLE_ICON_SIZE_PX.toLong() * intrinsicWidth / intrinsicHeight)
+                .toInt()
+                .coerceAtLeast(1)
+            width to VEHICLE_ICON_SIZE_PX
+        }
     }
 }
