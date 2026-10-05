@@ -79,13 +79,13 @@
     <string name="chart_tab_dust">Staubdichte</string>
     <string name="chart_tab_humidity">Luftfeuchtigkeit</string>
     <string name="chart_temp_title">Temperatur (°C)</string>
-    <string name="chart_temp_subtitle_bms">DS18B20 (Pack) — gemischt mit Demo‑Ticker.</string>
+    <string name="chart_temp_subtitle_bms">Outside air (DS18B20)</string>
     <string name="chart_temp_subtitle_demo">Innenraum / Zuluft (Demo) — BMS‑Bind für ESP32‑Werte.</string>
     <string name="chart_dust_title">Staubdichte (µg/m³, PM2.5‑Nähe)</string>
     <string name="chart_dust_subtitle_bms">PMS5003 PM2.5 (als Zeitreihe) — zusätzlicher Demo‑Drift.</string>
     <string name="chart_dust_subtitle_demo">Feinstaub‑Tendenz (Demo) — Live mit BMS (PMS5003).</string>
     <string name="chart_humidity_title">Luftfeuchtigkeit (%)</string>
-    <string name="chart_humidity_subtitle_bms">SHT31‑D relativer Feuchtewert — gemischt mit Demo.</string>
+    <string name="chart_humidity_subtitle_bms">Humidity (SHT31)</string>
     <string name="chart_humidity_subtitle_demo">Relative Feuchte (Demo) — BMS liefert SHT31 nach Bind.</string>
 
     <string name="dialog_low_battery_title">Niedriger Batterieladestand</string>

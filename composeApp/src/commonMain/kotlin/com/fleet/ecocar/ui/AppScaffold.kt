@@ -20,6 +20,7 @@ import com.fleet.ecocar.telemetry.EcoBmsTelemetry
 import com.fleet.ecocar.theme.EcoCarColors
 import com.fleet.ecocar.ui.bottom.BottomTelemetry
 import com.fleet.ecocar.ui.bottom.EcoBottomBar
+import com.fleet.ecocar.ui.bottom.withSensorErrors
 import com.fleet.ecocar.ui.dialog.LowBatteryDialog
 import com.fleet.ecocar.ui.main.MainContentArea
 import com.fleet.ecocar.ui.side.EcoSideNav
@@ -78,7 +79,7 @@ fun AppScaffold(
                 EcoBottomBar(
                     expanded = bottomExpanded,
                     onToggleExpand = onBottomToggle,
-                    telemetry = telemetry,
+                    telemetry = telemetry.withSensorErrors(ecoBmsTelemetry),
                     onSettingsClick = onBottomSettings,
                     onInfoClick = onBottomInfo,
                 )

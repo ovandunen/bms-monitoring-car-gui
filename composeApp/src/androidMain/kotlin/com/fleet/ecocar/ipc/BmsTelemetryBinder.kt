@@ -67,16 +67,7 @@ class BmsTelemetryBinder(
 
     private val callback = object : IBmsCallback.Stub() {
         override fun onDataUpdate(data: BmsData) {
-            val snap = EcoBmsTelemetry(
-                timestamp = data.timestamp,
-                cellVolts = data.cellVoltages.toList(),
-                packTemperature = data.packTemperature,
-                packHumidity = data.packHumidity,
-                pm25 = data.pm25,
-                pm10 = data.pm10,
-                soc = data.soc,
-                currentA = data.current,
-            )
+            val snap = data.toEcoBmsTelemetry()
             mainHandler.post { onTelemetry(snap) }
 
             BmsLocationMapper.toLocation(data)?.let { location ->
@@ -303,6 +294,23 @@ class BmsTelemetryBinder(
         private val BIND_RETRY_DELAYS_MS = longArrayOf(500L, 1_000L, 2_000L, 3_000L, 5_000L)
     }
 }
+
+internal fun BmsData.toEcoBmsTelemetry(): EcoBmsTelemetry = EcoBmsTelemetry(
+    timestamp = timestamp,
+    cellVolts = cellVoltages.toList(),
+    packTemperature = packTemperature,
+    packHumidity = packHumidity,
+    pm25 = pm25,
+    pm10 = pm10,
+    soc = soc,
+    currentA = current,
+    ambientTemperatureC = ambientTemperatureC,
+    humidity = humidity,
+    sensorError = sensorError,
+    ds18b20Error = ds18b20Error,
+    sht31Error = sht31Error,
+    pms5003Error = pms5003Error,
+)
 
 private fun ChargingStationSnapshot.toEcoChargingStation() =
     ChargingStationSnapshotMapper.toEco(

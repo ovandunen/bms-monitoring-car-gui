@@ -80,13 +80,13 @@
     <string name="chart_tab_dust">Poussière</string>
     <string name="chart_tab_humidity">Humidité</string>
     <string name="chart_temp_title">Température (°C)</string>
-    <string name="chart_temp_subtitle_bms">DS18B20 (pack) — mélangé avec ticker démo.</string>
+    <string name="chart_temp_subtitle_bms">Outside air (DS18B20)</string>
     <string name="chart_temp_subtitle_demo">Habitacle / air (démo) — liaison BMS pour valeurs ESP32.</string>
     <string name="chart_dust_title">Poussière (µg/m³, proche PM2.5)</string>
     <string name="chart_dust_subtitle_bms">PMS5003 PM2.5 (série) — dérive démo supplémentaire.</string>
     <string name="chart_dust_subtitle_demo">Tendance particules (démo) — en direct avec BMS (PMS5003).</string>
     <string name="chart_humidity_title">Humidité relative (%)</string>
-    <string name="chart_humidity_subtitle_bms">SHT31-D humidité relative — mélangé avec démo.</string>
+    <string name="chart_humidity_subtitle_bms">Humidity (SHT31)</string>
     <string name="chart_humidity_subtitle_demo">Humidité relative (démo) — BMS fournit SHT31 après liaison.</string>
 
     <string name="dialog_low_battery_title">Charge batterie faible</string>

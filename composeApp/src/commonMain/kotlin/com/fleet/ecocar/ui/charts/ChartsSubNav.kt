@@ -65,12 +65,13 @@ fun ChartsSubNav(
 
     LaunchedEffect(bmsTelemetry?.timestamp) {
         val t = bmsTelemetry ?: return@LaunchedEffect
-        if (!t.packTemperature.isNaN()) {
-            temperature = (temperature.drop(1) + t.packTemperature).takeLast(HISTORY_LEN)
+        val sample = liveChartSample(t)
+        if (!sample.temperatureC.isNaN()) {
+            temperature = (temperature.drop(1) + sample.temperatureC).takeLast(HISTORY_LEN)
         }
-        dustDensity = (dustDensity.drop(1) + t.pm25.toFloat()).takeLast(HISTORY_LEN)
-        if (!t.packHumidity.isNaN()) {
-            humidity = (humidity.drop(1) + t.packHumidity).takeLast(HISTORY_LEN)
+        dustDensity = (dustDensity.drop(1) + sample.pm25).takeLast(HISTORY_LEN)
+        if (!sample.humidity.isNaN()) {
+            humidity = (humidity.drop(1) + sample.humidity).takeLast(HISTORY_LEN)
         }
     }
 
@@ -223,3 +224,15 @@ private fun advanceDemo(
     val next = (last + delta).coerceIn(min, max)
     return (current.drop(1) + next).takeLast(HISTORY_LEN)
 }
+
+internal data class LiveChartSample(
+    val temperatureC: Float,
+    val humidity: Float,
+    val pm25: Float,
+)
+
+internal fun liveChartSample(telemetry: EcoBmsTelemetry): LiveChartSample = LiveChartSample(
+    temperatureC = telemetry.ambientTemperatureC,
+    humidity = telemetry.humidity,
+    pm25 = telemetry.pm25.toFloat(),
+)
