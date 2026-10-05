@@ -80,13 +80,11 @@
     <string name="chart_tab_humidity">Humidity</string>
     <string name="chart_temp_title">Temperature (°C)</string>
     <string name="chart_temp_subtitle_bms">Outside air (DS18B20)</string>
-    <string name="chart_temp_subtitle_demo">Cabin / intake air (demo) — BMS bind for ESP32 values.</string>
     <string name="chart_dust_title">Dust density (µg/m³, PM2.5 proxy)</string>
-    <string name="chart_dust_subtitle_bms">PMS5003 PM2.5 time series — extra demo drift.</string>
-    <string name="chart_dust_subtitle_demo">Particle trend (demo) — live with BMS (PMS5003).</string>
+    <string name="chart_dust_subtitle_bms">PMS5003</string>
     <string name="chart_humidity_title">Relative humidity (%)</string>
     <string name="chart_humidity_subtitle_bms">Humidity (SHT31)</string>
-    <string name="chart_humidity_subtitle_demo">Relative humidity (demo) — BMS provides SHT31 after bind.</string>
+    <string name="chart_no_sensor_data">No sensor data</string>
 
     <string name="dialog_low_battery_title">Low battery charge</string>
     <string name="dialog_low_battery_body">High-voltage battery state of charge is low.</string>

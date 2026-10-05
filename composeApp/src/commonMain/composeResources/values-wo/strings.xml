@@ -71,8 +71,10 @@
     <string name="chart_temp_title">Température (°C)</string>
     <string name="chart_temp_subtitle_bms">Outside air (DS18B20)</string>
     <string name="chart_dust_title">Poussière (µg/m³, PM2.5)</string>
-    <string name="chart_dust_subtitle_bms">PMS5003 PM2.5 — série bu live.</string>
+    <string name="chart_dust_subtitle_bms">PMS5003</string>
     <string name="chart_humidity_title">Humidité (%)</string>
+    <string name="chart_humidity_subtitle_bms">Humidity (SHT31)</string>
+    <string name="chart_no_sensor_data">No sensor data</string>
 
     <string name="dialog_low_battery_title">Charge batterie néew</string>
     <string name="dialog_low_battery_body">Charge batterie HT bi néew na.</string>
