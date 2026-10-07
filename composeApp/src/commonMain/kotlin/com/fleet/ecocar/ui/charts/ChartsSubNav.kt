@@ -34,21 +34,24 @@ import eco_car_gui.composeapp.generated.resources.chart_tab_humidity
 import eco_car_gui.composeapp.generated.resources.chart_tab_temp
 import eco_car_gui.composeapp.generated.resources.chart_temp_subtitle_bms
 import eco_car_gui.composeapp.generated.resources.chart_temp_title
+import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
-import kotlin.time.TimeMark
-import kotlin.time.TimeSource
+import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import org.jetbrains.compose.resources.stringResource
 
 private const val HISTORY_LEN = 72
-private val SENSOR_CHART_STALE = 30.seconds
+private const val SENSOR_CHART_STALE_MS = 30_000L
+
+@OptIn(ExperimentalTime::class)
+private fun tabletClockMillis(): Long = Clock.System.now().toEpochMilliseconds()
 
 @Composable
 fun ChartsSubNav(
     modifier: Modifier = Modifier,
     bmsTelemetry: EcoBmsTelemetry? = null,
-    timeSource: TimeSource = TimeSource.Monotonic,
+    nowMillis: () -> Long = ::tabletClockMillis,
 ) {
     var tab by rememberSaveable { mutableStateOf(0) }
     var series by remember { mutableStateOf(SensorChartSeries()) }
@@ -62,7 +65,7 @@ fun ChartsSubNav(
 
     LaunchedEffect(bmsTelemetry) {
         val reading = bmsTelemetry ?: return@LaunchedEffect
-        series = series.withReading(reading, timeSource)
+        series = series.withReading(reading)
     }
 
     LaunchedEffect(Unit) {
@@ -72,7 +75,7 @@ fun ChartsSubNav(
         }
     }
 
-    val live = remember(series, tick) { series.showsLiveChart() }
+    val live = remember(series, tick) { series.showsLiveChart(nowMillis()) }
     Column(modifier = modifier.fillMaxSize()) {
         EcoSubChipsBar(
             labels = tabLabels,
@@ -173,21 +176,22 @@ internal data class SensorChartSeries(
     val temperature: List<Float> = emptyList(),
     val humidity: List<Float> = emptyList(),
     val pm25: List<Float> = emptyList(),
-    val receivedAt: TimeMark? = null,
+    val receivedAtMs: Long = 0L,
 ) {
-    fun withReading(telemetry: EcoBmsTelemetry, timeSource: TimeSource): SensorChartSeries {
+    fun withReading(telemetry: EcoBmsTelemetry): SensorChartSeries {
+        if (telemetry.timestamp <= 0L) return this
         val sample = liveChartSample(telemetry)
         return copy(
             temperature = append(temperature, sample.temperatureC),
             humidity = append(humidity, sample.humidity),
             pm25 = (pm25 + sample.pm25).takeLast(HISTORY_LEN),
-            receivedAt = timeSource.markNow(),
+            receivedAtMs = telemetry.timestamp,
         )
     }
 
-    fun showsLiveChart(): Boolean {
-        val received = receivedAt ?: return false
-        return received.elapsedNow() <= SENSOR_CHART_STALE
+    fun showsLiveChart(nowMs: Long): Boolean {
+        if (receivedAtMs <= 0L) return false
+        return nowMs - receivedAtMs <= SENSOR_CHART_STALE_MS
     }
 
     private fun append(current: List<Float>, value: Float): List<Float> =
