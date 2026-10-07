@@ -12,6 +12,12 @@ data class EcoBmsTelemetry(
     val pm10: Int,
     val soc: Float,
     val currentA: Float,
+    val ambientTemperatureC: Float = 0f,
+    val humidity: Float = 0f,
+    val sensorError: Boolean = false,
+    val ds18b20Error: Boolean = false,
+    val sht31Error: Boolean = false,
+    val pms5003Error: Boolean = false,
 )
 
 data class EcoBmsAlert(

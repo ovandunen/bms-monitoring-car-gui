@@ -27,6 +27,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.fleet.ecocar.domain.vehicle.configuredLowBatteryPercent
+import com.fleet.ecocar.telemetry.EcoBmsTelemetry
 import com.fleet.ecocar.theme.EcoCarColors
 import com.fleet.ecocar.theme.socDisplayColor
 import eco_car_gui.composeapp.generated.resources.Res
@@ -56,6 +57,10 @@ data class BottomTelemetry(
     val batteryDataStale: Boolean = false,
     val cloudConnected: Boolean = true,
     val hasLiveData: Boolean = false,
+    val sensorError: Boolean = false,
+    val ds18b20Error: Boolean = false,
+    val sht31Error: Boolean = false,
+    val pms5003Error: Boolean = false,
 )
 
 @Composable
@@ -83,17 +88,22 @@ fun EcoBottomBar(
     ) {
         Column {
             HorizontalDivider(color = EcoCarColors.Divider, thickness = 1.dp)
-            if (telemetry.batteryDataStale || !telemetry.cloudConnected) {
+            val chips = bottomStatusChipLabels(
+                batteryDataStale = telemetry.batteryDataStale,
+                cloudConnected = telemetry.cloudConnected,
+                sensorError = telemetry.sensorError,
+                ds18b20Error = telemetry.ds18b20Error,
+                sht31Error = telemetry.sht31Error,
+                pms5003Error = telemetry.pms5003Error,
+                noBatteryData = stringResource(Res.string.battery_no_data),
+                cloudOffline = stringResource(Res.string.battery_cloud_offline),
+            )
+            if (chips.isNotEmpty()) {
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    if (telemetry.batteryDataStale) {
-                        BottomStatusChip(stringResource(Res.string.battery_no_data))
-                    }
-                    if (!telemetry.cloudConnected) {
-                        BottomStatusChip(stringResource(Res.string.battery_cloud_offline))
-                    }
+                    chips.forEach { label -> BottomStatusChip(label) }
                 }
             }
             if (expanded) {
@@ -179,6 +189,47 @@ fun EcoBottomBar(
 }
 
 internal val BottomStatusChipColor = EcoCarColors.LowSocOrange
+
+internal fun sensorErrorChipText(
+    sensorError: Boolean,
+    ds18b20Error: Boolean,
+    sht31Error: Boolean,
+    pms5003Error: Boolean,
+): String? {
+    val names = buildList {
+        if (ds18b20Error) add("Outside temperature (DS18B20)")
+        if (sht31Error) add("Humidity (SHT31)")
+        if (pms5003Error) add("PMS5003")
+    }
+    return when {
+        names.isNotEmpty() -> "Sensor error: ${names.joinToString(", ")}"
+        sensorError -> "Sensor error: outside sensors"
+        else -> null
+    }
+}
+
+internal fun bottomStatusChipLabels(
+    batteryDataStale: Boolean,
+    cloudConnected: Boolean,
+    sensorError: Boolean,
+    ds18b20Error: Boolean,
+    sht31Error: Boolean,
+    pms5003Error: Boolean,
+    noBatteryData: String,
+    cloudOffline: String,
+): List<String> = buildList {
+    if (batteryDataStale) add(noBatteryData)
+    if (!cloudConnected) add(cloudOffline)
+    sensorErrorChipText(sensorError, ds18b20Error, sht31Error, pms5003Error)?.let { add(it) }
+}
+
+internal fun BottomTelemetry.withSensorErrors(telemetry: EcoBmsTelemetry?): BottomTelemetry =
+    copy(
+        sensorError = telemetry?.sensorError == true,
+        ds18b20Error = telemetry?.ds18b20Error == true,
+        sht31Error = telemetry?.sht31Error == true,
+        pms5003Error = telemetry?.pms5003Error == true,
+    )
 
 @Composable
 private fun BottomStatusChip(text: String) {

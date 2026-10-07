@@ -13,7 +13,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -26,32 +25,34 @@ import com.fleet.ecocar.theme.EcoCarColors
 import com.fleet.ecocar.ui.subnav.EcoSubChipsBar
 import eco_car_gui.composeapp.generated.resources.Res
 import eco_car_gui.composeapp.generated.resources.chart_dust_subtitle_bms
-import eco_car_gui.composeapp.generated.resources.chart_dust_subtitle_demo
 import eco_car_gui.composeapp.generated.resources.chart_dust_title
 import eco_car_gui.composeapp.generated.resources.chart_humidity_subtitle_bms
-import eco_car_gui.composeapp.generated.resources.chart_humidity_subtitle_demo
 import eco_car_gui.composeapp.generated.resources.chart_humidity_title
+import eco_car_gui.composeapp.generated.resources.chart_no_sensor_data
 import eco_car_gui.composeapp.generated.resources.chart_tab_dust
 import eco_car_gui.composeapp.generated.resources.chart_tab_humidity
 import eco_car_gui.composeapp.generated.resources.chart_tab_temp
 import eco_car_gui.composeapp.generated.resources.chart_temp_subtitle_bms
-import eco_car_gui.composeapp.generated.resources.chart_temp_subtitle_demo
 import eco_car_gui.composeapp.generated.resources.chart_temp_title
-import kotlin.math.sin
-import kotlin.random.Random
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.TimeMark
+import kotlin.time.TimeSource
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import org.jetbrains.compose.resources.stringResource
 
 private const val HISTORY_LEN = 72
-private const val DEMO_TICK_MS = 1_200L
+private val SENSOR_CHART_STALE = 30.seconds
 
 @Composable
 fun ChartsSubNav(
     modifier: Modifier = Modifier,
     bmsTelemetry: EcoBmsTelemetry? = null,
+    timeSource: TimeSource = TimeSource.Monotonic,
 ) {
     var tab by rememberSaveable { mutableStateOf(0) }
+    var series by remember { mutableStateOf(SensorChartSeries()) }
+    var tick by remember { mutableStateOf(0) }
 
     val tabLabels = listOf(
         stringResource(Res.string.chart_tab_temp),
@@ -59,34 +60,19 @@ fun ChartsSubNav(
         stringResource(Res.string.chart_tab_humidity),
     )
 
-    var temperature by remember { mutableStateOf(demoSeries(seed = 11, len = HISTORY_LEN, base = 22f, spread = 6f)) }
-    var dustDensity by remember { mutableStateOf(demoSeries(seed = 12, len = HISTORY_LEN, base = 25f, spread = 18f)) }
-    var humidity by remember { mutableStateOf(demoSeries(seed = 13, len = HISTORY_LEN, base = 48f, spread = 12f)) }
-
-    LaunchedEffect(bmsTelemetry?.timestamp) {
-        val t = bmsTelemetry ?: return@LaunchedEffect
-        if (!t.packTemperature.isNaN()) {
-            temperature = (temperature.drop(1) + t.packTemperature).takeLast(HISTORY_LEN)
-        }
-        dustDensity = (dustDensity.drop(1) + t.pm25.toFloat()).takeLast(HISTORY_LEN)
-        if (!t.packHumidity.isNaN()) {
-            humidity = (humidity.drop(1) + t.packHumidity).takeLast(HISTORY_LEN)
-        }
+    LaunchedEffect(bmsTelemetry) {
+        val reading = bmsTelemetry ?: return@LaunchedEffect
+        series = series.withReading(reading, timeSource)
     }
 
-    val latestTelemetry = rememberUpdatedState(bmsTelemetry)
     LaunchedEffect(Unit) {
         while (isActive) {
-            delay(DEMO_TICK_MS)
-            if (latestTelemetry.value == null) {
-                temperature = advanceDemo(temperature, min = 16f, max = 34f, drift = 0.4f)
-                dustDensity = advanceDemo(dustDensity, min = 5f, max = 85f, drift = 1.2f)
-                humidity = advanceDemo(humidity, min = 28f, max = 78f, drift = 0.55f)
-            }
+            delay(1.seconds)
+            tick++
         }
     }
 
-    val bmsOn = bmsTelemetry != null
+    val live = remember(series, tick) { series.showsLiveChart() }
     Column(modifier = modifier.fillMaxSize()) {
         EcoSubChipsBar(
             labels = tabLabels,
@@ -95,66 +81,33 @@ fun ChartsSubNav(
         )
         HorizontalDivider(color = EcoCarColors.Divider)
         when (tab) {
-            0 -> TemperatureChart(
-                temperature,
-                bmsOn,
-                Modifier.weight(1f).fillMaxWidth(),
+            0 -> SensorChart(
+                title = stringResource(Res.string.chart_temp_title),
+                subtitle = stringResource(Res.string.chart_temp_subtitle_bms),
+                values = if (live) series.temperature else null,
+                modifier = Modifier.weight(1f).fillMaxWidth(),
             )
-            1 -> DustDensityChart(
-                dustDensity,
-                bmsOn,
-                Modifier.weight(1f).fillMaxWidth(),
+            1 -> SensorChart(
+                title = stringResource(Res.string.chart_dust_title),
+                subtitle = stringResource(Res.string.chart_dust_subtitle_bms),
+                values = if (live) series.pm25 else null,
+                modifier = Modifier.weight(1f).fillMaxWidth(),
             )
-            else -> HumidityChart(
-                humidity,
-                bmsOn,
-                Modifier.weight(1f).fillMaxWidth(),
+            else -> SensorChart(
+                title = stringResource(Res.string.chart_humidity_title),
+                subtitle = stringResource(Res.string.chart_humidity_subtitle_bms),
+                values = if (live) series.humidity else null,
+                modifier = Modifier.weight(1f).fillMaxWidth(),
             )
         }
     }
 }
 
 @Composable
-private fun TemperatureChart(values: List<Float>, bmsActive: Boolean, modifier: Modifier = Modifier) {
-    ChartPanel(
-        title = stringResource(Res.string.chart_temp_title),
-        subtitle = stringResource(
-            if (bmsActive) Res.string.chart_temp_subtitle_bms else Res.string.chart_temp_subtitle_demo,
-        ),
-        values = values,
-        modifier = modifier,
-    )
-}
-
-@Composable
-private fun DustDensityChart(values: List<Float>, bmsActive: Boolean, modifier: Modifier = Modifier) {
-    ChartPanel(
-        title = stringResource(Res.string.chart_dust_title),
-        subtitle = stringResource(
-            if (bmsActive) Res.string.chart_dust_subtitle_bms else Res.string.chart_dust_subtitle_demo,
-        ),
-        values = values,
-        modifier = modifier,
-    )
-}
-
-@Composable
-private fun HumidityChart(values: List<Float>, bmsActive: Boolean, modifier: Modifier = Modifier) {
-    ChartPanel(
-        title = stringResource(Res.string.chart_humidity_title),
-        subtitle = stringResource(
-            if (bmsActive) Res.string.chart_humidity_subtitle_bms else Res.string.chart_humidity_subtitle_demo,
-        ),
-        values = values,
-        modifier = modifier,
-    )
-}
-
-@Composable
-private fun ChartPanel(
+private fun SensorChart(
     title: String,
     subtitle: String,
-    values: List<Float>,
+    values: List<Float>?,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.padding(16.dp)) {
@@ -169,8 +122,16 @@ private fun ChartPanel(
             color = EcoCarColors.OnDarkSecondary,
             modifier = Modifier.padding(bottom = 12.dp),
         )
-        val safe = values.takeIf { it.size >= 2 } ?: listOf(0f, 0f)
-        LineChartCanvas(values = safe, modifier = Modifier.weight(1f).fillMaxWidth())
+        if (values == null) {
+            Text(
+                text = stringResource(Res.string.chart_no_sensor_data),
+                style = MaterialTheme.typography.bodySmall,
+                color = EcoCarColors.OnDarkSecondary,
+                modifier = Modifier.weight(1f).fillMaxWidth(),
+            )
+        } else {
+            LineChartCanvas(values = values, modifier = Modifier.weight(1f).fillMaxWidth())
+        }
     }
 }
 
@@ -182,6 +143,7 @@ private fun LineChartCanvas(
     val lineColor = EcoCarColors.GoldenYellow
     val gridColor = EcoCarColors.Divider
     Canvas(modifier = modifier.padding(8.dp)) {
+        if (values.isEmpty()) return@Canvas
         val pad = 40f
         val w = size.width - pad * 2
         val h = size.height - pad * 2
@@ -192,34 +154,54 @@ private fun LineChartCanvas(
             val y = pad + h * i / 4f
             drawLine(gridColor, Offset(pad, y), Offset(pad + w, y), strokeWidth = 1f)
         }
+        fun yOf(v: Float) = pad + h * (1f - (v - minV) / span)
+        if (values.size == 1) {
+            drawCircle(lineColor, radius = 4f, center = Offset(pad, yOf(values[0])))
+            return@Canvas
+        }
         val path = Path()
         values.forEachIndexed { i, v ->
-            val x = pad + w * i / (values.size - 1).coerceAtLeast(1)
-            val y = pad + h * (1f - (v - minV) / span)
+            val x = pad + w * i / (values.size - 1)
+            val y = yOf(v)
             if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
         }
         drawPath(path, color = lineColor, style = Stroke(width = 3f))
     }
 }
 
-private fun demoSeries(seed: Int, len: Int, base: Float, spread: Float): List<Float> {
-    val rnd = Random(seed)
-    return List(len) { i ->
-        val wobble = (rnd.nextFloat() - 0.5f) * spread * 0.15f
-        val wave = (spread * sin(i / 6.0)).toFloat()
-        (base + wave + wobble).coerceIn(0f, base + spread + 5f)
+internal data class SensorChartSeries(
+    val temperature: List<Float> = emptyList(),
+    val humidity: List<Float> = emptyList(),
+    val pm25: List<Float> = emptyList(),
+    val receivedAt: TimeMark? = null,
+) {
+    fun withReading(telemetry: EcoBmsTelemetry, timeSource: TimeSource): SensorChartSeries {
+        val sample = liveChartSample(telemetry)
+        return copy(
+            temperature = append(temperature, sample.temperatureC),
+            humidity = append(humidity, sample.humidity),
+            pm25 = (pm25 + sample.pm25).takeLast(HISTORY_LEN),
+            receivedAt = timeSource.markNow(),
+        )
     }
+
+    fun showsLiveChart(): Boolean {
+        val received = receivedAt ?: return false
+        return received.elapsedNow() <= SENSOR_CHART_STALE
+    }
+
+    private fun append(current: List<Float>, value: Float): List<Float> =
+        if (value.isNaN()) current else (current + value).takeLast(HISTORY_LEN)
 }
 
-private fun advanceDemo(
-    current: List<Float>,
-    min: Float,
-    max: Float,
-    drift: Float,
-): List<Float> {
-    val rnd = Random.Default
-    val last = current.lastOrNull() ?: ((min + max) / 2f)
-    val delta = (rnd.nextFloat() - 0.5f) * drift * 2f
-    val next = (last + delta).coerceIn(min, max)
-    return (current.drop(1) + next).takeLast(HISTORY_LEN)
-}
+internal data class LiveChartSample(
+    val temperatureC: Float,
+    val humidity: Float,
+    val pm25: Float,
+)
+
+internal fun liveChartSample(telemetry: EcoBmsTelemetry): LiveChartSample = LiveChartSample(
+    temperatureC = telemetry.ambientTemperatureC,
+    humidity = telemetry.humidity,
+    pm25 = telemetry.pm25.toFloat(),
+)
