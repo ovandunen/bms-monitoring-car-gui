@@ -120,6 +120,8 @@
     <string name="music_tab_usb">USB</string>
     <string name="music_radio_player_blurb">UKW / FM — Senderliste und RDS. Anbindung an die Fahrzeug-Radio-HAL folgt.</string>
     <string name="music_retry">Erneut</string>
+    <string name="music_mode_shuffle">Zufall, jeder Titel einmal</string>
+    <string name="music_mode_whole_list">Ganze Liste wiederholen</string>
     <string name="music_no_files">Keine Audiodateien gefunden (USB / extern nach Berechtigung).</string>
     <string name="music_search_hint">Sender oder Genre suchen</string>
     <string name="music_retry_search">Erneut versuchen</string>

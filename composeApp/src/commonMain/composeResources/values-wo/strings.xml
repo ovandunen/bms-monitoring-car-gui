@@ -104,6 +104,8 @@
     <string name="music_tab_usb">USB</string>
     <string name="music_radio_player_blurb">FM / AM — liste stations ak RDS. Radio bu réew (Radio HAL) dina ñu ko def.</string>
     <string name="music_retry">Jéemaatal</string>
+    <string name="music_mode_shuffle">Mélange, chaque titre une fois</string>
+    <string name="music_mode_whole_list">Répéter toute la liste</string>
     <string name="music_search_hint">Seet station walla genre</string>
     <string name="music_retry_search">Jéemaatal</string>
     <string name="music_buffering">Stream dafay charge…</string>

@@ -18,9 +18,13 @@ import com.fleet.ecocar.ipc.BmsTelemetryBinder
 import com.fleet.ecocar.map.ChargingStationMapRequestPolicy
 import com.fleet.ecocar.map.EcoChargingStation
 import com.fleet.ecocar.music.MusicPlaybackSurface
+import com.fleet.ecocar.music.PlaybackSetup
 import com.fleet.ecocar.music.RadioStation
 import com.fleet.ecocar.music.Track
+import com.fleet.ecocar.music.UsbPlaybackMode
+import com.fleet.ecocar.music.UsbPlaybackSession
 import com.fleet.ecocar.music.UsbVolumeWatcher
+import com.fleet.ecocar.music.openPlaybackModeStore
 import com.fleet.ecocar.telemetry.EcoBmsAlert
 import com.fleet.ecocar.telemetry.EcoBmsTelemetry
 import com.fleet.ecocar.telemetry.toEcoBmsTelemetry
@@ -124,6 +128,11 @@ open class EcoCarApplication : Application() {
     @Volatile
     var musicPlaybackSurface: MusicPlaybackSurface? = null
         private set
+
+    private val playbackModeStore by lazy { openPlaybackModeStore(this) }
+    private val usbSession = UsbPlaybackSession()
+    private val _usbPlaybackMode = MutableStateFlow(UsbPlaybackMode.WHOLE_LIST)
+    val usbPlaybackMode: StateFlow<UsbPlaybackMode> = _usbPlaybackMode.asStateFlow()
 
     /** Null in a helper process: [onCreate] returns before the watcher is started. */
     internal var usbVolumeWatcher: UsbVolumeWatcher? = null
@@ -238,6 +247,9 @@ open class EcoCarApplication : Application() {
                 )
             }
         ).also { it.connect() }
+        appScope.launch {
+            _usbPlaybackMode.value = playbackModeStore.load()
+        }
     }
 
     protected open fun currentProcessName(): String =
@@ -353,9 +365,8 @@ open class EcoCarApplication : Application() {
                 .build()
         }
         val safeIndex = startIndex.coerceIn(0, items.lastIndex)
-        player.setMediaItems(items, safeIndex, C.TIME_UNSET)
-        player.prepare()
-        player.play()
+        val setup = usbSession.onNewQueue(items, safeIndex, _usbPlaybackMode.value)
+        applyPlayback(player, setup, play = true)
         MusicPlayerService.start(this)
         publishTopBarFromPlayer()
         schedulePositionTicks()
@@ -373,6 +384,8 @@ open class EcoCarApplication : Application() {
                     .build(),
             )
             .build()
+        player.shuffleModeEnabled = false
+        player.repeatMode = Player.REPEAT_MODE_OFF
         player.setMediaItem(item)
         player.prepare()
         player.play()
@@ -388,6 +401,7 @@ open class EcoCarApplication : Application() {
     fun stopUsbPlayback() {
         if (musicPlaybackSurface != MusicPlaybackSurface.USB) return
         musicPlaybackSurface = null
+        usbSession.clear()
         mainHandler.removeCallbacks(positionRunnable)
         val player = _exoPlayer
         if (player != null) {
@@ -403,6 +417,31 @@ open class EcoCarApplication : Application() {
             isPlaying = false,
             currentPosition = 0L,
         )
+    }
+
+    fun setUsbPlaybackMode(mode: UsbPlaybackMode) {
+        _usbPlaybackMode.value = mode
+        appScope.launch { playbackModeStore.save(mode) }
+        if (musicPlaybackSurface != MusicPlaybackSurface.USB) return
+        val player = _exoPlayer ?: return
+        val setup = usbSession.onModeChange(
+            currentMediaId = player.currentMediaItem?.mediaId,
+            positionMs = player.currentPosition,
+            mode = mode,
+        ) ?: return
+        applyPlayback(player, setup, play = player.playWhenReady)
+    }
+
+    private fun applyPlayback(player: ExoPlayer, setup: PlaybackSetup, play: Boolean) {
+        player.shuffleModeEnabled = false
+        player.repeatMode = if (setup.repeatAll) Player.REPEAT_MODE_ALL else Player.REPEAT_MODE_OFF
+        player.setMediaItems(setup.items, setup.startIndex, setup.startPositionMs)
+        player.prepare()
+        player.playWhenReady = play
+        if (play) {
+            schedulePositionTicks()
+        }
+        publishTopBarFromPlayer()
     }
 
     fun requestChargingStationsForMap(radiusMeters: Double = 0.0) {
