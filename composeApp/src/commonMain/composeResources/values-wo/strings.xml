@@ -8,6 +8,11 @@
     <string name="nav_browser">Navigateur</string>
     <string name="nav_settings">Parametër</string>
 
+    <string name="volume_speaker">Volume</string>
+    <string name="volume_down">Wàññi volume</string>
+    <string name="volume_up">Yokk volume</string>
+    <string name="volume_slider">Volume</string>
+
     <string name="bottom_soc">Nataal charge</string>
     <string name="bottom_trip">Yoon (trip)</string>
     <string name="bottom_range">Gëstu</string>

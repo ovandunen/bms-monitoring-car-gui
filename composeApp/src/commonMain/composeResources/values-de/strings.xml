@@ -7,6 +7,11 @@
     <string name="nav_browser">Browser</string>
     <string name="nav_settings">Einstellungen</string>
 
+    <string name="volume_speaker">Lautstärke</string>
+    <string name="volume_down">Leiser</string>
+    <string name="volume_up">Lauter</string>
+    <string name="volume_slider">Lautstärke</string>
+
     <string name="bottom_soc">Ladestand</string>
     <string name="bottom_trip">Distanz (Trip)</string>
     <string name="bottom_trip_reset_snackbar">Distanz zurückgesetzt</string>
