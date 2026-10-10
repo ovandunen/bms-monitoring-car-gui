@@ -30,8 +30,6 @@ import com.fleet.ecocar.ui.top.TopBarMusicState
 @Composable
 fun AppScaffold(
     modifier: Modifier = Modifier,
-    sidebarExpanded: Boolean,
-    onSidebarToggle: () -> Unit,
     bottomExpanded: Boolean,
     onBottomToggle: () -> Unit,
     selected: MainDestination,
@@ -53,8 +51,6 @@ fun AppScaffold(
     Box(modifier = modifier.fillMaxSize()) {
         Row(modifier = Modifier.fillMaxSize()) {
             EcoSideNav(
-                expanded = sidebarExpanded,
-                onToggleExpand = onSidebarToggle,
                 selected = selected,
                 onSelect = onSelectDestination,
             )

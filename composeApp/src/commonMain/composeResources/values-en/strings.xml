@@ -7,9 +7,6 @@
     <string name="nav_browser">Browser</string>
     <string name="nav_settings">Settings</string>
 
-    <string name="sidebar_collapse">Collapse sidebar</string>
-    <string name="sidebar_expand">Expand sidebar</string>
-
     <string name="bottom_soc">State of charge</string>
     <string name="bottom_trip">Trip distance</string>
     <string name="bottom_trip_reset_snackbar">Distanz zurückgesetzt</string>

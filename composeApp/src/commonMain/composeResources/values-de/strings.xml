@@ -7,9 +7,6 @@
     <string name="nav_browser">Browser</string>
     <string name="nav_settings">Einstellungen</string>
 
-    <string name="sidebar_collapse">Sidebar einklappen</string>
-    <string name="sidebar_expand">Sidebar aufklappen</string>
-
     <string name="bottom_soc">Ladestand</string>
     <string name="bottom_trip">Distanz (Trip)</string>
     <string name="bottom_trip_reset_snackbar">Distanz zurückgesetzt</string>

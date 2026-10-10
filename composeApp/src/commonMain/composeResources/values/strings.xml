@@ -8,9 +8,6 @@
     <string name="nav_browser">Navigateur</string>
     <string name="nav_settings">Réglages</string>
 
-    <string name="sidebar_collapse">Réduire la barre latérale</string>
-    <string name="sidebar_expand">Développer la barre latérale</string>
-
     <string name="bottom_soc">Charge</string>
     <string name="bottom_trip">Distance (trajet)</string>
     <string name="bottom_trip_reset_snackbar">Distanz zurückgesetzt</string>
