@@ -7,9 +7,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -21,17 +24,19 @@ import com.fleet.ecocar.theme.EcoCarColors
 import com.fleet.ecocar.ui.bottom.BottomTelemetry
 import com.fleet.ecocar.ui.bottom.EcoBottomBar
 import com.fleet.ecocar.ui.bottom.withSensorErrors
+import com.fleet.ecocar.ui.dialog.InWindowDialogSlot
+import com.fleet.ecocar.ui.dialog.LocalInWindowDialogSlot
 import com.fleet.ecocar.ui.dialog.LowBatteryDialog
 import com.fleet.ecocar.ui.main.MainContentArea
 import com.fleet.ecocar.ui.side.EcoSideNav
 import com.fleet.ecocar.ui.top.EcoTopBar
 import com.fleet.ecocar.ui.top.TopBarMusicState
+import com.fleet.ecocar.ui.volume.MusicVolumeBar
+import com.fleet.ecocar.ui.volume.rememberMusicVolume
 
 @Composable
 fun AppScaffold(
     modifier: Modifier = Modifier,
-    sidebarExpanded: Boolean,
-    onSidebarToggle: () -> Unit,
     bottomExpanded: Boolean,
     onBottomToggle: () -> Unit,
     selected: MainDestination,
@@ -50,55 +55,67 @@ fun AppScaffold(
     snackbarHostState: SnackbarHostState? = null,
     languageRepository: LanguageRepository? = null,
 ) {
-    Box(modifier = modifier.fillMaxSize()) {
-        Row(modifier = Modifier.fillMaxSize()) {
-            EcoSideNav(
-                expanded = sidebarExpanded,
-                onToggleExpand = onSidebarToggle,
-                selected = selected,
-                onSelect = onSelectDestination,
+    val volume = rememberMusicVolume()
+    val dialogSlot = remember { InWindowDialogSlot() }
+    CompositionLocalProvider(LocalInWindowDialogSlot provides dialogSlot) {
+        Column(
+            modifier = modifier.fillMaxSize().statusBarsPadding(),
+        ) {
+            MusicVolumeBar(
+                index = volume.index,
+                maxIndex = volume.maxIndex,
+                onIndexChange = volume.onIndexChange,
             )
-            Column(
-                modifier = Modifier.weight(1f).fillMaxSize(),
-            ) {
-                EcoTopBar(music = music)
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth()
-                        .background(EcoCarColors.NearBlack),
-                ) {
-                    MainContentArea(
-                        destination = selected,
-                        ecoBmsTelemetry = ecoBmsTelemetry,
-                        bmsAlerts = bmsAlerts,
-                        onSimulateLowBattery = onSimulateLowBattery,
-                        languageRepository = languageRepository,
+            Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
+                Row(modifier = Modifier.fillMaxSize()) {
+                    EcoSideNav(
+                        selected = selected,
+                        onSelect = onSelectDestination,
+                    )
+                    Column(
+                        modifier = Modifier.weight(1f).fillMaxSize(),
+                    ) {
+                        EcoTopBar(music = music)
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxWidth()
+                                .background(EcoCarColors.NearBlack),
+                        ) {
+                            MainContentArea(
+                                destination = selected,
+                                ecoBmsTelemetry = ecoBmsTelemetry,
+                                bmsAlerts = bmsAlerts,
+                                onSimulateLowBattery = onSimulateLowBattery,
+                                languageRepository = languageRepository,
+                            )
+                        }
+                        EcoBottomBar(
+                            expanded = bottomExpanded,
+                            onToggleExpand = onBottomToggle,
+                            telemetry = telemetry.withSensorErrors(ecoBmsTelemetry),
+                            onSettingsClick = onBottomSettings,
+                            onInfoClick = onBottomInfo,
+                        )
+                    }
+                }
+                snackbarHostState?.let { hostState ->
+                    SnackbarHost(
+                        hostState = hostState,
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(bottom = 72.dp),
                     )
                 }
-                EcoBottomBar(
-                    expanded = bottomExpanded,
-                    onToggleExpand = onBottomToggle,
-                    telemetry = telemetry.withSensorErrors(ecoBmsTelemetry),
-                    onSettingsClick = onBottomSettings,
-                    onInfoClick = onBottomInfo,
-                )
+                dialogSlot.content.value?.invoke()
+                if (showLowBattery) {
+                    LowBatteryDialog(
+                        onDismiss = onDismissLowBattery,
+                        onNavigateToCharging = onNavigateToCharging,
+                        onTechnicalIssues = onTechnicalIssues,
+                    )
+                }
             }
-        }
-        snackbarHostState?.let { hostState ->
-            SnackbarHost(
-                hostState = hostState,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 72.dp),
-            )
-        }
-        if (showLowBattery) {
-            LowBatteryDialog(
-                onDismiss = onDismissLowBattery,
-                onNavigateToCharging = onNavigateToCharging,
-                onTechnicalIssues = onTechnicalIssues,
-            )
         }
     }
 }

@@ -34,7 +34,6 @@ fun EcoCarApp(
 
     AppLocaleEnvironment(currentLang.value) {
         EcoCarTheme {
-            var sidebarExpanded by remember { mutableStateOf(true) }
             var bottomExpanded by remember { mutableStateOf(true) }
             var selected by remember { mutableStateOf(MainDestination.Battery) }
             var showLowBattery by remember { mutableStateOf(false) }
@@ -58,8 +57,6 @@ fun EcoCarApp(
                                 false
                             }
                         },
-                    sidebarExpanded = sidebarExpanded,
-                    onSidebarToggle = { sidebarExpanded = !sidebarExpanded },
                     bottomExpanded = bottomExpanded,
                     onBottomToggle = { bottomExpanded = !bottomExpanded },
                     selected = selected,

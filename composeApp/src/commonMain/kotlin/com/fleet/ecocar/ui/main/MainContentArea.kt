@@ -97,8 +97,6 @@ fun MainContentArea(
                     } else {
                         PlaceholderScreen(destination = destination)
                     }
-                else ->
-                    PlaceholderScreen(destination = destination)
             }
         }
         if (destination == MainDestination.Settings) {

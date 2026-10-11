@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.AlertDialog
+import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -17,6 +17,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -29,6 +30,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.fleet.ecocar.theme.EcoCarColors
+import com.fleet.ecocar.ui.dialog.InWindowDialog
+import com.fleet.ecocar.ui.dialog.LocalInWindowDialogSlot
 import eco_car_gui.composeapp.generated.resources.Res
 import eco_car_gui.composeapp.generated.resources.battery_trip_running
 import eco_car_gui.composeapp.generated.resources.trip_reset_button
@@ -55,6 +58,52 @@ actual fun BatteryTripsContent(
     val sessions by viewModel.tripSessions.collectAsState()
     val running = stringResource(Res.string.battery_trip_running)
     val resetController = remember { TripResetController { viewModel.resetTrip() } }
+    val dialogSlot = LocalInWindowDialogSlot.current
+    val confirmTitle = stringResource(Res.string.trip_reset_confirm_title)
+    val confirmBody = stringResource(Res.string.trip_reset_confirm_body)
+    val confirmYes = stringResource(Res.string.trip_reset_yes)
+    val confirmNo = stringResource(Res.string.trip_reset_no)
+    val confirmDialog: @Composable () -> Unit = {
+        InWindowDialog(
+            onDismissRequest = { resetController.onConfirmNo() },
+            title = {
+                Text(
+                    text = confirmTitle,
+                    style = MaterialTheme.typography.titleLarge,
+                    color = EcoCarColors.OnDark,
+                )
+            },
+            text = {
+                Text(
+                    text = confirmBody,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = EcoCarColors.OnDarkSecondary,
+                )
+            },
+            buttons = {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    TextButton(onClick = { resetController.onConfirmNo() }) {
+                        Text(confirmNo, color = EcoCarColors.OnDarkSecondary)
+                    }
+                    TextButton(onClick = { resetController.onConfirmYes() }) {
+                        Text(confirmYes, color = EcoCarColors.GoldenYellow)
+                    }
+                }
+            },
+        )
+    }
+    DisposableEffect(resetController.confirmationVisible) {
+        if (resetController.confirmationVisible) {
+            dialogSlot.content.value = confirmDialog
+        } else if (dialogSlot.content.value === confirmDialog) {
+            dialogSlot.content.value = null
+        }
+        onDispose {
+            if (dialogSlot.content.value === confirmDialog) {
+                dialogSlot.content.value = null
+            }
+        }
+    }
     Column(modifier = modifier.fillMaxSize().padding(16.dp)) {
         Button(
             onClick = { resetController.onResetButtonClick() },
@@ -67,26 +116,6 @@ actual fun BatteryTripsContent(
             ),
         ) {
             Text(stringResource(Res.string.trip_reset_button))
-        }
-        if (resetController.confirmationVisible) {
-            AlertDialog(
-                onDismissRequest = { resetController.onConfirmNo() },
-                containerColor = EcoCarColors.SurfaceElevated,
-                titleContentColor = EcoCarColors.OnDark,
-                textContentColor = EcoCarColors.OnDarkSecondary,
-                title = { Text(stringResource(Res.string.trip_reset_confirm_title)) },
-                text = { Text(stringResource(Res.string.trip_reset_confirm_body)) },
-                confirmButton = {
-                    TextButton(onClick = { resetController.onConfirmYes() }) {
-                        Text(stringResource(Res.string.trip_reset_yes), color = EcoCarColors.GoldenYellow)
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { resetController.onConfirmNo() }) {
-                        Text(stringResource(Res.string.trip_reset_no), color = EcoCarColors.OnDarkSecondary)
-                    }
-                },
-            )
         }
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(top = 12.dp),

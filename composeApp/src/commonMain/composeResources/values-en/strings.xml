@@ -7,8 +7,10 @@
     <string name="nav_browser">Browser</string>
     <string name="nav_settings">Settings</string>
 
-    <string name="sidebar_collapse">Collapse sidebar</string>
-    <string name="sidebar_expand">Expand sidebar</string>
+    <string name="volume_speaker">Volume</string>
+    <string name="volume_down">Lower volume</string>
+    <string name="volume_up">Raise volume</string>
+    <string name="volume_slider">Volume</string>
 
     <string name="bottom_soc">State of charge</string>
     <string name="bottom_trip">Trip distance</string>
@@ -118,6 +120,8 @@
     <string name="music_tab_usb">USB</string>
     <string name="music_radio_player_blurb">FM / AM — station list and RDS. Vehicle radio (Radio HAL) integration coming soon.</string>
     <string name="music_retry">Retry</string>
+    <string name="music_mode_shuffle">Shuffle, each track once</string>
+    <string name="music_mode_whole_list">Repeat all</string>
     <string name="music_no_files">No audio files found (USB / external after permission).</string>
     <string name="music_search_hint">Search station or genre</string>
     <string name="music_retry_search">Try again</string>
