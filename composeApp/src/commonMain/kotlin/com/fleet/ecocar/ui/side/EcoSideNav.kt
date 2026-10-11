@@ -26,8 +26,8 @@ import com.ecocar.gui.nav.localizedLabel
 import com.fleet.ecocar.nav.MainDestination
 import com.fleet.ecocar.theme.EcoCarColors
 
-private val SideNavWidth = 56.dp
-private val NavTargetSize = 48.dp
+internal val NAV_RAIL_WIDTH = 48.dp
+private val NavIconSize = 28.dp
 
 @Composable
 fun EcoSideNav(
@@ -36,7 +36,7 @@ fun EcoSideNav(
     modifier: Modifier = Modifier,
 ) {
     Surface(
-        modifier = modifier.width(SideNavWidth).fillMaxHeight(),
+        modifier = modifier.width(NAV_RAIL_WIDTH).fillMaxHeight(),
         color = EcoCarColors.SurfaceElevated,
         tonalElevation = 0.dp,
     ) {
@@ -72,7 +72,7 @@ private fun NavTile(
 
     Box(
         modifier = Modifier
-            .size(NavTargetSize)
+            .size(NAV_RAIL_WIDTH)
             .clip(shape)
             .background(bg)
             .border(borderWidth, borderColor, shape)
@@ -83,6 +83,7 @@ private fun NavTile(
         Icon(
             imageVector = destination.icon,
             contentDescription = null,
+            modifier = Modifier.size(NavIconSize),
             tint = contentColor,
         )
     }
