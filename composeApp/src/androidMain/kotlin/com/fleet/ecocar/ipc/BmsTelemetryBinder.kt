@@ -71,6 +71,10 @@ class BmsTelemetryBinder(
             mainHandler.post { onTelemetry(snap) }
 
             BmsLocationMapper.toLocation(data)?.let { location ->
+                Log.d(
+                    "BmsAcceptanceGps",
+                    "data_update lat=${location.latitude} lon=${location.longitude} bearing=${location.bearing} hasBearing=${location.hasBearing()}",
+                )
                 mainHandler.post { onLocationUpdate(location) }
             }
         }
