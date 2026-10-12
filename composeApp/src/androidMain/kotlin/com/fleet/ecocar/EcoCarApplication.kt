@@ -3,7 +3,6 @@ package com.fleet.ecocar
 import android.app.Application
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.platform.LocalContext
@@ -238,10 +237,6 @@ open class EcoCarApplication : Application() {
             },
             // Now actually invoked - see the fix in BmsTelemetryBinder.onDataUpdate.
             onLocationUpdate = { location ->
-                Log.d(
-                    "BmsAcceptanceGps",
-                    "bms_location_received lat=${location.latitude} lon=${location.longitude} bearing=${location.bearing} hasBearing=${location.hasBearing()}",
-                )
                 _vehicleLocation.value = VehicleLocationSnapshot(
                     latitude = location.latitude,
                     longitude = location.longitude,

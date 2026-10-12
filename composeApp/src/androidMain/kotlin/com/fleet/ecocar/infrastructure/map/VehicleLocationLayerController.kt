@@ -33,10 +33,7 @@ class VehicleLocationLayerController(
         if (existing != null) {
             existing.setGeoJson(geoJson)
             if (BuildConfig.DEBUG) {
-                Log.d(
-                    "BmsAcceptanceGps",
-                    "marker_rendered lat=$latitude lon=$longitude bearing=$bearing hasBearing=${headingDegrees != null}",
-                )
+                Log.d("BmsAcceptanceGps", "marker_rendered lat=$latitude lon=$longitude")
             }
             return
         }
@@ -53,10 +50,7 @@ class VehicleLocationLayerController(
             ),
         )
         if (BuildConfig.DEBUG) {
-            Log.d(
-                "BmsAcceptanceGps",
-                "marker_rendered lat=$latitude lon=$longitude bearing=$bearing hasBearing=${headingDegrees != null}",
-            )
+            Log.d("BmsAcceptanceGps", "marker_rendered lat=$latitude lon=$longitude")
         }
     }
 
