@@ -13,6 +13,7 @@ data class ChargingStationMapState(
     // EcoCarApplication/LocalContext reference.
     val vehicleLatitude: Double? = null,
     val vehicleLongitude: Double? = null,
+    val vehicleHeadingDegrees: Double? = null,
 )
 
 @Composable

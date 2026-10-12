@@ -23,14 +23,16 @@ import org.maplibre.android.maps.Style
 fun MapViewWithStationPins(
     styleUri: String,
     stations: List<ChargingStation>,
-    vehicleLatitude: Double? = null, 
+    vehicleLatitude: Double? = null,
     vehicleLongitude: Double? = null,
+    vehicleHeadingDegrees: Double? = null,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
     val mapView = remember { MapView(context) }
     var mapRef by remember { mutableStateOf<MapLibreMap?>(null) }
     var styleReady by remember { mutableStateOf(false) }
+    var locationController by remember { mutableStateOf<VehicleLocationLayerController?>(null) }
     val geoJsonAdapter = remember { GeoJsonStationLayerAdapter() }
 
     MapViewLifecycleBinding(mapView)
@@ -42,13 +44,15 @@ fun MapViewWithStationPins(
                 styleReady = true
                 StationPinLayerController(context, style)
                     .addOrUpdateLayer(geoJsonAdapter.toGeoJson(stations))
-                VehicleLocationLayerController(context, style)
-                    .setLocation(vehicleLatitude, vehicleLongitude)
+                locationController = VehicleLocationLayerController(context, style).also {
+                    it.setLocation(vehicleLatitude, vehicleLongitude, vehicleHeadingDegrees)
+                }
             }
         }
         onDispose {
             styleReady = false
             mapRef = null
+            locationController = null
         }
     }
 
@@ -61,21 +65,20 @@ fun MapViewWithStationPins(
         }
     }
 
+    LaunchedEffect(vehicleLatitude, vehicleLongitude, vehicleHeadingDegrees, locationController) {
+        locationController?.setLocation(vehicleLatitude, vehicleLongitude, vehicleHeadingDegrees)
+    }
+
     LaunchedEffect(vehicleLatitude, vehicleLongitude, styleReady, mapRef) {
         if (!styleReady) return@LaunchedEffect
         val map = mapRef ?: return@LaunchedEffect
-        map.getStyle { style ->
-            VehicleLocationLayerController(context, style)
-                .setLocation(vehicleLatitude, vehicleLongitude)
-        }
-        // ← CAMERA TRACKING GOES HERE, inside the same LaunchedEffect
         if (vehicleLatitude != null && vehicleLongitude != null) {
             map.animateCamera(
                 org.maplibre.android.camera.CameraUpdateFactory.newLatLngZoom(
                     org.maplibre.android.geometry.LatLng(vehicleLatitude, vehicleLongitude),
-                    15.0  // or keep current zoom: map.cameraPosition.zoom
+                    15.0
                 ),
-                300   // duration ms
+                300
             )
         }
     }

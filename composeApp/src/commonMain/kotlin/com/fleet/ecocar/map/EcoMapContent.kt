@@ -17,4 +17,5 @@ expect fun EcoMapContent(
     onRefreshStations: () -> Unit,
     vehicleLatitude: Double? = null,
     vehicleLongitude: Double? = null,
+    vehicleHeadingDegrees: Double? = null,
 )

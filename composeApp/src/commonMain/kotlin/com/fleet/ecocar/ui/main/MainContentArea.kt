@@ -70,6 +70,7 @@ fun MainContentArea(
                         // here, same as stations/isRefreshing above.
                         vehicleLatitude = mapState.vehicleLatitude,
                         vehicleLongitude = mapState.vehicleLongitude,
+                        vehicleHeadingDegrees = mapState.vehicleHeadingDegrees,
                     )
                 }
                 MainDestination.Browser ->

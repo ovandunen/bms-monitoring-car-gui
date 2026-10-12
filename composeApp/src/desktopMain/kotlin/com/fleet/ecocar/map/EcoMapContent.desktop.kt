@@ -22,6 +22,7 @@ actual fun EcoMapContent(
     onRefreshStations: () -> Unit,
     vehicleLatitude: Double?,
     vehicleLongitude: Double?,
+    vehicleHeadingDegrees: Double?,
 ) {
     Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         PlaceholderScreen(destination = MainDestination.Map)
