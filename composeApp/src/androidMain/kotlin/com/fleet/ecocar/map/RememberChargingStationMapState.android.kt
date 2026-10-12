@@ -21,5 +21,6 @@ actual fun rememberChargingStationMapState(): ChargingStationMapState {
         refresh = refresh,
         vehicleLatitude = vehicleLocation?.latitude,
         vehicleLongitude = vehicleLocation?.longitude,
+        vehicleHeadingDegrees = vehicleLocation?.headingDegrees,
     )
 }

@@ -27,5 +27,6 @@ object BmsLocationMapper {
             longitude = location.longitude
             time = location.timestampMillis
             location.accuracyMeters?.let { accuracy = it }
+            location.headingDegrees?.let { bearing = it.toFloat() }
         }
 }

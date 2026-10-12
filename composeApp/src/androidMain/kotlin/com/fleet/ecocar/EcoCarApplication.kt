@@ -234,7 +234,8 @@ open class EcoCarApplication : Application() {
                     altitude = location.altitude,
                     speed = location.speed,
                     timestamp = System.currentTimeMillis(),
-                    accuracy = location.accuracy
+                    accuracy = location.accuracy,
+                    headingDegrees = if (location.hasBearing()) location.bearing.toDouble() else null,
                 )
             }
         ).also { it.connect() }
