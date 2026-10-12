@@ -3,7 +3,10 @@ package com.fleet.ecocar.infrastructure.map
 import android.content.Context
 import android.util.Log
 import com.fleet.ecocar.composeapp.BuildConfig
+import com.fleet.ecocar.map.VehicleMarkerGeoJson
 import org.maplibre.android.maps.Style
+import org.maplibre.android.style.expressions.Expression
+import org.maplibre.android.style.layers.Property
 import org.maplibre.android.style.layers.PropertyFactory
 import org.maplibre.android.style.layers.SymbolLayer
 import org.maplibre.android.style.sources.GeoJsonSource
@@ -13,12 +16,15 @@ class VehicleLocationLayerController(
     private val style: Style,
 ) {
     private val bitmap = VehicleLocationBitmapFactory.createBitmap(context)
+    private var retainedBearing: Double? = null
 
-    fun setLocation(latitude: Double?, longitude: Double?) {
+    fun setLocation(latitude: Double?, longitude: Double?, headingDegrees: Double?) {
         registerIconIfNeeded()
+        val bearing = VehicleMarkerGeoJson.resolveBearing(headingDegrees, retainedBearing)
+        if (bearing != null) retainedBearing = bearing
 
         val geoJson = if (latitude != null && longitude != null) {
-            """{"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"Point","coordinates":[$longitude,$latitude]},"properties":{}}]}"""
+            VehicleMarkerGeoJson.toGeoJson(longitude, latitude, bearing)
         } else {
             """{"type":"FeatureCollection","features":[]}"""
         }
@@ -39,6 +45,8 @@ class VehicleLocationLayerController(
                 PropertyFactory.iconAllowOverlap(true),
                 PropertyFactory.iconIgnorePlacement(true),
                 PropertyFactory.iconAnchor("center"),
+                PropertyFactory.iconRotate(Expression.get("bearing")),
+                PropertyFactory.iconRotationAlignment(Property.ICON_ROTATION_ALIGNMENT_MAP),
             ),
         )
         if (BuildConfig.DEBUG) {

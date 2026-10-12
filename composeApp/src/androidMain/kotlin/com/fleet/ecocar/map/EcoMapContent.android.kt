@@ -51,6 +51,7 @@ actual fun EcoMapContent(
     // straight through to MapViewWithStationPins below.
     vehicleLatitude: Double?,
     vehicleLongitude: Double?,
+    vehicleHeadingDegrees: Double?,
 ) {
     LaunchedEffect(Unit) {
         onRefreshStations()
@@ -74,6 +75,7 @@ actual fun EcoMapContent(
                     stations = pinStations,
                     vehicleLatitude = vehicleLatitude,
                     vehicleLongitude = vehicleLongitude,
+                    vehicleHeadingDegrees = vehicleHeadingDegrees,
                     modifier = Modifier.fillMaxSize(),
                 )
             } else {
