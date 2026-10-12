@@ -8,8 +8,10 @@
     <string name="nav_browser">Navigateur</string>
     <string name="nav_settings">Réglages</string>
 
-    <string name="sidebar_collapse">Réduire la barre latérale</string>
-    <string name="sidebar_expand">Développer la barre latérale</string>
+    <string name="volume_speaker">Volume</string>
+    <string name="volume_down">Baisser le volume</string>
+    <string name="volume_up">Augmenter le volume</string>
+    <string name="volume_slider">Volume</string>
 
     <string name="bottom_soc">Charge</string>
     <string name="bottom_trip">Distance (trajet)</string>
@@ -119,6 +121,8 @@
     <string name="music_tab_usb">USB</string>
     <string name="music_radio_player_blurb">FM / AM — liste des stations et RDS. Connexion radio embarquée (Radio HAL) à venir.</string>
     <string name="music_retry">Réessayer</string>
+    <string name="music_mode_shuffle">Lecture aléatoire, chaque titre une fois</string>
+    <string name="music_mode_whole_list">Répéter toute la liste</string>
     <string name="music_no_files">Aucun fichier audio trouvé (USB / externe après autorisation).</string>
     <string name="music_search_hint">Rechercher une station ou un genre</string>
     <string name="music_retry_search">Réessayer</string>

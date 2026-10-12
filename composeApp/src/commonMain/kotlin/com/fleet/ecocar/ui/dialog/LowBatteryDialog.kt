@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -20,10 +19,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.fleet.ecocar.theme.EcoCarColors
 import eco_car_gui.composeapp.generated.resources.Res
-import eco_car_gui.composeapp.generated.resources.dialog_low_battery_charge_cta
 import eco_car_gui.composeapp.generated.resources.dialog_close
 import eco_car_gui.composeapp.generated.resources.dialog_low_battery_action
 import eco_car_gui.composeapp.generated.resources.dialog_low_battery_body
+import eco_car_gui.composeapp.generated.resources.dialog_low_battery_charge_cta
 import eco_car_gui.composeapp.generated.resources.dialog_low_battery_title
 import eco_car_gui.composeapp.generated.resources.dialog_technical
 import org.jetbrains.compose.resources.stringResource
@@ -34,16 +33,14 @@ fun LowBatteryDialog(
     onNavigateToCharging: () -> Unit,
     onTechnicalIssues: () -> Unit,
 ) {
-    AlertDialog(
+    InWindowDialog(
         onDismissRequest = onDismiss,
-        containerColor = EcoCarColors.SurfaceElevated,
-        titleContentColor = EcoCarColors.OnDark,
-        textContentColor = EcoCarColors.OnDarkSecondary,
         title = {
             Text(
                 text = stringResource(Res.string.dialog_low_battery_title),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
+                color = EcoCarColors.OnDark,
             )
         },
         text = {
@@ -51,14 +48,16 @@ fun LowBatteryDialog(
                 Text(
                     text = stringResource(Res.string.dialog_low_battery_body),
                     style = MaterialTheme.typography.bodyMedium,
+                    color = EcoCarColors.OnDarkSecondary,
                 )
                 Text(
                     text = stringResource(Res.string.dialog_low_battery_action),
                     style = MaterialTheme.typography.bodySmall,
+                    color = EcoCarColors.OnDarkSecondary,
                 )
             }
         },
-        confirmButton = {
+        buttons = {
             Column(
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),

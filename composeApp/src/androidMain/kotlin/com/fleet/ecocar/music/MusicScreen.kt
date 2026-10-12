@@ -36,7 +36,9 @@ import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.outlined.Radio
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
@@ -54,6 +56,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.mutableFloatStateOf
@@ -79,6 +82,8 @@ import com.bumptech.glide.Glide
 import com.fleet.ecocar.EcoCarApplication
 import eco_car_gui.composeapp.generated.resources.Res
 import eco_car_gui.composeapp.generated.resources.music_buffering
+import eco_car_gui.composeapp.generated.resources.music_mode_shuffle
+import eco_car_gui.composeapp.generated.resources.music_mode_whole_list
 import eco_car_gui.composeapp.generated.resources.music_no_files
 import eco_car_gui.composeapp.generated.resources.music_no_stations
 import eco_car_gui.composeapp.generated.resources.music_retry
@@ -239,6 +244,7 @@ fun MusicScreen(modifier: Modifier = Modifier) {
 
     val currentUsbIndex = player.currentMediaItemIndex
     val isUsbMode = app.musicPlaybackSurface == MusicPlaybackSurface.USB
+    val playbackMode by app.usbPlaybackMode.collectAsState()
 
     Column(
         modifier = modifier
@@ -325,6 +331,8 @@ fun MusicScreen(modifier: Modifier = Modifier) {
             usbTracks = usbTracks,
             currentUsbIndex = currentUsbIndex,
             isUsbMode = isUsbMode,
+            usbTab = mainTab == TAB_USB,
+            playbackMode = playbackMode,
         )
     }
 }
@@ -564,6 +572,8 @@ private fun SharedPlayerBar(
     usbTracks: List<Track>,
     currentUsbIndex: Int,
     isUsbMode: Boolean,
+    usbTab: Boolean,
+    playbackMode: UsbPlaybackMode,
 ) {
     val context = LocalContext.current
     val item = player.currentMediaItem
@@ -694,6 +704,25 @@ private fun SharedPlayerBar(
                     tint = TabActive,
                     modifier = Modifier.size(36.dp),
                 )
+            }
+            if (usbTab) {
+                val shuffle = playbackMode == UsbPlaybackMode.SHUFFLE
+                IconButton(
+                    onClick = {
+                        app.setUsbPlaybackMode(
+                            if (shuffle) UsbPlaybackMode.WHOLE_LIST else UsbPlaybackMode.SHUFFLE,
+                        )
+                    },
+                    modifier = Modifier.size(48.dp),
+                ) {
+                    Icon(
+                        imageVector = if (shuffle) Icons.Filled.Shuffle else Icons.Filled.Repeat,
+                        contentDescription = stringResource(
+                            if (shuffle) Res.string.music_mode_shuffle else Res.string.music_mode_whole_list,
+                        ),
+                        tint = TabActive,
+                    )
+                }
             }
             IconButton(
                 onClick = { player.seekToNextMediaItem() },

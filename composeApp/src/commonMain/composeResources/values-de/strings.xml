@@ -7,8 +7,10 @@
     <string name="nav_browser">Browser</string>
     <string name="nav_settings">Einstellungen</string>
 
-    <string name="sidebar_collapse">Sidebar einklappen</string>
-    <string name="sidebar_expand">Sidebar aufklappen</string>
+    <string name="volume_speaker">Lautstärke</string>
+    <string name="volume_down">Leiser</string>
+    <string name="volume_up">Lauter</string>
+    <string name="volume_slider">Lautstärke</string>
 
     <string name="bottom_soc">Ladestand</string>
     <string name="bottom_trip">Distanz (Trip)</string>
@@ -118,6 +120,8 @@
     <string name="music_tab_usb">USB</string>
     <string name="music_radio_player_blurb">UKW / FM — Senderliste und RDS. Anbindung an die Fahrzeug-Radio-HAL folgt.</string>
     <string name="music_retry">Erneut</string>
+    <string name="music_mode_shuffle">Zufall, jeder Titel einmal</string>
+    <string name="music_mode_whole_list">Ganze Liste wiederholen</string>
     <string name="music_no_files">Keine Audiodateien gefunden (USB / extern nach Berechtigung).</string>
     <string name="music_search_hint">Sender oder Genre suchen</string>
     <string name="music_retry_search">Erneut versuchen</string>
