@@ -147,5 +147,8 @@
     <string name="map_stations_legend">Vert = disponible · Violet = cache hors ligne (CSMS pas toujours joignable)</string>
     <string name="map_stations_loading">Mise à jour… le CSMS live n’est pas toujours disponible.</string>
     <string name="map_stations_empty">Aucune station en cache. Sans CSMS/MQTT joignable, la liste reste vide jusqu’à une requête live réussie.</string>
+    <string name="map_stations_empty_line">Aucune station enregistrée, CSMS injoignable</string>
     <string name="map_refresh">Actualiser</string>
+    <string name="map_zoom_in">Agrandir la carte</string>
+    <string name="map_zoom_out">Réduire la carte</string>
 </resources>

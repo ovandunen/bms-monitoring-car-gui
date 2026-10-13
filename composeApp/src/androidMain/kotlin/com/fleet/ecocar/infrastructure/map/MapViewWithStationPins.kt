@@ -11,6 +11,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import com.fleet.ecocar.domain.map.ChargingStation
+import com.fleet.ecocar.map.steppedMapZoom
+import org.maplibre.android.camera.CameraUpdateFactory
+import org.maplibre.android.geometry.LatLng
 import org.maplibre.android.maps.MapLibreMap
 import org.maplibre.android.maps.MapView
 import org.maplibre.android.maps.Style
@@ -26,6 +29,7 @@ fun MapViewWithStationPins(
     vehicleLatitude: Double? = null,
     vehicleLongitude: Double? = null,
     vehicleHeadingDegrees: Double? = null,
+    zoomPort: MapZoomPort,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -34,12 +38,22 @@ fun MapViewWithStationPins(
     var styleReady by remember { mutableStateOf(false) }
     var locationController by remember { mutableStateOf<VehicleLocationLayerController?>(null) }
     val geoJsonAdapter = remember { GeoJsonStationLayerAdapter() }
+    var followedVehicle by remember { mutableStateOf(false) }
 
     MapViewLifecycleBinding(mapView)
 
     DisposableEffect(mapView, styleUri) {
         mapView.getMapAsync { map ->
             mapRef = map
+            zoomPort.bind { delta ->
+                val next = steppedMapZoom(
+                    current = map.cameraPosition.zoom,
+                    delta = delta,
+                    minZoom = map.minZoomLevel,
+                    maxZoom = map.maxZoomLevel,
+                )
+                map.animateCamera(CameraUpdateFactory.zoomTo(next), CAMERA_MOVE_MS)
+            }
             map.setStyle(Style.Builder().fromUri(styleUri)) { style ->
                 styleReady = true
                 StationPinLayerController(context, style)
@@ -50,6 +64,7 @@ fun MapViewWithStationPins(
             }
         }
         onDispose {
+            zoomPort.unbind()
             styleReady = false
             mapRef = null
             locationController = null
@@ -73,13 +88,14 @@ fun MapViewWithStationPins(
         if (!styleReady) return@LaunchedEffect
         val map = mapRef ?: return@LaunchedEffect
         if (vehicleLatitude != null && vehicleLongitude != null) {
-            map.animateCamera(
-                org.maplibre.android.camera.CameraUpdateFactory.newLatLngZoom(
-                    org.maplibre.android.geometry.LatLng(vehicleLatitude, vehicleLongitude),
-                    15.0
-                ),
-                300
-            )
+            val target = LatLng(vehicleLatitude, vehicleLongitude)
+            val update = if (followedVehicle) {
+                CameraUpdateFactory.newLatLng(target)
+            } else {
+                CameraUpdateFactory.newLatLngZoom(target, INITIAL_ZOOM)
+            }
+            map.animateCamera(update, CAMERA_MOVE_MS)
+            followedVehicle = true
         }
     }
 
@@ -88,3 +104,6 @@ fun MapViewWithStationPins(
         modifier = modifier,
     )
 }
+
+private const val INITIAL_ZOOM = 15.0
+private const val CAMERA_MOVE_MS = 300

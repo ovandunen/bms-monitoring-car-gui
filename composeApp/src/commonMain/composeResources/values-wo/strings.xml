@@ -123,4 +123,6 @@
     <string name="browser_reload">Yeesal</string>
 
     <string name="notification_playback">Lecture média</string>
+    <string name="map_zoom_in">Yokk kàrt</string>
+    <string name="map_zoom_out">Wàññi kàrt</string>
 </resources>

@@ -11,7 +11,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -41,7 +40,6 @@ import eco_car_gui.composeapp.generated.resources.bottom_info
 import eco_car_gui.composeapp.generated.resources.bottom_km
 import eco_car_gui.composeapp.generated.resources.bottom_km_dash
 import eco_car_gui.composeapp.generated.resources.bottom_range
-import eco_car_gui.composeapp.generated.resources.bottom_settings
 import eco_car_gui.composeapp.generated.resources.bottom_soc
 import eco_car_gui.composeapp.generated.resources.bottom_tons
 import eco_car_gui.composeapp.generated.resources.bottom_tons_dash
@@ -68,7 +66,6 @@ fun EcoBottomBar(
     expanded: Boolean,
     onToggleExpand: () -> Unit,
     telemetry: BottomTelemetry,
-    onSettingsClick: () -> Unit,
     onInfoClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -127,21 +124,6 @@ fun EcoBottomBar(
                         valueContentDescription = rangeDescriptor,
                     )
                     TelemetryChip(stringResource(Res.string.bottom_co2), co2Text)
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    TextButton(onClick = onSettingsClick) {
-                        Icon(
-                            Icons.Filled.Settings,
-                            contentDescription = null,
-                            tint = EcoCarColors.GoldenYellow,
-                            modifier = Modifier.padding(end = 6.dp),
-                        )
-                        Text(stringResource(Res.string.bottom_settings), color = EcoCarColors.OnDark)
-                    }
                     TextButton(onClick = onInfoClick) {
                         Text(stringResource(Res.string.bottom_info), color = EcoCarColors.OnDark)
                         Icon(

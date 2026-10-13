@@ -52,7 +52,6 @@ fun AppScaffold(
     onNavigateToCharging: () -> Unit,
     onTechnicalIssues: () -> Unit,
     onSimulateLowBattery: () -> Unit,
-    onBottomSettings: () -> Unit,
     onBottomInfo: () -> Unit,
     snackbarHostState: SnackbarHostState? = null,
     languageRepository: LanguageRepository? = null,
@@ -98,7 +97,6 @@ fun AppScaffold(
                             expanded = bottomExpanded,
                             onToggleExpand = onBottomToggle,
                             telemetry = telemetry.withSensorErrors(ecoBmsTelemetry),
-                            onSettingsClick = onBottomSettings,
                             onInfoClick = onBottomInfo,
                         )
                     }

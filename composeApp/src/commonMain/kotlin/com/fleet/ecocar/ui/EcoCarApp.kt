@@ -73,7 +73,6 @@ fun EcoCarApp(
                     onNavigateToCharging = { selected = MainDestination.Map },
                     onTechnicalIssues = { /* v1: Hook für Diagnose */ },
                     onSimulateLowBattery = { showLowBattery = true },
-                    onBottomSettings = { selected = MainDestination.Settings },
                     onBottomInfo = { /* v1: Info-Panel */ },
                     snackbarHostState = bottomBar.snackbarHostState,
                     languageRepository = languageRepository,

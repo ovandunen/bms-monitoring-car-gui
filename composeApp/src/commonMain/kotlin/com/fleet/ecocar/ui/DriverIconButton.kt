@@ -38,6 +38,7 @@ fun DriverIconButton(
     highlighted: Boolean = false,
     enabled: Boolean = true,
     restingTint: Color = EcoCarColors.OnDark,
+    containerColor: Color = EcoCarColors.DarkGreenTile,
     iconSize: Dp = 32.dp,
 ) {
     val interaction = remember { MutableInteractionSource() }
@@ -46,7 +47,7 @@ fun DriverIconButton(
     val filled = pressed || highlighted
     val background = when {
         filled -> EcoCarColors.GoldenYellow
-        else -> EcoCarColors.DarkGreenTile
+        else -> containerColor
     }
     val tint = when {
         !enabled -> EcoCarColors.OnDarkSecondary
