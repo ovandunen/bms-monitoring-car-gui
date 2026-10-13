@@ -12,6 +12,14 @@
     <string name="volume_down">Baisser le volume</string>
     <string name="volume_up">Augmenter le volume</string>
     <string name="volume_slider">Volume</string>
+    <string name="volume_mute">Couper le son des médias</string>
+    <string name="volume_unmute">Rétablir le son des médias</string>
+    <string name="media_previous">Titre précédent</string>
+    <string name="media_next">Titre suivant</string>
+    <string name="media_play">Lecture</string>
+    <string name="media_pause">Pause</string>
+    <string name="call_music_paused">Appel en cours – musique en pause</string>
+    <string name="call_resume">Continuer</string>
 
     <string name="bottom_soc">Charge</string>
     <string name="bottom_trip">Distance (trajet)</string>
@@ -139,5 +147,8 @@
     <string name="map_stations_legend">Vert = disponible · Violet = cache hors ligne (CSMS pas toujours joignable)</string>
     <string name="map_stations_loading">Mise à jour… le CSMS live n’est pas toujours disponible.</string>
     <string name="map_stations_empty">Aucune station en cache. Sans CSMS/MQTT joignable, la liste reste vide jusqu’à une requête live réussie.</string>
+    <string name="map_stations_empty_line">Aucune station enregistrée, CSMS injoignable</string>
     <string name="map_refresh">Actualiser</string>
+    <string name="map_zoom_in">Agrandir la carte</string>
+    <string name="map_zoom_out">Réduire la carte</string>
 </resources>

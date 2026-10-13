@@ -23,6 +23,7 @@ import com.fleet.ecocar.ui.bottom.rememberBottomBarIntegration
 import com.fleet.ecocar.ui.vehicle.ObserveVcuLowBattery
 import com.fleet.ecocar.ui.theme.EcoCarTheme
 import com.fleet.ecocar.ui.top.rememberLiveMusicTopBarState
+import com.fleet.ecocar.ui.top.rememberMusicTransport
 
 @Composable
 fun EcoCarApp(
@@ -39,6 +40,7 @@ fun EcoCarApp(
             var showLowBattery by remember { mutableStateOf(false) }
 
             val music = rememberLiveMusicTopBarState()
+            val transport = rememberMusicTransport()
             val bottomBar = rememberBottomBarIntegration()
             val ecoBmsTelemetry = rememberEcoBmsTelemetry()
             val bmsAlerts = rememberBmsAlerts()
@@ -62,6 +64,7 @@ fun EcoCarApp(
                     selected = selected,
                     onSelectDestination = { selected = it },
                     music = music,
+                    transport = transport,
                     telemetry = bottomBar.telemetry,
                     ecoBmsTelemetry = ecoBmsTelemetry,
                     bmsAlerts = bmsAlerts,
@@ -70,7 +73,6 @@ fun EcoCarApp(
                     onNavigateToCharging = { selected = MainDestination.Map },
                     onTechnicalIssues = { /* v1: Hook für Diagnose */ },
                     onSimulateLowBattery = { showLowBattery = true },
-                    onBottomSettings = { selected = MainDestination.Settings },
                     onBottomInfo = { /* v1: Info-Panel */ },
                     snackbarHostState = bottomBar.snackbarHostState,
                     languageRepository = languageRepository,

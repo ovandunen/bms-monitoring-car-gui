@@ -18,13 +18,28 @@ class AndroidMusicVolume(
     private val audioManager: AudioManager,
 ) : MusicVolumeControl {
 
-    override fun read(): MusicVolumeLevel {
-        val maxIndex = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
-        val index = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC).coerceIn(0, maxIndex)
-        return MusicVolumeLevel(index, maxIndex)
+    private var media: MediaVolume
+
+    init {
+        val maxIndex = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC).coerceAtLeast(0)
+        val index = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC).coerceIn(0, maxIndex.coerceAtLeast(0))
+        media = MediaVolume(index = 0, maxIndex = maxIndex, muted = false, restoreIndex = 1)
+            .withObservedIndex(index, maxIndex)
     }
 
+    override fun read(): MusicVolumeLevel = media.toLevel()
+
     override fun setIndex(index: Int) {
+        media = media.withChosenIndex(index)
+        apply(media.index)
+    }
+
+    override fun toggleMute() {
+        media = media.toggleMute()
+        apply(media.index)
+    }
+
+    private fun apply(index: Int) {
         val maxIndex = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
         audioManager.setStreamVolume(
             AudioManager.STREAM_MUSIC,
@@ -38,6 +53,9 @@ class AndroidMusicVolume(
             override fun onReceive(context: Context?, intent: Intent?) {
                 val stream = intent?.getIntExtra(EXTRA_VOLUME_STREAM_TYPE, -1) ?: -1
                 if (stream == AudioManager.STREAM_MUSIC) {
+                    val maxIndex = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+                    val index = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+                    media = media.withObservedIndex(index, maxIndex)
                     onChange(read())
                 }
             }

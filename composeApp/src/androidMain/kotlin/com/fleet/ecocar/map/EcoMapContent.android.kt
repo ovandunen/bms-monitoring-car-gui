@@ -1,6 +1,7 @@
 package com.fleet.ecocar.map
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,6 +12,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -27,19 +31,29 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.fleet.ecocar.infrastructure.map.MapViewWithStationPins
+import com.fleet.ecocar.infrastructure.map.MapZoomPort
 import com.fleet.ecocar.theme.EcoCarColors
+import com.fleet.ecocar.ui.DriverIconButton
+import com.fleet.ecocar.ui.DriverTouch
 import eco_car_gui.composeapp.generated.resources.Res
 import eco_car_gui.composeapp.generated.resources.map_refresh
-import eco_car_gui.composeapp.generated.resources.map_stations_empty
+import eco_car_gui.composeapp.generated.resources.map_stations_empty_line
 import eco_car_gui.composeapp.generated.resources.map_stations_legend
 import eco_car_gui.composeapp.generated.resources.map_stations_loading
 import eco_car_gui.composeapp.generated.resources.map_stations_title
+import eco_car_gui.composeapp.generated.resources.map_zoom_in
+import eco_car_gui.composeapp.generated.resources.map_zoom_out
 import org.jetbrains.compose.resources.stringResource
 
 private val PurpleUnknown = Color(0xFF9C27B0)
 private val GreenAvailable = Color(0xFF4CAF50)
+
+/** Map share of this column was 0.55. Factor 1.15 makes it 0.6325; the list keeps the rest. */
+private const val MAP_HEIGHT_WEIGHT = 0.55f * 1.15f
+private const val STATIONS_HEIGHT_WEIGHT = 1f - MAP_HEIGHT_WEIGHT
 
 @Composable
 actual fun EcoMapContent(
@@ -60,6 +74,7 @@ actual fun EcoMapContent(
     val pinStations = remember(stations) { EcoMapStationPresenter.mapPins(stations) }
     val mapStyleRepository = rememberMapStyleRepository()
     val styleUri = remember(mapStyleRepository) { mapStyleRepository.getStyleUrl() }
+    val zoomPort = remember { MapZoomPort() }
 
     var showMap by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
@@ -67,8 +82,14 @@ actual fun EcoMapContent(
         showMap = true
     }
 
+    val emptyStations = EcoMapStationPresenter.shouldShowEmptyState(stations, isRefreshing)
+
     Column(modifier = modifier.fillMaxSize()) {
-        Box(modifier = Modifier.weight(0.55f).fillMaxWidth()) {
+        Box(
+            modifier = Modifier
+                .weight(if (emptyStations) 1f else MAP_HEIGHT_WEIGHT)
+                .fillMaxWidth(),
+        ) {
             if (showMap) {
                 MapViewWithStationPins(
                     styleUri = styleUri,
@@ -76,6 +97,7 @@ actual fun EcoMapContent(
                     vehicleLatitude = vehicleLatitude,
                     vehicleLongitude = vehicleLongitude,
                     vehicleHeadingDegrees = vehicleHeadingDegrees,
+                    zoomPort = zoomPort,
                     modifier = Modifier.fillMaxSize(),
                 )
             } else {
@@ -107,10 +129,43 @@ actual fun EcoMapContent(
             ) {
                 Text(stringResource(Res.string.map_refresh), color = EcoCarColors.GoldenYellow)
             }
+            MapZoomButtons(
+                zoomIn = zoomPort::zoomIn,
+                zoomOut = zoomPort::zoomOut,
+                enabled = zoomPort.ready,
+                modifier = Modifier.align(Alignment.BottomEnd),
+            )
         }
+        if (emptyStations) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(EcoCarColors.SurfaceElevated)
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+            ) {
+                Text(
+                    text = stringResource(
+                        Res.string.map_stations_title,
+                        EcoMapStationPresenter.stationCount(stations),
+                    ),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = EcoCarColors.OnDark,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    text = stringResource(Res.string.map_stations_empty_line),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = EcoCarColors.OnDarkSecondary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
+        if (!emptyStations) {
         Column(
             modifier = Modifier
-                .weight(0.45f)
+                .weight(STATIONS_HEIGHT_WEIGHT)
                 .fillMaxWidth()
                 .background(EcoCarColors.SurfaceElevated)
                 .padding(12.dp),
@@ -149,13 +204,7 @@ actual fun EcoMapContent(
                     )
                 }
             }
-            if (EcoMapStationPresenter.shouldShowEmptyState(stations, isRefreshing)) {
-                Text(
-                    text = stringResource(Res.string.map_stations_empty),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = EcoCarColors.OnDarkSecondary,
-                )
-            } else if (EcoMapStationPresenter.shouldShowStationList(stations)) {
+            if (EcoMapStationPresenter.shouldShowStationList(stations)) {
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
                     items(stations, key = { it.stationId }) { station ->
                         StationRow(station)
@@ -163,6 +212,39 @@ actual fun EcoMapContent(
                 }
             }
         }
+        }
+    }
+}
+
+@Composable
+private fun MapZoomButtons(
+    zoomIn: () -> Unit,
+    zoomOut: () -> Unit,
+    enabled: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier.padding(DriverTouch.ScreenEdge),
+        verticalArrangement = Arrangement.spacedBy(DriverTouch.Gap),
+    ) {
+        DriverIconButton(
+            onClick = zoomIn,
+            contentDescription = stringResource(Res.string.map_zoom_in),
+            icon = Icons.Filled.Add,
+            size = DriverTouch.MinTarget,
+            enabled = enabled,
+            restingTint = EcoCarColors.OnDark,
+            containerColor = EcoCarColors.NearBlack.copy(alpha = 0.72f),
+        )
+        DriverIconButton(
+            onClick = zoomOut,
+            contentDescription = stringResource(Res.string.map_zoom_out),
+            icon = Icons.Filled.Remove,
+            size = DriverTouch.MinTarget,
+            enabled = enabled,
+            restingTint = EcoCarColors.OnDark,
+            containerColor = EcoCarColors.NearBlack.copy(alpha = 0.72f),
+        )
     }
 }
 

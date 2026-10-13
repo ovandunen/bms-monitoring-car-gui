@@ -227,6 +227,10 @@ fun MusicScreen(modifier: Modifier = Modifier) {
             override fun onPlayerError(error: PlaybackException) {
                 playbackError = error.message ?: "Wiedergabe-Fehler"
             }
+
+            override fun onIsPlayingChanged(playing: Boolean) {
+                isPlaying = playing
+            }
         }
         player.addListener(listener)
         onDispose { player.removeListener(listener) }
@@ -688,15 +692,13 @@ private fun SharedPlayerBar(
         }
         Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
             IconButton(
-                onClick = { player.seekToPreviousMediaItem() },
+                onClick = { app.transportPrevious() },
                 enabled = isUsbMode && player.mediaItemCount > 1,
             ) {
                 Icon(Icons.Filled.SkipPrevious, null, tint = if (isUsbMode) TabActive else TextSecondary)
             }
             IconButton(
-                onClick = {
-                    if (player.isPlaying) player.pause() else player.play()
-                },
+                onClick = { app.toggleTransportPlayPause() },
             ) {
                 Icon(
                     if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
@@ -725,7 +727,7 @@ private fun SharedPlayerBar(
                 }
             }
             IconButton(
-                onClick = { player.seekToNextMediaItem() },
+                onClick = { app.transportNext() },
                 enabled = isUsbMode && player.mediaItemCount > 1,
             ) {
                 Icon(Icons.Filled.SkipNext, null, tint = if (isUsbMode) TabActive else TextSecondary)

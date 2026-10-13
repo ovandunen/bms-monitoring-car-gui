@@ -12,6 +12,14 @@
     <string name="volume_down">Wàññi volume</string>
     <string name="volume_up">Yokk volume</string>
     <string name="volume_slider">Volume</string>
+    <string name="volume_mute">Dàqal sonu média</string>
+    <string name="volume_unmute">Delloo sonu média</string>
+    <string name="media_previous">Titre bi jiitu</string>
+    <string name="media_next">Titre bi ci topp</string>
+    <string name="media_play">Teg</string>
+    <string name="media_pause">Taxawal</string>
+    <string name="call_music_paused">Appel bi ngi dox – musique bi taxaw</string>
+    <string name="call_resume">Kontine</string>
 
     <string name="bottom_soc">Nataal charge</string>
     <string name="bottom_trip">Yoon (trip)</string>
@@ -115,4 +123,6 @@
     <string name="browser_reload">Yeesal</string>
 
     <string name="notification_playback">Lecture média</string>
+    <string name="map_zoom_in">Yokk kàrt</string>
+    <string name="map_zoom_out">Wàññi kàrt</string>
 </resources>

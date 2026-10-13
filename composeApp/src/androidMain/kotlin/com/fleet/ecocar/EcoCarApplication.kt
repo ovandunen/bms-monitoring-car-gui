@@ -17,6 +17,7 @@ import com.fleet.ecocar.composeapp.BuildConfig
 import com.fleet.ecocar.ipc.BmsTelemetryBinder
 import com.fleet.ecocar.map.ChargingStationMapRequestPolicy
 import com.fleet.ecocar.map.EcoChargingStation
+import com.fleet.ecocar.music.MediaCallController
 import com.fleet.ecocar.music.MusicPlaybackSurface
 import com.fleet.ecocar.music.PlaybackSetup
 import com.fleet.ecocar.music.RadioStation
@@ -93,6 +94,8 @@ open class EcoCarApplication : Application() {
     }
 
     private val musicLock = Any()
+
+    private lateinit var mediaCall: MediaCallController
 
     @Volatile
     private var _exoPlayer: ExoPlayer? = null
@@ -195,6 +198,13 @@ open class EcoCarApplication : Application() {
         if (!EcoCarProcessIdentity.isMainProcess(packageName, currentProcessName())) {
             return
         }
+        mediaCall = MediaCallController(
+            context = this,
+            handler = mainHandler,
+            player = { _exoPlayer },
+            publish = { publishTopBarFromPlayer() },
+        )
+        mediaCall.start()
         usbVolumeWatcher = UsbVolumeWatcher(this, appScope).also { it.start() }
         MapLibre.getInstance(
             this,
@@ -273,7 +283,7 @@ open class EcoCarApplication : Application() {
                     .setUsage(C.USAGE_MEDIA)
                     .build()
                 _exoPlayer = ExoPlayer.Builder(this)
-                    .setAudioAttributes(audioAttrs, true)
+                    .setAudioAttributes(audioAttrs, false)
                     .build()
                 _exoPlayer!!.addListener(
                     object : Player.Listener {
@@ -292,6 +302,13 @@ open class EcoCarApplication : Application() {
                             } else {
                                 mainHandler.removeCallbacks(positionRunnable)
                             }
+                        }
+
+                        override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+                            if (playWhenReady && ::mediaCall.isInitialized) {
+                                mediaCall.onPlaybackStarted()
+                            }
+                            publishTopBarFromPlayer()
                         }
 
                         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
@@ -342,6 +359,11 @@ open class EcoCarApplication : Application() {
             title = titleLine,
             duration = durString,
             source = source,
+            isPlaying = p.isPlaying,
+            currentPosition = p.currentPosition,
+            hasMedia = p.mediaItemCount > 0,
+            canSkip = p.mediaItemCount > 1,
+            callPaused = if (::mediaCall.isInitialized) mediaCall.bannerVisible else false,
         )
     }
 
@@ -401,6 +423,7 @@ open class EcoCarApplication : Application() {
      */
     fun stopUsbPlayback() {
         if (musicPlaybackSurface != MusicPlaybackSurface.USB) return
+        if (::mediaCall.isInitialized) mediaCall.onStopped()
         musicPlaybackSurface = null
         usbSession.clear()
         mainHandler.removeCallbacks(positionRunnable)
@@ -417,7 +440,31 @@ open class EcoCarApplication : Application() {
             source = "",
             isPlaying = false,
             currentPosition = 0L,
+            callPaused = false,
+            hasMedia = false,
+            canSkip = false,
         )
+    }
+
+    fun toggleTransportPlayPause() {
+        val player = _exoPlayer ?: return
+        if (!::mediaCall.isInitialized) return
+        if (player.isPlaying) mediaCall.userPause() else mediaCall.userPlay()
+    }
+
+    fun transportPrevious() {
+        val player = _exoPlayer ?: return
+        if (player.mediaItemCount > 1) player.seekToPreviousMediaItem()
+    }
+
+    fun transportNext() {
+        val player = _exoPlayer ?: return
+        if (player.mediaItemCount > 1) player.seekToNextMediaItem()
+    }
+
+    fun resumeListening() {
+        if (!::mediaCall.isInitialized) return
+        mediaCall.userPlay()
     }
 
     fun setUsbPlaybackMode(mode: UsbPlaybackMode) {

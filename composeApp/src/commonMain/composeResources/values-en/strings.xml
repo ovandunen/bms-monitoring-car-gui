@@ -11,6 +11,14 @@
     <string name="volume_down">Lower volume</string>
     <string name="volume_up">Raise volume</string>
     <string name="volume_slider">Volume</string>
+    <string name="volume_mute">Mute media</string>
+    <string name="volume_unmute">Unmute media</string>
+    <string name="media_previous">Previous track</string>
+    <string name="media_next">Next track</string>
+    <string name="media_play">Play</string>
+    <string name="media_pause">Pause</string>
+    <string name="call_music_paused">Call active – music paused</string>
+    <string name="call_resume">Keep listening</string>
 
     <string name="bottom_soc">State of charge</string>
     <string name="bottom_trip">Trip distance</string>
@@ -138,5 +146,8 @@
     <string name="map_stations_legend">Green = available · Purple = offline cache (CSMS not always reachable)</string>
     <string name="map_stations_loading">Updating… live CSMS is not always available.</string>
     <string name="map_stations_empty">No cached stations. Without reachable CSMS/MQTT the list stays empty until a live query succeeds once.</string>
+    <string name="map_stations_empty_line">No saved stations, CSMS unreachable</string>
     <string name="map_refresh">Refresh</string>
+    <string name="map_zoom_in">Zoom in</string>
+    <string name="map_zoom_out">Zoom out</string>
 </resources>
