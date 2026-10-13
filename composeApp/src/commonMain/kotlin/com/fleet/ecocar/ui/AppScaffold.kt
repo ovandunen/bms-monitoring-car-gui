@@ -30,6 +30,7 @@ import com.fleet.ecocar.ui.dialog.LowBatteryDialog
 import com.fleet.ecocar.ui.main.MainContentArea
 import com.fleet.ecocar.ui.side.EcoSideNav
 import com.fleet.ecocar.ui.top.EcoTopBar
+import com.fleet.ecocar.ui.top.MusicTransportHandlers
 import com.fleet.ecocar.ui.top.TopBarMusicState
 import com.fleet.ecocar.ui.volume.MusicVolumeBar
 import com.fleet.ecocar.ui.volume.rememberMusicVolume
@@ -42,6 +43,7 @@ fun AppScaffold(
     selected: MainDestination,
     onSelectDestination: (MainDestination) -> Unit,
     music: TopBarMusicState,
+    transport: MusicTransportHandlers,
     telemetry: BottomTelemetry,
     ecoBmsTelemetry: EcoBmsTelemetry?,
     bmsAlerts: List<EcoBmsAlert> = emptyList(),
@@ -64,7 +66,9 @@ fun AppScaffold(
             MusicVolumeBar(
                 index = volume.index,
                 maxIndex = volume.maxIndex,
+                muted = volume.muted,
                 onIndexChange = volume.onIndexChange,
+                onToggleMute = volume.onToggleMute,
             )
             Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
                 Row(modifier = Modifier.fillMaxSize()) {
@@ -75,7 +79,7 @@ fun AppScaffold(
                     Column(
                         modifier = Modifier.weight(1f).fillMaxSize(),
                     ) {
-                        EcoTopBar(music = music)
+                        EcoTopBar(music = music, transport = transport)
                         Box(
                             modifier = Modifier
                                 .weight(1f)

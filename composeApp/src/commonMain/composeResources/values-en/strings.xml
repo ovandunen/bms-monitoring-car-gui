@@ -11,6 +11,14 @@
     <string name="volume_down">Lower volume</string>
     <string name="volume_up">Raise volume</string>
     <string name="volume_slider">Volume</string>
+    <string name="volume_mute">Mute media</string>
+    <string name="volume_unmute">Unmute media</string>
+    <string name="media_previous">Previous track</string>
+    <string name="media_next">Next track</string>
+    <string name="media_play">Play</string>
+    <string name="media_pause">Pause</string>
+    <string name="call_music_paused">Call active – music paused</string>
+    <string name="call_resume">Keep listening</string>
 
     <string name="bottom_soc">State of charge</string>
     <string name="bottom_trip">Trip distance</string>

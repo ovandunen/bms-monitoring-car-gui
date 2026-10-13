@@ -27,8 +27,13 @@ actual fun rememberMusicVolume(): MusicVolumeUi {
     return MusicVolumeUi(
         index = level.index,
         maxIndex = level.maxIndex,
+        muted = level.muted,
         onIndexChange = { next ->
             control.setIndex(next)
+            level = control.read()
+        },
+        onToggleMute = {
+            control.toggleMute()
             level = control.read()
         },
     )
