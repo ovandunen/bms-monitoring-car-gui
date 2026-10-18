@@ -55,6 +55,7 @@ fun AppScaffold(
     onBottomInfo: () -> Unit,
     snackbarHostState: SnackbarHostState? = null,
     languageRepository: LanguageRepository? = null,
+    versionLabel: String = "",
 ) {
     val volume = rememberMusicVolume()
     val dialogSlot = remember { InWindowDialogSlot() }
@@ -91,6 +92,7 @@ fun AppScaffold(
                                 bmsAlerts = bmsAlerts,
                                 onSimulateLowBattery = onSimulateLowBattery,
                                 languageRepository = languageRepository,
+                                versionLabel = versionLabel,
                             )
                         }
                         EcoBottomBar(

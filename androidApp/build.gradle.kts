@@ -29,7 +29,7 @@ android {
         minSdk = 26
         targetSdk = 36
         versionCode = 1
-        versionName = "1.0.0"
+        versionName = gitTagVersion()
     }
 
     splits {
@@ -82,4 +82,17 @@ dependencies {
     implementation(libs.hilt.android)
     implementation("androidx.datastore:datastore-preferences:1.1.1")
     ksp(libs.hilt.compiler)
+}
+
+fun gitTagVersion(): String {
+    return try {
+        val process = ProcessBuilder("git", "describe", "--tags", "--abbrev=0")
+            .directory(rootProject.projectDir)
+            .redirectErrorStream(true)
+            .start()
+        val text = process.inputStream.bufferedReader().readText().trim()
+        if (process.waitFor() == 0 && text.isNotEmpty()) text else "unknown"
+    } catch (_: Exception) {
+        "unknown"
+    }
 }

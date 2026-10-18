@@ -15,6 +15,10 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <queries>
+        <package android:name="ch.ecocarsolaire.bms" />
+    </queries>
+
     <application
         android:name="com.fleet.ecocar.EcoCarGuiApplication"
         android:allowBackup="true"

@@ -114,6 +114,7 @@
     <string name="language_wo">Wolof</string>
     <string name="settings_test_low_battery">Seetal dialogue batri bu doyul</string>
     <string name="settings_blurb">Teeytal system ak auto (tablette, mbaxumkaay, VCU, batri). Jëfandikoo boton bi suuf ngir seetal dialogue batri bi.</string>
+    <string name="settings_version">Version %1$s</string>
 
     <string name="placeholder_music">Music : USB/local + radio (Media3) ci Android.</string>
     <string name="placeholder_map">Kart (Android : MapLibre Compose + MapTiler dark ; bureau : placeholder).</string>

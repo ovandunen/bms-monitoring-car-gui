@@ -28,6 +28,7 @@ import com.fleet.ecocar.ui.top.rememberMusicTransport
 @Composable
 fun EcoCarApp(
     languageRepository: LanguageRepository,
+    versionLabel: String = "",
 ) {
     val currentLang = languageRepository.selectedLanguage.collectLanguageAsState(
         languageRepository.getDefault(),
@@ -76,6 +77,7 @@ fun EcoCarApp(
                     onBottomInfo = { /* v1: Info-Panel */ },
                     snackbarHostState = bottomBar.snackbarHostState,
                     languageRepository = languageRepository,
+                    versionLabel = versionLabel,
                 )
             }
         }

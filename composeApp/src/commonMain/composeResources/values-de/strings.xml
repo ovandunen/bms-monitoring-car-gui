@@ -113,6 +113,7 @@
     <string name="language_wo">Wolof</string>
     <string name="settings_test_low_battery">Low-Battery-Dialog testen</string>
     <string name="settings_blurb">System- und Fahrzeugeinstellungen (Tablet, Sounds, VCU, Battery). Nutzen Sie die Schaltfläche unten, um den Low-Battery-Dialog zu testen.</string>
+    <string name="settings_version">Version %1$s</string>
 
     <string name="placeholder_music">Musik: USB/Lokal + Radio (Media3) auf Android.</string>
     <string name="placeholder_map">Karte (Android: MapLibre Compose + MapTiler dark; Desktop: Platzhalter).</string>

@@ -114,6 +114,7 @@
     <string name="language_wo">Wolof</string>
     <string name="settings_test_low_battery">Tester le dialogue batterie faible</string>
     <string name="settings_blurb">Réglages système et véhicule (tablette, sons, VCU, batterie). Utilisez le bouton ci-dessous pour tester le dialogue batterie faible.</string>
+    <string name="settings_version">Version %1$s</string>
 
     <string name="placeholder_music">Musique : USB/local + radio (Media3) sur Android.</string>
     <string name="placeholder_map">Carte (Android : MapLibre Compose + MapTiler dark ; bureau : placeholder).</string>
