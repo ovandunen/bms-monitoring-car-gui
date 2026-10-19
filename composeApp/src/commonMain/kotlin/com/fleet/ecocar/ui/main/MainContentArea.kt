@@ -29,6 +29,8 @@ import com.fleet.ecocar.ui.charts.ChartsSubNav
 import com.fleet.ecocar.theme.EcoCarColors
 import eco_car_gui.composeapp.generated.resources.Res
 import eco_car_gui.composeapp.generated.resources.settings_blurb
+import eco_car_gui.composeapp.generated.resources.settings_can_log
+import eco_car_gui.composeapp.generated.resources.settings_can_log_hint
 import eco_car_gui.composeapp.generated.resources.settings_test_low_battery
 import eco_car_gui.composeapp.generated.resources.settings_version
 import org.jetbrains.compose.resources.stringResource
@@ -41,6 +43,7 @@ fun MainContentArea(
     languageRepository: LanguageRepository? = null,
     bmsAlerts: List<EcoBmsAlert> = emptyList(),
     versionLabel: String = "",
+    onToggleCanLog: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -106,6 +109,31 @@ fun MainContentArea(
             Text(
                 text = stringResource(Res.string.settings_version, versionLabel),
                 style = MaterialTheme.typography.bodyMedium,
+                color = EcoCarColors.OnDarkSecondary,
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(bottom = 8.dp),
+            )
+        }
+        if (destination == MainDestination.Settings && onToggleCanLog != null) {
+            Button(
+                onClick = onToggleCanLog,
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(bottom = 8.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = EcoCarColors.GoldenYellow,
+                    contentColor = EcoCarColors.NearBlack,
+                ),
+            ) {
+                Text(
+                    text = stringResource(Res.string.settings_can_log),
+                    style = MaterialTheme.typography.labelLarge,
+                )
+            }
+            Text(
+                text = stringResource(Res.string.settings_can_log_hint),
+                style = MaterialTheme.typography.bodySmall,
                 color = EcoCarColors.OnDarkSecondary,
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)

@@ -111,6 +111,8 @@
     <string name="language_en">English</string>
     <string name="language_fr">Français</string>
     <string name="language_wo">Wolof</string>
+    <string name="settings_can_log">CAN-Aufzeichnung starten oder stoppen</string>
+    <string name="settings_can_log_hint">Der nächste Druck stoppt. Sie stoppt auch von selbst, spätestens nach 4 Minuten. Danach die Datei mit make tablet-can-log-pull holen.</string>
     <string name="settings_test_low_battery">Low-Battery-Dialog testen</string>
     <string name="settings_blurb">System- und Fahrzeugeinstellungen (Tablet, Sounds, VCU, Battery). Nutzen Sie die Schaltfläche unten, um den Low-Battery-Dialog zu testen.</string>
     <string name="settings_version">Version %1$s</string>

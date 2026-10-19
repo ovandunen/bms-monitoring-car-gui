@@ -8,6 +8,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.ecocar.gui.i18n.LanguageRepository
+import com.fleet.ecocar.canlog.CanLogButton
+import com.fleet.ecocar.composeapp.BuildConfig
 import com.fleet.ecocar.ui.EcoCarApp
 import com.fleet.ecocar.ui.settings.SettingsVersionLabel
 import dagger.hilt.android.AndroidEntryPoint
@@ -30,6 +32,11 @@ class MainActivity : ComponentActivity() {
             EcoCarApp(
                 languageRepository = languageRepository,
                 versionLabel = versionLabel,
+                onToggleCanLog = if (BuildConfig.DEBUG) {
+                    { CanLogButton.press(this@MainActivity) }
+                } else {
+                    null
+                },
             )
         }
     }

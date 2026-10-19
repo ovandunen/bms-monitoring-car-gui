@@ -111,6 +111,8 @@
     <string name="language_en">English</string>
     <string name="language_fr">Français</string>
     <string name="language_wo">Wolof</string>
+    <string name="settings_can_log">Start or stop CAN recording</string>
+    <string name="settings_can_log_hint">The next press stops it. It also stops by itself after at most 4 minutes. Then download the log with make tablet-can-log-pull.</string>
     <string name="settings_test_low_battery">Test low-battery dialog</string>
     <string name="settings_blurb">System and vehicle settings (tablet, sounds, VCU, battery). Use the button below to test the low-battery dialog.</string>
     <string name="settings_version">Version %1$s</string>

@@ -112,6 +112,8 @@
     <string name="language_en">English</string>
     <string name="language_fr">Français</string>
     <string name="language_wo">Wolof</string>
+    <string name="settings_can_log">Démarrer ou arrêter l&apos;enregistrement CAN</string>
+    <string name="settings_can_log_hint">L&apos;appui suivant arrête. L&apos;enregistrement s&apos;arrête aussi seul, au plus tard après 4 minutes. Ensuite : make tablet-can-log-pull.</string>
     <string name="settings_test_low_battery">Tester le dialogue batterie faible</string>
     <string name="settings_blurb">Réglages système et véhicule (tablette, sons, VCU, batterie). Utilisez le bouton ci-dessous pour tester le dialogue batterie faible.</string>
     <string name="settings_version">Version %1$s</string>
