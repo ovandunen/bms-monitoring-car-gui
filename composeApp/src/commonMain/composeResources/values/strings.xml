@@ -107,6 +107,9 @@
     <string name="sniffer_title">Sniffer CAN (démo)</string>
     <string name="sniffer_body">Dans l&apos;APK BMS principale, cette action ouvre le sniffer CAN. Ce projet EcoCar GUI reste autonome sans bus.</string>
 
+    <string name="settings_browser_home_title">Page d&apos;accueil du navigateur</string>
+    <string name="settings_browser_home_hint">Adresse ouverte à l&apos;ouverture du navigateur. Laisser vide et enregistrer pour revenir à Startpage. La nouvelle adresse est prise en compte à la prochaine ouverture.</string>
+    <string name="settings_browser_home_save">Enregistrer</string>
     <string name="settings_language_title">Langue</string>
     <string name="language_de">Deutsch</string>
     <string name="language_en">English</string>

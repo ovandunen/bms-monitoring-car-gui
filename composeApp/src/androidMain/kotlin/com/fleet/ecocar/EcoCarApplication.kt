@@ -25,6 +25,9 @@ import com.fleet.ecocar.music.Track
 import com.fleet.ecocar.music.UsbPlaybackMode
 import com.fleet.ecocar.music.UsbPlaybackSession
 import com.fleet.ecocar.music.UsbVolumeWatcher
+import com.fleet.ecocar.browser.BrowserHome
+import com.fleet.ecocar.browser.BrowserHomeStore
+import com.fleet.ecocar.browser.openBrowserHomeStore
 import com.fleet.ecocar.music.openPlaybackModeStore
 import com.fleet.ecocar.telemetry.EcoBmsAlert
 import com.fleet.ecocar.telemetry.EcoBmsTelemetry
@@ -53,6 +56,8 @@ import com.fleet.ecocar.map.ChargingStationMapState
 open class EcoCarApplication : Application() {
 
     private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+
+    private val browserHomeStore: BrowserHomeStore by lazy { openBrowserHomeStore(this) }
 
     /**
      * Application-scoped driving adapter for BMS monitor IPC ([AidlBatteryClientAdapter]).
@@ -143,7 +148,7 @@ open class EcoCarApplication : Application() {
 
 
     companion object {
-        const val BROWSER_DEFAULT_HOME_URL: String = "https://www.startpage.com"
+        const val BROWSER_DEFAULT_HOME_URL: String = BrowserHome.DEFAULT_URL
 
         /** Matches BMS GUI refresh timeout + margin when CSMS is unavailable. */
         private const val CHARGING_STATIONS_REFRESH_MAX_MS = 12_000L
@@ -182,12 +187,20 @@ open class EcoCarApplication : Application() {
             }
         }
 
+        fun browserHomeStore(): BrowserHomeStore {
+            val app = instance ?: error("EcoCarApplication not created")
+            return app.browserHomeStore
+        }
+
         fun scheduleInitialBrowserLoadIfNeeded(session: GeckoSession) {
+            val app = instance ?: return
             if (initialBrowserNavigationIssued) return
             synchronized(this) {
                 if (initialBrowserNavigationIssued) return
                 initialBrowserNavigationIssued = true
-                session.loadUri(BROWSER_DEFAULT_HOME_URL)
+            }
+            app.appScope.launch {
+                session.loadUri(app.browserHomeStore.resolvedHomeUrl())
             }
         }
     }

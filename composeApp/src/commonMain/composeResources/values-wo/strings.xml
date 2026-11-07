@@ -107,6 +107,9 @@
     <string name="sniffer_title">Sniffer CAN (demo)</string>
     <string name="sniffer_body">Ci APK BMS bi, lii muy ubbi sniffer CAN bi. Projet EcoCar GUI bi moom amul bus.</string>
 
+    <string name="settings_browser_home_title">Xët bu njëkk ci nataalukaay</string>
+    <string name="settings_browser_home_hint">Adres bi nataalukaay bi ubbi. Bul dugal dara te denc ngir dellu ci Startpage. Adres bu bees bi am na ci ubbi bi ci topp.</string>
+    <string name="settings_browser_home_save">Denc</string>
     <string name="settings_language_title">Làkk</string>
     <string name="language_de">Deutsch</string>
     <string name="language_en">English</string>

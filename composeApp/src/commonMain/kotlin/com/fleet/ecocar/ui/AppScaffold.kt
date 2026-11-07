@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.ecocar.gui.i18n.LanguageRepository
+import com.fleet.ecocar.browser.BrowserHomeStore
 import com.fleet.ecocar.nav.MainDestination
 import com.fleet.ecocar.telemetry.EcoBmsAlert
 import com.fleet.ecocar.telemetry.EcoBmsTelemetry
@@ -32,7 +33,6 @@ import com.fleet.ecocar.ui.side.EcoSideNav
 import com.fleet.ecocar.ui.top.EcoTopBar
 import com.fleet.ecocar.ui.top.MusicTransportHandlers
 import com.fleet.ecocar.ui.top.TopBarMusicState
-import com.fleet.ecocar.ui.volume.MusicVolumeBar
 import com.fleet.ecocar.ui.volume.rememberMusicVolume
 
 @Composable
@@ -55,6 +55,7 @@ fun AppScaffold(
     onBottomInfo: () -> Unit,
     snackbarHostState: SnackbarHostState? = null,
     languageRepository: LanguageRepository? = null,
+    browserHomeStore: BrowserHomeStore? = null,
     versionLabel: String = "",
     onToggleCanLog: (() -> Unit)? = null,
 ) {
@@ -64,23 +65,14 @@ fun AppScaffold(
         Column(
             modifier = modifier.fillMaxSize().statusBarsPadding(),
         ) {
-            MusicVolumeBar(
-                index = volume.index,
-                maxIndex = volume.maxIndex,
-                muted = volume.muted,
-                onIndexChange = volume.onIndexChange,
-                onToggleMute = volume.onToggleMute,
-            )
+            EcoTopBar(music = music, transport = transport, volume = volume)
             Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
                 Row(modifier = Modifier.fillMaxSize()) {
                     EcoSideNav(
                         selected = selected,
                         onSelect = onSelectDestination,
                     )
-                    Column(
-                        modifier = Modifier.weight(1f).fillMaxSize(),
-                    ) {
-                        EcoTopBar(music = music, transport = transport)
+                    Column(modifier = Modifier.weight(1f).fillMaxSize()) {
                         Box(
                             modifier = Modifier
                                 .weight(1f)
@@ -93,9 +85,18 @@ fun AppScaffold(
                                 bmsAlerts = bmsAlerts,
                                 onSimulateLowBattery = onSimulateLowBattery,
                                 languageRepository = languageRepository,
+                                browserHomeStore = browserHomeStore,
                                 versionLabel = versionLabel,
                                 onToggleCanLog = onToggleCanLog,
                             )
+                            snackbarHostState?.let { hostState ->
+                                SnackbarHost(
+                                    hostState = hostState,
+                                    modifier = Modifier
+                                        .align(Alignment.BottomCenter)
+                                        .padding(bottom = 16.dp),
+                                )
+                            }
                         }
                         EcoBottomBar(
                             expanded = bottomExpanded,
@@ -104,14 +105,6 @@ fun AppScaffold(
                             onInfoClick = onBottomInfo,
                         )
                     }
-                }
-                snackbarHostState?.let { hostState ->
-                    SnackbarHost(
-                        hostState = hostState,
-                        modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .padding(bottom = 72.dp),
-                    )
                 }
                 dialogSlot.content.value?.invoke()
                 if (showLowBattery) {

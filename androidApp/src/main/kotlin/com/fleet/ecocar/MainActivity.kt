@@ -31,6 +31,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             EcoCarApp(
                 languageRepository = languageRepository,
+                browserHomeStore = EcoCarApplication.browserHomeStore(),
                 versionLabel = versionLabel,
                 onToggleCanLog = if (BuildConfig.DEBUG) {
                     { CanLogButton.press(this@MainActivity) }

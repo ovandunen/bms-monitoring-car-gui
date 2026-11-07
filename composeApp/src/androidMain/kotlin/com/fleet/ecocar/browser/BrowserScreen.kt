@@ -54,12 +54,7 @@ private fun runOnMainThread(block: () -> Unit) {
     }
 }
 
-private fun normalizeUrl(raw: String): String {
-    val t = raw.trim()
-    if (t.isEmpty()) return EcoCarApplication.BROWSER_DEFAULT_HOME_URL
-    if (t.contains("://")) return t
-    return "https://$t"
-}
+private fun normalizeUrl(raw: String, home: String): String = BrowserHome.resolve(raw, home)
 
 /**
  * Gecko requires [GeckoSession.open] **before** [GeckoView.setSession]. In Compose, [AndroidView]
@@ -70,9 +65,10 @@ private fun normalizeUrl(raw: String): String {
 @Composable
 fun BrowserScreen(modifier: Modifier = Modifier) {
     val session = remember { EcoCarApplication.browserSession() }
+    val homeStore = remember { EcoCarApplication.browserHomeStore() }
     val keyboard = LocalSoftwareKeyboardController.current
 
-    val urlBarState = remember { mutableStateOf(EcoCarApplication.BROWSER_DEFAULT_HOME_URL) }
+    val urlBarState = remember { mutableStateOf(homeStore.homeUrl.value) }
     val canBackState = remember { mutableStateOf(false) }
     val canFwdState = remember { mutableStateOf(false) }
     var urlBar by urlBarState
@@ -166,7 +162,7 @@ fun BrowserScreen(modifier: Modifier = Modifier) {
                     keyboardActions = KeyboardActions(
                         onGo = {
                             keyboard?.hide()
-                            session.loadUri(normalizeUrl(urlBar))
+                            session.loadUri(normalizeUrl(urlBar, homeStore.homeUrl.value))
                         },
                     ),
                     colors = OutlinedTextFieldDefaults.colors(

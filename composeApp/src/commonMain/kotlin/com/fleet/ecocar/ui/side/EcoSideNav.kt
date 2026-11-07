@@ -1,33 +1,26 @@
 package com.fleet.ecocar.ui.side
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Surface
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationRail
+import androidx.compose.material3.NavigationRailItem
+import androidx.compose.material3.NavigationRailItemDefaults
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.ecocar.gui.nav.localizedLabel
 import com.fleet.ecocar.nav.MainDestination
 import com.fleet.ecocar.theme.EcoCarColors
+import com.fleet.ecocar.ui.DriverTouch
 
-internal val NAV_RAIL_WIDTH = 48.dp
-private val NavIconSize = 28.dp
+/** Wide enough for a label and a [DriverTouch.MinTarget] hit area, without taking map height. */
+internal val SideNavWidth = DriverTouch.MinTarget + 48.dp
 
 @Composable
 fun EcoSideNav(
@@ -35,56 +28,41 @@ fun EcoSideNav(
     onSelect: (MainDestination) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Surface(
-        modifier = modifier.width(NAV_RAIL_WIDTH).fillMaxHeight(),
-        color = EcoCarColors.SurfaceElevated,
-        tonalElevation = 0.dp,
+    NavigationRail(
+        modifier = modifier.fillMaxHeight().width(SideNavWidth),
+        containerColor = EcoCarColors.SurfaceElevated,
+        contentColor = EcoCarColors.OnDark,
+        windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
     ) {
-        LazyColumn(
-            modifier = Modifier.fillMaxHeight().fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-            contentPadding = PaddingValues(vertical = 4.dp),
-        ) {
-            items(MainDestination.entries.toList()) { dest ->
-                NavTile(
-                    destination = dest,
-                    selected = dest == selected,
-                    onClick = { onSelect(dest) },
-                )
-            }
+        MainDestination.entries.forEach { destination ->
+            val label = destination.localizedLabel()
+            NavigationRailItem(
+                selected = destination == selected,
+                onClick = { onSelect(destination) },
+                icon = {
+                    Icon(
+                        imageVector = destination.icon,
+                        contentDescription = null,
+                        modifier = Modifier.size(28.dp),
+                    )
+                },
+                label = {
+                    Text(
+                        text = label,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.labelLarge,
+                    )
+                },
+                alwaysShowLabel = true,
+                colors = NavigationRailItemDefaults.colors(
+                    selectedIconColor = EcoCarColors.NearBlack,
+                    selectedTextColor = EcoCarColors.GoldenYellow,
+                    indicatorColor = EcoCarColors.GoldenYellow,
+                    unselectedIconColor = EcoCarColors.OnDark,
+                    unselectedTextColor = EcoCarColors.OnDarkSecondary,
+                ),
+            )
         }
-    }
-}
-
-@Composable
-private fun NavTile(
-    destination: MainDestination,
-    selected: Boolean,
-    onClick: () -> Unit,
-) {
-    val shape = RoundedCornerShape(10.dp)
-    val bg = if (selected) EcoCarColors.GoldenYellowMuted else EcoCarColors.DarkGreenTile
-    val borderColor = if (selected) EcoCarColors.GoldenYellow else EcoCarColors.Divider
-    val borderWidth = if (selected) 2.dp else 1.dp
-    val contentColor = if (selected) EcoCarColors.GoldenYellow else EcoCarColors.OnDark
-    val label = destination.localizedLabel()
-
-    Box(
-        modifier = Modifier
-            .size(NAV_RAIL_WIDTH)
-            .clip(shape)
-            .background(bg)
-            .border(borderWidth, borderColor, shape)
-            .clickable(onClick = onClick)
-            .semantics { contentDescription = label },
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(
-            imageVector = destination.icon,
-            contentDescription = null,
-            modifier = Modifier.size(NavIconSize),
-            tint = contentColor,
-        )
     }
 }

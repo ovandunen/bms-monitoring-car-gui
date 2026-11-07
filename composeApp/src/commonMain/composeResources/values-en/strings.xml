@@ -106,6 +106,9 @@
     <string name="sniffer_title">CAN sniffer (demo)</string>
     <string name="sniffer_body">In the main BMS APK this opens the CAN sniffer. This EcoCar GUI project stays standalone without bus wiring.</string>
 
+    <string name="settings_browser_home_title">Browser home page</string>
+    <string name="settings_browser_home_hint">Address the browser loads when it opens. Leave empty and save to restore Startpage. The new address applies the next time the browser opens.</string>
+    <string name="settings_browser_home_save">Save</string>
     <string name="settings_language_title">Language</string>
     <string name="language_de">Deutsch</string>
     <string name="language_en">English</string>

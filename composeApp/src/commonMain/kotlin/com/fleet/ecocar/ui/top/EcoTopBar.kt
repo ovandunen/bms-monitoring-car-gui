@@ -40,6 +40,8 @@ import androidx.compose.ui.unit.dp
 import com.fleet.ecocar.theme.EcoCarColors
 import com.fleet.ecocar.ui.DriverIconButton
 import com.fleet.ecocar.ui.DriverTouch
+import com.fleet.ecocar.ui.volume.MusicVolumeBar
+import com.fleet.ecocar.ui.volume.MusicVolumeUi
 import eco_car_gui.composeapp.generated.resources.Res
 import eco_car_gui.composeapp.generated.resources.call_music_paused
 import eco_car_gui.composeapp.generated.resources.call_resume
@@ -81,6 +83,7 @@ data class MusicTransportHandlers(
 fun EcoTopBar(
     music: TopBarMusicState,
     transport: MusicTransportHandlers,
+    volume: MusicVolumeUi,
     modifier: Modifier = Modifier,
 ) {
     Surface(
@@ -111,16 +114,27 @@ fun EcoTopBar(
                             text = music.duration,
                             style = MaterialTheme.typography.bodySmall,
                             color = EcoCarColors.OnDarkSecondary,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
                         )
                         Text(
                             text = music.source,
                             style = MaterialTheme.typography.bodySmall,
                             color = EcoCarColors.GoldenYellow,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
                         )
                     }
                 }
-                Row(
+                MusicVolumeBar(
+                    index = volume.index,
+                    maxIndex = volume.maxIndex,
+                    muted = volume.muted,
+                    onIndexChange = volume.onIndexChange,
+                    onToggleMute = volume.onToggleMute,
                     modifier = Modifier.padding(horizontal = DriverTouch.Gap),
+                )
+                Row(
                     horizontalArrangement = Arrangement.spacedBy(DriverTouch.Gap),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
@@ -128,7 +142,8 @@ fun EcoTopBar(
                         onClick = transport.onPrevious,
                         contentDescription = stringResource(Res.string.media_previous),
                         icon = Icons.Filled.SkipPrevious,
-                        size = DriverTouch.MinTarget,
+                        size = DriverTouch.MediaSkip,
+                        iconSize = DriverTouch.MediaIcon,
                         enabled = music.canSkip,
                     )
                     DriverIconButton(
@@ -141,13 +156,14 @@ fun EcoTopBar(
                         highlighted = music.isPlaying,
                         enabled = music.hasMedia,
                         restingTint = EcoCarColors.GoldenYellow,
-                        iconSize = 40.dp,
+                        iconSize = DriverTouch.MediaIcon,
                     )
                     DriverIconButton(
                         onClick = transport.onNext,
                         contentDescription = stringResource(Res.string.media_next),
                         icon = Icons.Filled.SkipNext,
-                        size = DriverTouch.MinTarget,
+                        size = DriverTouch.MediaSkip,
+                        iconSize = DriverTouch.MediaIcon,
                         enabled = music.canSkip,
                     )
                 }
@@ -155,6 +171,7 @@ fun EcoTopBar(
                     text = music.clock,
                     style = MaterialTheme.typography.headlineSmall,
                     color = EcoCarColors.GoldenYellow,
+                    maxLines = 1,
                 )
             }
             if (music.callPaused) {
