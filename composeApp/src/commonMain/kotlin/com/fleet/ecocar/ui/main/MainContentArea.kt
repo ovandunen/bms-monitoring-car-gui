@@ -19,7 +19,6 @@ import com.ecocar.gui.i18n.LanguageRepository
 import com.ecocar.gui.ui.settings.LanguageSettingsSection
 import com.fleet.ecocar.browser.BrowserHomeStore
 import com.fleet.ecocar.browser.EcoBrowserContent
-import com.fleet.ecocar.ui.settings.BrowserHomeSettingsSection
 import com.fleet.ecocar.music.EcoMusicContent
 import com.fleet.ecocar.map.EcoMapContent
 import com.fleet.ecocar.map.rememberChargingStationMapState
@@ -102,9 +101,6 @@ fun MainContentArea(
                                 modifier = Modifier.padding(bottom = 16.dp),
                             )
                             LanguageSettingsSection(languageRepository = languageRepository)
-                            if (browserHomeStore != null) {
-                                BrowserHomeSettingsSection(store = browserHomeStore)
-                            }
                         }
                     } else {
                         PlaceholderScreen(destination = destination)

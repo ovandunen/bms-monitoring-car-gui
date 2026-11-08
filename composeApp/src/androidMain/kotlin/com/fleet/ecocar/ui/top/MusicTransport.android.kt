@@ -12,5 +12,6 @@ actual fun rememberMusicTransport(): MusicTransportHandlers {
         onPlayPause = app::toggleTransportPlayPause,
         onNext = app::transportNext,
         onResumeListening = app::resumeListening,
+        onSeek = app::transportSeek,
     )
 }

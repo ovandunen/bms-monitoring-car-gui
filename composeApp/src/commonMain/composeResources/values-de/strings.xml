@@ -17,6 +17,7 @@
     <string name="media_next">Nächster Titel</string>
     <string name="media_play">Wiedergabe</string>
     <string name="media_pause">Pause</string>
+    <string name="media_seek">Wiedergabeposition</string>
     <string name="call_music_paused">Anruf aktiv – Musik pausiert</string>
     <string name="call_resume">Weiterhören</string>
 
@@ -156,4 +157,15 @@
     <string name="map_refresh">Aktualisieren</string>
     <string name="map_zoom_in">Karte vergrößern</string>
     <string name="map_zoom_out">Karte verkleinern</string>
+
+    <string name="nav_route_start">Route starten</string>
+    <string name="nav_route_end">Route beenden</string>
+    <string name="nav_route_no_vehicle">Kein Fahrzeugstandort.</string>
+    <string name="nav_route_off">Abseits der Route</string>
+    <string name="nav_route_none">Keine Route gefunden.</string>
+    <string name="nav_route_unreachable">Router nicht erreichbar.</string>
+    <string name="nav_route_timeout">Zeitüberschreitung.</string>
+    <string name="nav_route_bad">Ungültige Antwort.</string>
+    <string name="nav_route_loading">Route wird berechnet.</string>
+    <string name="nav_route_remaining">Noch %1$s, %2$s</string>
 </resources>

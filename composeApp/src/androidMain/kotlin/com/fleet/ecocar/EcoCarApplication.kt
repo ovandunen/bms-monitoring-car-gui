@@ -374,6 +374,7 @@ open class EcoCarApplication : Application() {
             source = source,
             isPlaying = p.isPlaying,
             currentPosition = p.currentPosition,
+            durationMs = p.duration.takeIf { it > 0 } ?: 0L,
             hasMedia = p.mediaItemCount > 0,
             canSkip = p.mediaItemCount > 1,
             callPaused = if (::mediaCall.isInitialized) mediaCall.bannerVisible else false,
@@ -453,6 +454,7 @@ open class EcoCarApplication : Application() {
             source = "",
             isPlaying = false,
             currentPosition = 0L,
+            durationMs = 0L,
             callPaused = false,
             hasMedia = false,
             canSkip = false,
@@ -473,6 +475,13 @@ open class EcoCarApplication : Application() {
     fun transportNext() {
         val player = _exoPlayer ?: return
         if (player.mediaItemCount > 1) player.seekToNextMediaItem()
+    }
+
+    fun transportSeek(positionMs: Long) {
+        val player = _exoPlayer ?: return
+        val duration = player.duration
+        if (duration <= 0L) return
+        player.seekTo(positionMs.coerceIn(0L, duration))
     }
 
     fun resumeListening() {

@@ -167,3 +167,20 @@ That target runs `build-install` (both APKs), sends test CAN frames (SOC **12%**
 
 See [`bms-monitoring-app/README.md`](../bms-monitoring-app/README.md#integration-testing-makefile) for relay, clean/shutdown, and CSMS targets.
 
+## Navigation
+
+Tapping a charging-station pin selects that station. When `valhalla.base.url` is set, the map shows **Route starten**. The app requests one driving route from the current vehicle position to that station (`GET {base}/route?json=...`, costing `auto`, language `de-DE`), draws the road line, and shows the next maneuver, the distance to it, and the remaining distance and time. **Route beenden** removes the line.
+
+The key is read from `local.properties` or `-Pvalhalla.base.url` into `BuildConfig.VALHALLA_BASE_URL`. A blank value turns the feature off: the station name is still shown, and the route button is hidden. No host is compiled in. Use an `https` URL. This app's manifest does not allow cleartext HTTP.
+
+Not done:
+
+- Address search and any text entry.
+- Driving camera (heading-up, tilt, zoom by speed).
+- Spoken prompts and audio ducking.
+- Route recalculation after leaving the route.
+- Offline maps and offline routing.
+- The Traccar / battery tracker fallback position.
+- Choosing a station from a list, the low-battery button behaviour, any change of the BMS app, IPC or AIDL.
+- Hosting or configuring a Valhalla server.
+

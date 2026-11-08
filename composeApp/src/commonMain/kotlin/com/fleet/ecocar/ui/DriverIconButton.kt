@@ -3,7 +3,7 @@ package com.fleet.ecocar.ui
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -14,6 +14,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -28,6 +29,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.fleet.ecocar.theme.EcoCarColors
 
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 fun DriverIconButton(
     onClick: () -> Unit,
@@ -40,8 +42,13 @@ fun DriverIconButton(
     restingTint: Color = EcoCarColors.OnDark,
     containerColor: Color = EcoCarColors.DarkGreenTile,
     iconSize: Dp = 32.dp,
+    onLongClick: (() -> Unit)? = null,
 ) {
     val interaction = remember { MutableInteractionSource() }
+    val onClickState = rememberUpdatedState(onClick)
+    val onLongClickState = rememberUpdatedState(onLongClick)
+    val stableClick = remember<() -> Unit> { { onClickState.value.invoke() } }
+    val stableLongClick = remember<() -> Unit> { { onLongClickState.value?.invoke() } }
     val pressed by interaction.collectIsPressedAsState()
     val focused by interaction.collectIsFocusedAsState()
     val filled = pressed || highlighted
@@ -65,12 +72,13 @@ fun DriverIconButton(
                 color = if (focused) EcoCarColors.GoldenYellow else Color.Transparent,
                 shape = CircleShape,
             )
-            .clickable(
+            .combinedClickable(
                 interactionSource = interaction,
                 indication = LocalIndication.current,
                 enabled = enabled,
                 role = Role.Button,
-                onClick = onClick,
+                onClick = stableClick,
+                onLongClick = if (onLongClick == null) null else stableLongClick,
             )
             .semantics {
                 this.role = Role.Button

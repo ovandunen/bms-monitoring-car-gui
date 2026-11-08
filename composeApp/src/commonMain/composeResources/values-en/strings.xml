@@ -17,6 +17,7 @@
     <string name="media_next">Next track</string>
     <string name="media_play">Play</string>
     <string name="media_pause">Pause</string>
+    <string name="media_seek">Playback position</string>
     <string name="call_music_paused">Call active – music paused</string>
     <string name="call_resume">Keep listening</string>
 
@@ -156,4 +157,15 @@
     <string name="map_refresh">Refresh</string>
     <string name="map_zoom_in">Zoom in</string>
     <string name="map_zoom_out">Zoom out</string>
+
+    <string name="nav_route_start">Start route</string>
+    <string name="nav_route_end">End route</string>
+    <string name="nav_route_no_vehicle">No vehicle position.</string>
+    <string name="nav_route_off">Off the route</string>
+    <string name="nav_route_none">No route found.</string>
+    <string name="nav_route_unreachable">Router unreachable.</string>
+    <string name="nav_route_timeout">Timed out.</string>
+    <string name="nav_route_bad">Invalid answer.</string>
+    <string name="nav_route_loading">Calculating the route.</string>
+    <string name="nav_route_remaining">%1$s left, %2$s</string>
 </resources>

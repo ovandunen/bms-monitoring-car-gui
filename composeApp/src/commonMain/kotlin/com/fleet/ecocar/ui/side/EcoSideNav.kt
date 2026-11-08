@@ -34,7 +34,7 @@ fun EcoSideNav(
         contentColor = EcoCarColors.OnDark,
         windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
     ) {
-        MainDestination.entries.forEach { destination ->
+        MainDestination.railEntries.forEach { destination ->
             val label = destination.localizedLabel()
             NavigationRailItem(
                 selected = destination == selected,
@@ -43,7 +43,7 @@ fun EcoSideNav(
                     Icon(
                         imageVector = destination.icon,
                         contentDescription = null,
-                        modifier = Modifier.size(28.dp),
+                        modifier = Modifier.size(DriverTouch.MediaIcon),
                     )
                 },
                 label = {

@@ -18,6 +18,7 @@
     <string name="media_next">Titre suivant</string>
     <string name="media_play">Lecture</string>
     <string name="media_pause">Pause</string>
+    <string name="media_seek">Position de lecture</string>
     <string name="call_music_paused">Appel en cours – musique en pause</string>
     <string name="call_resume">Continuer</string>
 
@@ -157,4 +158,15 @@
     <string name="map_refresh">Actualiser</string>
     <string name="map_zoom_in">Agrandir la carte</string>
     <string name="map_zoom_out">Réduire la carte</string>
+
+    <string name="nav_route_start">Start route</string>
+    <string name="nav_route_end">End route</string>
+    <string name="nav_route_no_vehicle">No vehicle position.</string>
+    <string name="nav_route_off">Off the route</string>
+    <string name="nav_route_none">No route found.</string>
+    <string name="nav_route_unreachable">Router unreachable.</string>
+    <string name="nav_route_timeout">Timed out.</string>
+    <string name="nav_route_bad">Invalid answer.</string>
+    <string name="nav_route_loading">Calculating the route.</string>
+    <string name="nav_route_remaining">%1$s left, %2$s</string>
 </resources>

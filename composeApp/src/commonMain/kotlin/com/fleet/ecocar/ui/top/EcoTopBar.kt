@@ -16,11 +16,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.SkipNext
-import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -38,17 +33,11 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.fleet.ecocar.theme.EcoCarColors
-import com.fleet.ecocar.ui.DriverIconButton
 import com.fleet.ecocar.ui.DriverTouch
-import com.fleet.ecocar.ui.volume.MusicVolumeBar
 import com.fleet.ecocar.ui.volume.MusicVolumeUi
 import eco_car_gui.composeapp.generated.resources.Res
 import eco_car_gui.composeapp.generated.resources.call_music_paused
 import eco_car_gui.composeapp.generated.resources.call_resume
-import eco_car_gui.composeapp.generated.resources.media_next
-import eco_car_gui.composeapp.generated.resources.media_pause
-import eco_car_gui.composeapp.generated.resources.media_play
-import eco_car_gui.composeapp.generated.resources.media_previous
 import org.jetbrains.compose.resources.stringResource
 
 data class TopBarMusicState(
@@ -61,6 +50,7 @@ data class TopBarMusicState(
     val callPaused: Boolean = false,
     val hasMedia: Boolean = false,
     val canSkip: Boolean = false,
+    val durationMs: Long = 0L,
 ) {
     constructor(clock: String) : this(
         title = "",
@@ -77,6 +67,7 @@ data class MusicTransportHandlers(
     val onPlayPause: () -> Unit = {},
     val onNext: () -> Unit = {},
     val onResumeListening: () -> Unit = {},
+    val onSeek: (Long) -> Unit = {},
 )
 
 @Composable
@@ -84,6 +75,8 @@ fun EcoTopBar(
     music: TopBarMusicState,
     transport: MusicTransportHandlers,
     volume: MusicVolumeUi,
+    volumeOpen: Boolean,
+    onVolumeChange: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Surface(
@@ -92,88 +85,16 @@ fun EcoTopBar(
         tonalElevation = 0.dp,
     ) {
         Column {
-            Row(
+            NowPlayingStrip(
+                music = music,
+                transport = transport,
+                volume = volume,
+                volumeOpen = volumeOpen,
+                onVolumeChange = onVolumeChange,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = DriverTouch.ScreenEdge, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = music.title,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = EcoCarColors.OnDark,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        modifier = Modifier.padding(top = 4.dp),
-                    ) {
-                        Text(
-                            text = music.duration,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = EcoCarColors.OnDarkSecondary,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                        Text(
-                            text = music.source,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = EcoCarColors.GoldenYellow,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-                }
-                MusicVolumeBar(
-                    index = volume.index,
-                    maxIndex = volume.maxIndex,
-                    muted = volume.muted,
-                    onIndexChange = volume.onIndexChange,
-                    onToggleMute = volume.onToggleMute,
-                    modifier = Modifier.padding(horizontal = DriverTouch.Gap),
-                )
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(DriverTouch.Gap),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    DriverIconButton(
-                        onClick = transport.onPrevious,
-                        contentDescription = stringResource(Res.string.media_previous),
-                        icon = Icons.Filled.SkipPrevious,
-                        size = DriverTouch.MediaSkip,
-                        iconSize = DriverTouch.MediaIcon,
-                        enabled = music.canSkip,
-                    )
-                    DriverIconButton(
-                        onClick = transport.onPlayPause,
-                        contentDescription = stringResource(
-                            if (music.isPlaying) Res.string.media_pause else Res.string.media_play,
-                        ),
-                        icon = if (music.isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                        size = DriverTouch.PlayPause,
-                        highlighted = music.isPlaying,
-                        enabled = music.hasMedia,
-                        restingTint = EcoCarColors.GoldenYellow,
-                        iconSize = DriverTouch.MediaIcon,
-                    )
-                    DriverIconButton(
-                        onClick = transport.onNext,
-                        contentDescription = stringResource(Res.string.media_next),
-                        icon = Icons.Filled.SkipNext,
-                        size = DriverTouch.MediaSkip,
-                        iconSize = DriverTouch.MediaIcon,
-                        enabled = music.canSkip,
-                    )
-                }
-                Text(
-                    text = music.clock,
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = EcoCarColors.GoldenYellow,
-                    maxLines = 1,
-                )
-            }
+                    .padding(horizontal = DriverTouch.Gap, vertical = 8.dp),
+            )
             if (music.callPaused) {
                 CallPausedBanner(onResume = transport.onResumeListening)
             }
@@ -191,7 +112,7 @@ private fun CallPausedBanner(onResume: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = DriverTouch.ScreenEdge)
+            .padding(horizontal = DriverTouch.Gap)
             .padding(bottom = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(DriverTouch.Gap),

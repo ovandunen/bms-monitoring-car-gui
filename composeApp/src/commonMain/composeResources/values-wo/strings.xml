@@ -18,6 +18,7 @@
     <string name="media_next">Turu ji topp</string>
     <string name="media_play">Waxal</string>
     <string name="media_pause">Taxawal</string>
+    <string name="media_seek">Pozisiyon</string>
     <string name="call_music_paused">Woyofal bi mooy am – music taxaw na</string>
     <string name="call_resume">Weyal</string>
 
@@ -157,4 +158,15 @@
     <string name="map_refresh">Yeesal</string>
     <string name="map_zoom_in">Yokku kart bi</string>
     <string name="map_zoom_out">Wàññi kart bi</string>
+
+    <string name="nav_route_start">Start route</string>
+    <string name="nav_route_end">End route</string>
+    <string name="nav_route_no_vehicle">No vehicle position.</string>
+    <string name="nav_route_off">Off the route</string>
+    <string name="nav_route_none">No route found.</string>
+    <string name="nav_route_unreachable">Router unreachable.</string>
+    <string name="nav_route_timeout">Timed out.</string>
+    <string name="nav_route_bad">Invalid answer.</string>
+    <string name="nav_route_loading">Calculating the route.</string>
+    <string name="nav_route_remaining">%1$s left, %2$s</string>
 </resources>

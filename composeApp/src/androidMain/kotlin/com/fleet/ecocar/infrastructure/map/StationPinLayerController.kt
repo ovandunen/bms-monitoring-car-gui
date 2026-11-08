@@ -46,7 +46,7 @@ class StationPinLayerController(
         }
     }
 
-    private companion object {
+    internal companion object {
         const val SOURCE_ID = "charging-stations-source"
         const val LAYER_ID = "charging-stations-layer"
         const val ICON_ID = "charging-pin"

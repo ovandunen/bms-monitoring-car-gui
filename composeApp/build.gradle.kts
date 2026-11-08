@@ -17,6 +17,10 @@ val lowBatteryPercent: String =
     (findProperty("low.battery.percent") as? String)?.takeIf { it.isNotBlank() }
         ?: localProperties.getProperty("low.battery.percent")
         ?: "20"
+val valhallaBaseUrl: String =
+    (findProperty("valhalla.base.url") as? String)?.takeIf { it.isNotBlank() }
+        ?: localProperties.getProperty("valhalla.base.url")
+        ?: ""
 
 fun String.escapeForBuildConfig(): String =
     replace("\\", "\\\\").replace("\"", "\\\"")
@@ -100,6 +104,7 @@ android {
         consumerProguardFiles("src/androidMain/consumer-rules.pro")
         buildConfigField("String", "MAPTILER_API_KEY", "\"${mapTilerKey.escapeForBuildConfig()}\"")
         buildConfigField("float", "LOW_BATTERY_PERCENT", "${lowBatteryPercent}f")
+        buildConfigField("String", "VALHALLA_BASE_URL", "\"${valhallaBaseUrl.escapeForBuildConfig()}\"")
     }
 
     compileOptions {

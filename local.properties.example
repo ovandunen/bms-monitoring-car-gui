@@ -1,3 +1,6 @@
 ## Copy to local.properties (never commit local.properties).
 ## MapTiler API key for streets-v2-dark style (free tier).
 maptiler.api_key=YOUR_KEY_HERE
+## Valhalla server root for a station route. Leave empty to hide "Route starten".
+## The app appends /route. No host is built in. Use https: this app blocks cleartext.
+valhalla.base.url=

@@ -14,17 +14,16 @@ class SideNavWidthTest {
     }
 
     @Test
-    fun destinationsStayTheSixRailEntriesInOrder() {
+    fun railLeavesTheBrowserOutBecauseLineageOsHasOne() {
         assertEquals(
             listOf(
                 MainDestination.Music,
                 MainDestination.Map,
                 MainDestination.Battery,
                 MainDestination.Charts,
-                MainDestination.Browser,
                 MainDestination.Settings,
             ),
-            MainDestination.entries,
+            MainDestination.railEntries,
         )
     }
 }
