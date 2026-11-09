@@ -272,7 +272,9 @@ open class EcoCarApplication : Application() {
             }
         ).also { it.connect() }
         appScope.launch {
-            _usbPlaybackMode.value = playbackModeStore.load()
+            val loaded = playbackModeStore.load()
+            _usbPlaybackMode.value = loaded
+            _topBarMusic.value = _topBarMusic.value.copy(shuffleOn = loaded == UsbPlaybackMode.SHUFFLE)
         }
     }
 
@@ -489,8 +491,19 @@ open class EcoCarApplication : Application() {
         mediaCall.userPlay()
     }
 
+    fun toggleUsbShuffle() {
+        setUsbPlaybackMode(
+            if (_usbPlaybackMode.value == UsbPlaybackMode.SHUFFLE) {
+                UsbPlaybackMode.WHOLE_LIST
+            } else {
+                UsbPlaybackMode.SHUFFLE
+            },
+        )
+    }
+
     fun setUsbPlaybackMode(mode: UsbPlaybackMode) {
         _usbPlaybackMode.value = mode
+        _topBarMusic.value = _topBarMusic.value.copy(shuffleOn = mode == UsbPlaybackMode.SHUFFLE)
         appScope.launch { playbackModeStore.save(mode) }
         if (musicPlaybackSurface != MusicPlaybackSurface.USB) return
         val player = _exoPlayer ?: return

@@ -13,6 +13,8 @@
     <string name="volume_slider">Volume</string>
     <string name="volume_mute">Mute media</string>
     <string name="volume_unmute">Unmute media</string>
+    <string name="volume_adjust">Adjust volume</string>
+    <string name="volume_back_to_playback">Back to playback</string>
     <string name="media_previous">Previous track</string>
     <string name="media_next">Next track</string>
     <string name="media_play">Play</string>

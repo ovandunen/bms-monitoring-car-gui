@@ -13,6 +13,8 @@
     <string name="volume_slider">Lautstärke</string>
     <string name="volume_mute">Medien stummschalten</string>
     <string name="volume_unmute">Medienlautstärke einschalten</string>
+    <string name="volume_adjust">Lautstärke einstellen</string>
+    <string name="volume_back_to_playback">Zurück zur Wiedergabe</string>
     <string name="media_previous">Vorheriger Titel</string>
     <string name="media_next">Nächster Titel</string>
     <string name="media_play">Wiedergabe</string>

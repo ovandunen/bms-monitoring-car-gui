@@ -114,6 +114,10 @@ Artifact: `com.fleet.shared:eco-car-battery-ui:1.0.0`
 
 ## Recent features
 
+### Top bar: playback or volume
+
+The volume button sits at the left end of the top-bar row and switches that row. The default shows previous, play/pause, and next, then the time slider filling the rest. A tap shows the volume slider and the volume-off symbol; the playback controls hide. A second tap, or five seconds without moving the volume slider, brings playback back. A long press toggles mute. The symbol follows the mode.
+
 ### Battery overview (live IPC)
 
 - **`:eco-car-battery-ui`** — shared `BatteryOverviewScreen` fed by `BatteryDashboardViewModel` + `AidlBatteryClientAdapter`

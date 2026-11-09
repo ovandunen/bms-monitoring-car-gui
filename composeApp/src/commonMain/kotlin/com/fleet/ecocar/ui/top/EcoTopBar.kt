@@ -51,6 +51,7 @@ data class TopBarMusicState(
     val hasMedia: Boolean = false,
     val canSkip: Boolean = false,
     val durationMs: Long = 0L,
+    val shuffleOn: Boolean = false,
 ) {
     constructor(clock: String) : this(
         title = "",
@@ -66,6 +67,7 @@ data class MusicTransportHandlers(
     val onPrevious: () -> Unit = {},
     val onPlayPause: () -> Unit = {},
     val onNext: () -> Unit = {},
+    val onShuffle: () -> Unit = {},
     val onResumeListening: () -> Unit = {},
     val onSeek: (Long) -> Unit = {},
 )
@@ -75,7 +77,7 @@ fun EcoTopBar(
     music: TopBarMusicState,
     transport: MusicTransportHandlers,
     volume: MusicVolumeUi,
-    volumeOpen: Boolean,
+    mode: TopBarControlMode,
     onVolumeChange: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -89,7 +91,7 @@ fun EcoTopBar(
                 music = music,
                 transport = transport,
                 volume = volume,
-                volumeOpen = volumeOpen,
+                mode = mode,
                 onVolumeChange = onVolumeChange,
                 modifier = Modifier
                     .fillMaxWidth()

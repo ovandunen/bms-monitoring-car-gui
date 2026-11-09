@@ -4,13 +4,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Repeat
+import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material3.MaterialTheme
@@ -40,6 +41,8 @@ import eco_car_gui.composeapp.generated.resources.media_pause
 import eco_car_gui.composeapp.generated.resources.media_play
 import eco_car_gui.composeapp.generated.resources.media_previous
 import eco_car_gui.composeapp.generated.resources.media_seek
+import eco_car_gui.composeapp.generated.resources.music_mode_shuffle
+import eco_car_gui.composeapp.generated.resources.music_mode_whole_list
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -47,19 +50,10 @@ fun NowPlayingStrip(
     music: TopBarMusicState,
     transport: MusicTransportHandlers,
     volume: MusicVolumeUi,
-    volumeOpen: Boolean,
+    mode: TopBarControlMode,
     onVolumeChange: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val seekLabel = stringResource(Res.string.media_seek)
-    val seekable = music.hasMedia && music.durationMs > 0L
-    var dragging by remember { mutableStateOf(false) }
-    var dragFraction by remember { mutableFloatStateOf(0f) }
-    val played = if (seekable) {
-        (music.currentPosition.toFloat() / music.durationMs.toFloat()).coerceIn(0f, 1f)
-    } else {
-        0f
-    }
     Column(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -103,70 +97,106 @@ fun NowPlayingStrip(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(DriverTouch.Gap),
         ) {
-            if (volumeOpen) {
+            if (mode == TopBarControlMode.VOLUME) {
                 VolumeLevelSlider(
                     index = volume.index,
                     maxIndex = volume.maxIndex,
                     onIndexChange = onVolumeChange,
+                    modifier = Modifier.weight(1f),
                 )
-                Spacer(Modifier.weight(1f))
-            } else if (seekable) {
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(horizontal = DriverTouch.Gap),
-                ) {
-                    Slider(
-                        value = if (dragging) dragFraction else played,
-                        onValueChange = { fraction ->
-                            dragging = true
-                            dragFraction = fraction
-                            transport.onSeek((fraction * music.durationMs).toLong())
-                        },
-                        onValueChangeFinished = { dragging = false },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .semantics { contentDescription = seekLabel },
-                        colors = SliderDefaults.colors(
-                            thumbColor = EcoCarColors.GoldenYellow,
-                            activeTrackColor = EcoCarColors.GoldenYellow,
-                            inactiveTrackColor = EcoCarColors.OnDarkSecondary,
-                        ),
-                    )
-                }
             } else {
-                Spacer(Modifier.weight(1f))
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(DriverTouch.Gap)) {
-            DriverIconButton(
-                onClick = transport.onPrevious,
-                contentDescription = stringResource(Res.string.media_previous),
-                icon = Icons.Filled.SkipPrevious,
-                size = DriverTouch.MediaSkip,
-                iconSize = DriverTouch.TransportIcon,
-                enabled = music.canSkip,
-            )
-            DriverIconButton(
-                onClick = transport.onPlayPause,
-                contentDescription = stringResource(
-                    if (music.isPlaying) Res.string.media_pause else Res.string.media_play,
-                ),
-                icon = if (music.isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                size = DriverTouch.PlayPause,
-                highlighted = music.isPlaying,
-                enabled = music.hasMedia,
-                restingTint = EcoCarColors.GoldenYellow,
-                iconSize = DriverTouch.TransportIcon,
-            )
-            DriverIconButton(
-                onClick = transport.onNext,
-                contentDescription = stringResource(Res.string.media_next),
-                icon = Icons.Filled.SkipNext,
-                size = DriverTouch.MediaSkip,
-                iconSize = DriverTouch.TransportIcon,
-                enabled = music.canSkip,
-            )
+                TransportControls(
+                    music = music,
+                    transport = transport,
+                    modifier = Modifier.weight(1f),
+                )
             }
         }
+    }
+}
+
+@Composable
+private fun TransportControls(
+    music: TopBarMusicState,
+    transport: MusicTransportHandlers,
+    modifier: Modifier = Modifier,
+) {
+    val seekLabel = stringResource(Res.string.media_seek)
+    val seekable = music.hasMedia && music.durationMs > 0L
+    var dragging by remember { mutableStateOf(false) }
+    var dragFraction by remember { mutableFloatStateOf(0f) }
+    val played = if (seekable) {
+        (music.currentPosition.toFloat() / music.durationMs.toFloat()).coerceIn(0f, 1f)
+    } else {
+        0f
+    }
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(DriverTouch.Gap),
+    ) {
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = DriverTouch.Gap),
+        ) {
+            Slider(
+                value = if (seekable && dragging) dragFraction else played,
+                onValueChange = { fraction ->
+                    if (!seekable) return@Slider
+                    dragging = true
+                    dragFraction = fraction
+                    transport.onSeek((fraction * music.durationMs).toLong())
+                },
+                onValueChangeFinished = { dragging = false },
+                enabled = seekable,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .semantics { contentDescription = seekLabel },
+                colors = SliderDefaults.colors(
+                    thumbColor = EcoCarColors.GoldenYellow,
+                    activeTrackColor = EcoCarColors.GoldenYellow,
+                    inactiveTrackColor = EcoCarColors.OnDarkSecondary,
+                ),
+            )
+        }
+        DriverIconButton(
+            onClick = transport.onPrevious,
+            contentDescription = stringResource(Res.string.media_previous),
+            icon = Icons.Filled.SkipPrevious,
+            size = DriverTouch.MediaSkip,
+            iconSize = DriverTouch.TransportIcon,
+            enabled = music.canSkip,
+        )
+        DriverIconButton(
+            onClick = transport.onPlayPause,
+            contentDescription = stringResource(
+                if (music.isPlaying) Res.string.media_pause else Res.string.media_play,
+            ),
+            icon = if (music.isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+            size = DriverTouch.PlayPause,
+            highlighted = music.isPlaying,
+            enabled = music.hasMedia,
+            restingTint = EcoCarColors.GoldenYellow,
+            iconSize = DriverTouch.TransportIcon,
+        )
+        DriverIconButton(
+            onClick = transport.onNext,
+            contentDescription = stringResource(Res.string.media_next),
+            icon = Icons.Filled.SkipNext,
+            size = DriverTouch.MediaSkip,
+            iconSize = DriverTouch.TransportIcon,
+            enabled = music.canSkip,
+        )
+        DriverIconButton(
+            onClick = transport.onShuffle,
+            contentDescription = stringResource(
+                if (music.shuffleOn) Res.string.music_mode_shuffle else Res.string.music_mode_whole_list,
+            ),
+            icon = if (music.shuffleOn) Icons.Filled.Shuffle else Icons.Filled.Repeat,
+            size = DriverTouch.MediaSkip,
+            iconSize = DriverTouch.TransportIcon,
+            restingTint = EcoCarColors.GoldenYellow,
+        )
     }
 }

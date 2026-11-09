@@ -28,6 +28,6 @@ object DriverTouch {
      */
     val CoverInset = 48.dp
 
-    /** How long the volume slider stays open after the last drag. */
-    const val VolumeSliderOpenMs = 4_000L
+    /** How long VOLUME stays up after the last volume-slider touch. */
+    const val VolumeSliderOpenMs = 5_000L
 }

@@ -40,10 +40,13 @@ import com.fleet.ecocar.ui.side.EcoSideNav
 import com.fleet.ecocar.ui.side.SideNavWidth
 import com.fleet.ecocar.ui.top.EcoTopBar
 import com.fleet.ecocar.ui.top.MusicTransportHandlers
+import com.fleet.ecocar.ui.top.TopBarControlMode
+import com.fleet.ecocar.ui.top.TopBarControlPlace
 import com.fleet.ecocar.ui.top.TopBarMusicState
-import com.fleet.ecocar.ui.volume.VolumeSpeakerButton
 import com.fleet.ecocar.ui.volume.rememberMusicVolume
+import kotlin.time.TimeSource
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 
 @Composable
 fun AppScaffold(
@@ -70,12 +73,22 @@ fun AppScaffold(
     onToggleCanLog: (() -> Unit)? = null,
 ) {
     val volume = rememberMusicVolume()
-    var volumeOpen by remember { mutableStateOf(false) }
-    var volumePulse by remember { mutableIntStateOf(0) }
-    LaunchedEffect(volumeOpen, volumePulse) {
-        if (!volumeOpen) return@LaunchedEffect
-        delay(DriverTouch.VolumeSliderOpenMs)
-        volumeOpen = false
+    val place = remember {
+        val start = TimeSource.Monotonic.markNow()
+        TopBarControlPlace(DriverTouch.VolumeSliderOpenMs) {
+            start.elapsedNow().inWholeMilliseconds
+        }
+    }
+    var mode by remember { mutableStateOf(place.mode) }
+    var schedule by remember { mutableIntStateOf(0) }
+    LaunchedEffect(schedule, mode) {
+        while (isActive) {
+            val wait = place.remainingMs() ?: return@LaunchedEffect
+            if (wait > 0L) delay(wait)
+            place.onClock()
+            mode = place.mode
+            if (place.mode != TopBarControlMode.VOLUME) return@LaunchedEffect
+        }
     }
     val dialogSlot = remember { InWindowDialogSlot() }
     CompositionLocalProvider(LocalInWindowDialogSlot provides dialogSlot) {
@@ -96,28 +109,16 @@ fun AppScaffold(
                     .fillMaxHeight()
                     .background(EcoCarColors.SurfaceElevated),
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    VolumeSpeakerButton(
-                        muted = volume.muted,
-                        onClick = {
-                            volumeOpen = true
-                            volumePulse += 1
-                        },
-                        onLongClick = {
-                            volume.onToggleMute()
-                            volumeOpen = true
-                            volumePulse += 1
-                        },
-                    )
-                }
                 EcoSideNav(
                     selected = selected,
                     onSelect = onSelectDestination,
+                    volumeOff = mode == TopBarControlMode.VOLUME,
+                    onVolumeClick = {
+                        place.onVolumeButtonTap()
+                        mode = place.mode
+                        schedule += 1
+                    },
+                    onVolumeLongClick = { volume.onToggleMute() },
                     modifier = Modifier.weight(1f),
                 )
             }
@@ -131,10 +132,11 @@ fun AppScaffold(
                 music = music,
                 transport = transport,
                 volume = volume,
-                volumeOpen = volumeOpen,
+                mode = mode,
                 onVolumeChange = { index ->
                     volume.onIndexChange(index)
-                    volumePulse += 1
+                    place.onVolumeSliderTouch()
+                    schedule += 1
                 },
             )
             Box(modifier = Modifier.weight(1f).fillMaxWidth()) {

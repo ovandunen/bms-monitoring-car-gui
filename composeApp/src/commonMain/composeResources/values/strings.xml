@@ -14,6 +14,8 @@
     <string name="volume_slider">Volume</string>
     <string name="volume_mute">Couper le son des médias</string>
     <string name="volume_unmute">Rétablir le son des médias</string>
+    <string name="volume_adjust">Lautstärke einstellen</string>
+    <string name="volume_back_to_playback">Zurück zur Wiedergabe</string>
     <string name="media_previous">Titre précédent</string>
     <string name="media_next">Titre suivant</string>
     <string name="media_play">Lecture</string>

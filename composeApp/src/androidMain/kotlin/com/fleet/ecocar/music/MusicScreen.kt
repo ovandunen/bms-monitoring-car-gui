@@ -29,23 +29,19 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.outlined.Radio
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.mutableIntStateOf
@@ -66,11 +62,8 @@ import androidx.media3.common.Player
 import androidx.media3.common.PlaybackException
 import com.bumptech.glide.Glide
 import com.fleet.ecocar.EcoCarApplication
-import com.fleet.ecocar.ui.DriverTouch
 import eco_car_gui.composeapp.generated.resources.Res
 import eco_car_gui.composeapp.generated.resources.music_buffering
-import eco_car_gui.composeapp.generated.resources.music_mode_shuffle
-import eco_car_gui.composeapp.generated.resources.music_mode_whole_list
 import eco_car_gui.composeapp.generated.resources.music_no_files
 import eco_car_gui.composeapp.generated.resources.music_no_stations
 import eco_car_gui.composeapp.generated.resources.music_retry
@@ -222,8 +215,6 @@ fun MusicScreen(modifier: Modifier = Modifier) {
 
     val currentUsbIndex = player.currentMediaItemIndex
     val isUsbMode = app.musicPlaybackSurface == MusicPlaybackSurface.USB
-    val playbackMode by app.usbPlaybackMode.collectAsState()
-
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -266,18 +257,6 @@ fun MusicScreen(modifier: Modifier = Modifier) {
                 )
                 TAB_RADIO_PLAYER -> RadioPlayerPlaceholder(Modifier.fillMaxSize())
                 TAB_USB -> Column(Modifier.fillMaxSize()) {
-                    UsbShuffleRow(
-                        shuffle = playbackMode == UsbPlaybackMode.SHUFFLE,
-                        onToggle = {
-                            app.setUsbPlaybackMode(
-                                if (playbackMode == UsbPlaybackMode.SHUFFLE) {
-                                    UsbPlaybackMode.WHOLE_LIST
-                                } else {
-                                    UsbPlaybackMode.SHUFFLE
-                                },
-                            )
-                        },
-                    )
                     UsbTrackList(
                         tracks = usbTracks,
                         playingIndex = if (isUsbMode) currentUsbIndex else -1,
@@ -326,9 +305,9 @@ private fun MusicTabRow(selectedIndex: Int, onSelect: (Int) -> Unit) {
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
         MusicTabChip(
-            label = "🌐 ${stringResource(Res.string.music_tab_internet)}",
-            selected = selectedIndex == TAB_INTERNET,
-            onClick = { onSelect(TAB_INTERNET) },
+            label = "🎵 ${stringResource(Res.string.music_tab_usb)}",
+            selected = selectedIndex == TAB_USB,
+            onClick = { onSelect(TAB_USB) },
             modifier = Modifier.weight(1f),
         )
         MusicTabChip(
@@ -338,9 +317,9 @@ private fun MusicTabRow(selectedIndex: Int, onSelect: (Int) -> Unit) {
             modifier = Modifier.weight(1f),
         )
         MusicTabChip(
-            label = "🎵 ${stringResource(Res.string.music_tab_usb)}",
-            selected = selectedIndex == TAB_USB,
-            onClick = { onSelect(TAB_USB) },
+            label = "🌐 ${stringResource(Res.string.music_tab_internet)}",
+            selected = selectedIndex == TAB_INTERNET,
+            onClick = { onSelect(TAB_INTERNET) },
             modifier = Modifier.weight(1f),
         )
     }
@@ -538,26 +517,6 @@ private fun RadioStationList(
                     }
                 }
             }
-        }
-    }
-}
-
-
-@Composable
-private fun UsbShuffleRow(shuffle: Boolean, onToggle: () -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
-        horizontalArrangement = Arrangement.End,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        IconButton(onClick = onToggle, modifier = Modifier.size(DriverTouch.MinTarget)) {
-            Icon(
-                imageVector = if (shuffle) Icons.Filled.Shuffle else Icons.Filled.Repeat,
-                contentDescription = stringResource(
-                    if (shuffle) Res.string.music_mode_shuffle else Res.string.music_mode_whole_list,
-                ),
-                tint = TabActive,
-            )
         }
     }
 }
